@@ -10,7 +10,7 @@ function usage()
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  echo "Name: lsenv - List the Mycroft/Minimy/Neon/OVOS environment" 
+  echo "Name: lsenv - List information about the OVOS environment" 
   echo "Usage: lsenv [OPTIONS] [noclear]" 
   echo "Where: noclear      Does not clear the screen first"
   echo ""
@@ -72,7 +72,7 @@ function listService()
   local procs
 
   echo "Status of $theService:"
-  local tempFile=/tmp/fubar
+  local tempFile=`mktemp`
   /usr/sbin/service $theService status > $tempFile 2>/dev/null
   local activeLine=`grep "active (running)" $tempFile 2>/dev/null`
   if [ ${#activeLine} != 0 ]; then         # found "active (running)"
@@ -86,26 +86,10 @@ function listService()
     echo " -) WARNING: $theService is not running as a service ... checking for processes ..."
     procs=`ps -ef | grep $theService | grep -v grep`
     if [ ${#procs} != 0 ]; then            # matching process
-      if [ "$theService" = minimy ]; then  # just show the skills running
-        if [ "$verbose" = 1 ]; then        # normal output
-          userSkills=`echo "$procs" | awk -F/ '{print $NF}' | sort | xargs`
-          systemSkills=`ps -ef|grep -E 'python3 framework|python3 skills'|grep -v grep|awk -F/ '{print $NF}'|sed 's/.py//g'|sort|uniq|xargs`
-          echo "    Minimy user skills: $userSkills"
-          echo "         System skills: $systemSkills"
-        else                               # verbose mode
-          echo "$procs" | sed 's/^/    /g'
-          ps -ef | grep -E 'python3 framework|python3 skills' | grep -v "grep" | sed 's/^/    /g'
-        fi
-      else                                 # not minimy
-        echo "    Found matching $theService processes:"
-        echo "$procs" | sed 's/^/    /g'
-      fi
+      echo "    Found matching $theService processes:"
+      echo "$procs" | sed 's/^/    /g'
     else
-      if [ "$theService" = minimy ]; then
-        echo "    WARNING: Niether Minimy nor OVOS appear to be running"
-      else
-        echo "    WARNING: $theService does not appear to be running"
-      fi
+      echo "    WARNING: $theService does not appear to be running"
     fi  
   fi	  
   /usr/bin/rm $tempFile                    # remove output file 
@@ -196,7 +180,7 @@ function tmpfsUsage()
 
 #+--------------------------------------------------------------------------+
 function doList()
-# List many aspects of the Mycroft/Minimy/Neon/OVOS environment 
+# List much information about the OVOS environment 
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -210,18 +194,22 @@ function doList()
   if [ $? = 0 ]; then                      # looks like OVOS is running 
     service="ovos"
     listService bin/ovos  
-  else                                     # assume Minimy 
-    service="minimy"
-    listService minimy 
-    listService mpd                        # Minimy needs mpd running
   fi
   listService pulseaudio                   # alwasy check for pulse
   
   distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
+  OVOSver=`ovosver 2>/dev/null`
+  if [ ${#OVOSver} = 0 ]; then             # did not get version
+    OVOSver="unknown"
+  fi
 
   # also list many other settings and status 
   local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   printf "%15s : %s\n" "Distro" "$distro"
+  printf "%15s : %s\n" "OVOS version" "$OVOSver"
+  printf "%15s : %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
+  printf "%15s : %s\n" "PYTHONPATH" "$PYTHONPATH"
+
   local IPaddr=`hostname -I | awk '{print $1}'` # get the IP address
   printf "%15s : %s\n" "IP address" "$IPaddr"
   listTemp                                 # RasPi temperature
@@ -237,13 +225,8 @@ function doList()
 
   # are log directories using tmpfs? 
   echo "tmpfs filesystem?"
-  tmpfsUsage /var/log Linux logs
-  if [ "$service" = minimy ]; then
-    tmpfsUsage $HOME/minimy/logs Minimy logs
-    tmpfsUsage $HOME/minimy/tmp Minimy temp dir 
-  else  
-    tmpfsUsage $HOME/.local/state/mycroft OVOS logs
-  fi  
+  tmpfsUsage /var/log/ Linux logs
+  tmpfsUsage $HOME/.local/state/mycroft/ OVOS logs
   echo
  }                                         # doList()
 

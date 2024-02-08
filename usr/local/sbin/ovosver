@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+# ovosver - get the ovos version from the ovos-core CHANGELOG.md file
+#
+
+baseDir="$HOME/.venvs/ovos/ovos-core" 
+if [ ! -d $baseDir ]; then
+  echo "ERROR: directory $baseDir not found - is OVOS installed?"
+  exit 1
+fi
+
+cd $baseDir
+ovosVer=`grep "[Full Changelog]" CHANGELOG.md | grep "\.\.\.HEAD)" | awk -F/ {'print $NF'} | sed 's/...HEAD)//g'`
+if [ ${#ovosVer} = 0 ]; then 
+  echo "Unexpected: version not found in $baseDir/CHANGELOG.md file"
+  exit 2
+fi
+echo $ovosVer
