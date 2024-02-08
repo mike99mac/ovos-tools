@@ -1,38 +1,30 @@
 # ovos-tools 
 
-This repository has scripts and other files and documentation to work with the Open Voice Operating System (OVOS).
+This repository has documentation, scripts and other files to install and work with the Open Voice Operating System (OVOS).
 
 This README document describes how to build a voice system from the ground up.
 
-## Overview
-This document describes how to get the solution running, and starts from the very beginning.
-
-Here is a video of a beta version: https://www.youtube.com/watch?v=WRiqg0b-EPI
-
 ## The build
 
-The environment used to develop the code and write this document is a RasPi 4B with 4 GB of memory, running Ubuntu Desktop 22.04 inside an *enclosure* that is a retro-looking boombox. Later Raspberry Pi OS (aka Raspbian) versions 10 (buster) and 11 (bullseye) were tested. However, this code and these steps should be relatively portable to any hardware that can run any Linux. 
+The environment used to develop the code and write this document is a RasPi 4B with 4 GB of memory, running Ubuntu Desktop 22.04 inside an *enclosure*.
 
-The overall steps to build a *Smart Boombox* are:
+Later Raspberry Pi OS (aka Raspbian) versions 10 (buster) and 11 (bullseye) were tested. However, this code and these steps should be relatively portable to any hardware that can run any Linux. 
+
+The overall steps to build an OVOS box are:
 
 - Acquire the hardware 
 - Flash Linux to a memory device
 - Connect the hardware
 - Install and configure Linux
-- Install and use mycroft-tools
+- Install and use ovos-tools
 - Test microphone and speakers
-- Install and configure Minimy
+- Install and configure OVOS 
 - Start Minimy and use it!
 
-This document  is based on *The smart boombox cookbook* which has more details on building the box and a parts list. 
-See: https://github.com/mike99mac/mycroft-tools/blob/master/smartBoombox.pdf 
-
 ## Acquire the hardware
-The recommended hardware is a Raspberry Pi (RasPi) 4B with 4 or 8 GB of memory.  Yes, they're still hard to get, but not impossible. 
+The recommended hardware is a Raspberry Pi (RasPi) 4B with 4 or 8 GB of memory.  The RasPi 5 is now available and is more powerful and hopefully easier to procure than the 4 was.
 
 A Rasberry Pi 400 is another option.  It allows the CPU to be *offboard* which frees up space onboard to house batteries. The CPUs also run a lot cooler due to the massive heat sink.
-
-The RasPi 5 is now available and is more powerful and hopefully easier to procure than the 4 was.
 
 For a microphone, a flat, disk type with a mute/unmute switch for visible privacy is recommended.  Don't use a cheap one.  It is best to move the microphone away from the speakers and closer to the center of the room.
 
@@ -242,7 +234,7 @@ SSH as the user ``pi``, if you want to continue from another system. You can use
 **IMPORTANT**: Do not run as ``root``. Doing so will almost certainly screw up your system. 
 Users other than ``pi`` ideally will work as the environment variable ``$HOME`` is used in scripts, however, this has never been tested.
 
-## Install and use mycroft-tools
+## Install and use ovos-tools
 
 The **``ovos-tools``** repo has been developed to help with the installation, configuration, use and testing of the free and open personal voice assistants.
 

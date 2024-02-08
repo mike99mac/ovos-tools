@@ -1,7 +1,61 @@
 #!/bin/bash
 #
-# installovos - clone ovos-core, create a venv and configure it to run OVOS
+# installovos - create a venv then install OVOS into it
 #
+#+--------------------------------------------------------------------------+
+function usage
+# Parse arguments
+# Args: All arguments passed into script
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo
+  echo "Name:  installovos - install OVOS in a virtual environment"
+  echo "Usage: installovos [OPTIONS]"
+  echo ""
+  echo "OPTIONS:"
+  echo "  -h|--help         Give help (this screen)"
+  echo "  -v|--verbose      Increase verbosity"
+  echo "  -x|--debug        Print commands and arguments as they are executed"
+  echo "  -y|--yes          Do not prompt to remove old venv"
+  exit 51
+ }                                         # usage()
+
+#+--------------------------------------------------------------------------+
+function parseArgs
+# Parse arguments
+# Args: All arguments passed in 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  while [ -n "$1" ]                        # loop through args passed in
+  do
+    case "$1" in
+      -h|--help)
+        usage
+        ;;
+      -v|--verbose)
+        verbose=2
+        ;;
+      -x|--debug)                          # turn trace on
+         set -vx
+         ;;
+      -y|--yes)                            # do not prompt
+         yes="yes"
+         ;;
+      *)
+        echo "ERROR: Unrecognized argument: $1"
+        usage
+        ;;
+    esac
+    shift
+  done
+ }                                         # parseArgs()
+
 #+--------------------------------------------------------------------------+
 function runCmd
 # run a command, report time spent and exit if it failes
@@ -24,24 +78,80 @@ function runCmd
  }                                         # runCmd()
 
 #+--------------------------------------------------------------------------+
-function installPackages
-# install skills and other packages with "pip install git+URL"
-# Args: the URLs to install
+function installWithGit 
+# install package with git clone
+# Arg 1: the URL to install
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  local skillURLs="$@"
+  local theSkill="$@"
   local date=`date`
-  echo "Running install2.installPackages() on $date ..." 
-  echo 
-  local nextSkill
-  for nextSkill in $skillURLs; do
-    echo "installing skill $nextSkill..."
-    runCmd pip install git+https://github.com/$nextSkill
-  done
- }                                         # installPackages()
+  echo "installWithGit() installing skill $theSkill..."
+  runCmd git clone https://github.com/OpenVoiceOS/$theSkill 
+ }                                         # installWithGit()
+
+#+--------------------------------------------------------------------------+
+function installWithPip
+# install package with "pip install git+URL"
+# Arg 1: the URL to install
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local theSkill="$@"
+  local date=`date`
+  echo "installWithGit() installing skill $theSkill..."
+  runCmd pip install $theSkill
+ }                                         # installWithPip()
+
+#+--------------------------------------------------------------------------+
+function installWithGitPip 
+# install package with "pip install git+URL"
+# Arg 1: the URL to install
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local theSkill="$@"
+  local date=`date`
+  echo "installWithGit() installing skill $theSkill..."
+  runCmd pip install git+https://github.com/OpenVoiceOS/$theSkill
+ }                                         # installWithGitPip()
+
+#+--------------------------------------------------------------------------+
+function copyServiceFile
+# Copy a systemd service file from ovos-tools to run as root or user then enable it
+# Arg 1: service file name
+# Arg 2: "root" or "user"
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local serviceName="$1"
+  local serviceType=$2    
+  local serviceFQDN="$HOME/ovos-tools/$1.service"
+
+  if [ ! -f $serviceFQDN ]; then
+    echo "ERROR: service file $serviceFQDN not found - is ovos-tools installed?"
+    exit 1
+  fi    
+
+  if [ "$serviceType" = root ]; then
+    runCmd sudo cp $serviceFQDN /etc/systemd/system
+    runCmd sudo systemctl enable $serviceName 
+  elif [ "$serviceType" = user ]; then
+    runCmd sudo cp $serviceFQDN /etc/systemd/user
+    runCmd systemctl --user enable $serviceName
+  else                                     # not expected
+    echo "INTERNAL ERROR: serviceType = $serviceType"
+    exit 1
+  fi
+ }                                         # copyServiceFile()
 
 #+--------------------------------------------------------------------------+
 function installOVOS
@@ -54,70 +164,86 @@ function installOVOS
   local date=`date`
   echo "Running installovos on $date ..." 
   echo 
-  if [ -d ~/ovos-core ]; then              # ovos-core directory exists
-    echo -n "~/ovos-core directory exists - do you want to remove it and re-clone? (y/n) "
-    read ans
-    if [ "$ans" != y -a "$ans" != Y ]; then
-      exit 1
+  if [ -d ~/.venvs ]; then                 #  directory exists
+    if [ "$1" != "-y" ]; then 
+      echo -n "~/.venvs directory exists - do you want to remove it and rebuild? (y/n) "
+      read ans
+      if [ "$ans" != y -a "$ans" != Y ]; then
+        exit 1
+      fi
     fi
-    echo "removing ~/ovos-core directory ..."
-    runCmd sudo rm -fr ~/ovos-core
+    echo "removing ~/.venvs directory ..."
+    runCmd sudo rm -fr ~/.venvs
+  fi
+
+  if [ ! -f $HOME/ovos-tools/ovos.git.packages  ]; then
+    echo "ERROR: $HOME/ovos-tools/ovos.git.packages not found - is ovos-tools installed?"
   fi
   
-  echo "cloning ovos-core ..."
+  echo "Creating a virtual environment ..."
   cd                                       # cd to home directory
+  runCmd mkdir -p .venvs/ovos
+  runCmd python3 -m venv ~/.venvs/ovos
+  cd .venvs/ovos                        
+  
+  echo "Activating virtual environment ..."
+  runCmd source ./bin/activate
+
+  echo "Cloning ovos-core ..."
   runCmd git clone https://github.com/OpenVoiceOS/ovos-core
   
-  echo "creating a virtual environment ..."
-  runCmd cd ~/ovos-core
-  runCmd python3 -m venv venv
-  
-  echo "activating virtual environment ..."
-  runCmd source ~/ovos-core/venv/bin/activate
-
-  echo "installing packages with apt-get ..."
+  echo "Installing packages with apt-get ..."
   runCmd sudo apt-get install -y build-essential python3-dev swig libssl-dev libfann-dev libpulse-dev libasound2-dev mpg123 portaudio19-dev python3-pyaudio liblapack-dev libopenblas-dev flac
   
-  echo "installing wheel with pip install ..."
+  echo "Installing wheel with pip install ..."
   runCmd pip install wheel                 # wheel needs to be in place before other packages 
 
-  echo "installing other non-ovos packages with pip install ..."
+  echo "Installing other non-ovos packages with pip install ..."
   runCmd pip install silero tornado 
 
-  echo "installing ovos packages with pip install ..."
-  installPackages OpenVoiceOS/ovos-ocp-news-plugin OpenVoiceOS/ovos-stt-plugin-vosk OpenVoiceOS/ovos-stt-plugin-chromium OpenVoiceOS/ovos-vad-plugin-webrtcvad
-  installPackages mike99mac/ovos-skill-mpc-mike99mac OpenVoiceOS/ovos-cli-client OpenVoiceOS/ovos-tts-plugin-mimic OpenVoiceOS/ovos-tts-plugin-mimic2
-  installPackages OpenVoiceOS/ovos-config OpenVoiceOS/ovos_skill_manager OpenVoiceOS/skill-ovos-date-time OpenVoiceOS/skill-ovos-fallback-unknown 
-  installPackages OpenVoiceOS/skill-ovos-hello-world OpenVoiceOS/skill-ovos-naptime OpenVoiceOS/skill-ovos-news OpenVoiceOS/skill-ovos-personal 
-  installPackages OpenVoiceOS/skill-ovos-stop OpenVoiceOS/skill-ovos-timer OpenVoiceOS/skill-ovos-volume OpenVoiceOS/skill-ovos-weather 
-  # installPackages OpenVoiceOS/skill-ovos-wikipedia OpenVoiceOS/skill-ovos-youtube-music MycroftAI/adapt
-  installPackages OpenVoiceOS/skill-ovos-wikipedia OpenVoiceOS/skill-ovos-youtube-music OpenVoiceOS/ovos-media OpenVoiceOS/ovos-media-plugin-vlc
-
-  echo "installing stable version of ovos-core ..."
-  # runCmd "pip install ovos-core[all]"
+  echo "Installing ovos-core ..."
   runCmd "pip install ovos-core[mycroft]"
 
+  # some packages are "git clone"d, some just use pip and others need pip+git
+  local nextPkg
+  echo "Installing ovos packages with git ..."
+  local gitPkgs=`cat $HOME/ovos-tools/ovos.git.packages | xargs`
+  for nextPkg in $gitPkgs; do
+    installWithGit $nextPkg
+  done
 
-  if [ ! -f /etc/systemd/system/mycroft.service ]; then
-    echo "copying mycroft.service to /etc/systemd/system ..."
-    runCmd sudo cp ~/mycroft-tools/mycroft.service /etc/systemd/system
-  fi
-  echo "setting mycroft to start at boot time ..."
-  runCmd sudo systemctl enable mycroft
-  if [ ! -f /usr/local/sbin/stop-mycroft.sh ]; then
-    echo "making symlink to stop-mycroft.sh ..."
-    runCmd ln -s ~/ovos-core/stop-mycroft.sh /usr/local/sbin
-  fi
+  echo "Installing ovos packages with pip ..."
+  local pipPkgs=`cat $HOME/ovos-tools/ovos.pip.packages | xargs`
+  for nextPkg in $pipPkgs; do
+    installWithPip $nextPkg
+  done
+
+  echo "Installing ovos packages with install ..."
+  local pipPkgs=`cat $HOME/ovos-tools/ovos.pip+git.packages | xargs`
+  for nextPkg in $pipPkgs; do
+    installWithGitPip $nextPkg
+  done
+
+  echo "Copying ovos_PHAL_admin file ..."
+  runCmd cp ~/ovos-tools/ovos_PHAL_admin ~/.venvs/ovos/bin
+
+  echo "Copying .service files and setting to run at boot time .."
+  copyServiceFile ovos-phal-admin root     # the one service that runs as root
+  for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus ovos-phal; do
+    copyServiceFile $nextService user
+  done
  }                                         # installOVOS()
 
 # main()
-SECONDS=0                                  # reset stopwatch
-installOVOS                                # do the work
+verbose=1                                  # verbosity
+yes="no"
 
-let min=$SECONDS/60
+parseArgs $@                               # parse arguments
+installOVOS $@                             # do the work
+let min=$SECONDS/60                        # show time spent installing
 let sec=$SECONDS%60
 if [ $sec -lt 10 ]; then                   # add a leading 0
   sec="0$sec"
 fi
-echo "successfully installed ovos-core in $min:$sec"
+echo "successfully installed OVOS in $min:$sec"
 
