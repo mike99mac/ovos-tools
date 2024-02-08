@@ -1,0 +1,16 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-media
+Description=Open Voice OS - Media
+After=network.target ovos-messagebus.service ovos-phal.service
+Requires=ovos-messagebus.service ovos-phal.service
+
+[Service]
+WorkingDirectory=/home/pi/.venvs/ovos
+ExecStart=/home/pi/.venvs/ovos/bin/ovos-media
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,16 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-core
+Description=Open Voice OS - Core (skills)
+After=network.target ovos-messagebus.service ovos-phal.service
+Requires=ovos-messagebus.service ovos-phal.service pulseaudio.socket
+
+[Service]
+WorkingDirectory=/home/pi/.venvs/ovos
+ExecStart=/home/pi/ovos-core/venv/bin/ovos-core
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

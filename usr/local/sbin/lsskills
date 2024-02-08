@@ -1,0 +1,177 @@
+#!/bin/bash
+#
+# lsskills - list skills installed or uninstalled (symlink to lsintent)   
+#
+#+--------------------------------------------------------------------------+
+function usage()
+# Give help to the user
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo "Name: lsskills - List Mycroft ${object}s "
+  echo "Usage: lsskills [OPTIONS] [PATTERN]"
+  echo "Where: PATTERN is an optional string pattern to search for"
+  echo ""
+  echo "OPTIONS:"
+  echo "  -h|--help         Give help (this screen)"
+  echo "  -a|--all          List both installed and uninstalled skills" 
+  echo "  -l|--long         Long listing - get details from README or METADATA files"
+  echo "  -u|--uninstalled  Only list skills not installed" 
+  echo "  -v|--verbose      Verbose output"
+  echo "  -x|--debug        Print commands and arguments as they are executed"
+  exit 51
+ }                                         # usage()
+
+#+--------------------------------------------------------------------------+
+function parseArgs()
+# Parse arguments
+# Args: All arguments passed into script
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  while [ -n "$1" ]                        # loop through args passed in
+  do
+    case "$1" in
+      -h|--help)
+        usage
+        ;;
+      -a|--all)                            # valid for lsskills
+        skillsType="all"
+        ;;
+      -l|--long)
+         outputType=long 
+         ;;
+      -u|--uninstalled)                    # valid for lsskills
+        skillsType="uninstalled"
+        ;;
+      -v|--verbose) 
+        verbose=2 
+        ;;
+      -x|--debug)                          # turn trace on
+         set -vx
+         ;;
+      *)
+	if [ ${#pattern} != 0 ]; then      # PATTERN already passed
+	  echo "ERROR: Too many arguments: $1"
+	  usage 
+        else
+          pattern=$1
+	  skillsType="installed"
+	fi   
+        ;;
+    esac
+    shift
+  done
+ }                                         # parseArgs()
+
+#+--------------------------------------------------------------------------+
+function verboseMsg()
+# Print a message when in verbose mode
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  if [ "$verbose" -gt 1 ]; then            # in verbose mode
+   echo "$@"
+  fi
+ }                                         # verboseMsg()
+
+#+--------------------------------------------------------------------------+
+function listMinimySkills()
+# List the Minimy skills installed
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local cmd
+
+  if [ "$outputType" = short ]; then
+    ps -ef | grep user_skills | grep -v grep | awk -F/ '{print $NF}'
+  else
+    ps -ef | grep user_skills 
+  fi
+ }                                         # listMinimySkills()
+
+#+--------------------------------------------------------------------------+
+function listOVOSskills()
+# List the OVOS skills installed 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  skillsDir=$1
+  echo "$skillsType skills installed in $skillsDir:"
+  local cmd="ls -ld $skillsDir/skill_ovos*$pattern* $skillsDir/ovos_skill*$pattern* 2>/dev/null"
+  verboseMsg "command: $cmd"
+  if [ "$outputType" = short ]; then 
+    local skillsFound=`eval $cmd | grep -v dist-info | awk -F/ '{print $NF}'`
+    local numSkills=`echo "$skillsFound" | wc -l`
+    verboseMsg "found $numSkills skills:"
+    echo "$skillsFound"
+  else
+    local MDfile
+    local nextSkillDir
+    local skillsDirs
+    skillsDirs=`eval $cmd | grep -v dist-info | awk '{print $9}' | xargs` 
+    for nextSkillDir in $skillsDirs; do 
+      if [ -f ${nextSkillDir}/README.md ]; then # README file not found
+        MDfile="${nextSkillDir}/README.md"
+      elif [ -f ${nextSkillDir}-*.dist-info/METADATA ]; then # METADATA file not found
+        MDfile="${nextSkillDir}-*.dist-info/METADATA"
+      else                                 # no markdown file found
+        echo "WARNING: could not find metadata in $nextSkillDir"
+        return
+      fi
+      echo "Skill in directory $nextSkillDir"
+      if [ -x /usr/bin/pandoc ]; then      # format the markdown
+        pandoc -t plain $MDfile
+      else
+        cat $MDfile
+      fi 
+    done
+  fi
+ }                                         # listOVOSskills()
+
+#+--------------------------------------------------------------------------+
+function listSkills()
+# List either Minimy or OVOS skills 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  if [ -d $HOME/minimy/skills ]; then                               
+    listMinimySkills 
+  else
+    local pythonVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
+    local OVOSdir="$HOME/ovos-core/venv/lib/python$pythonVer/site-packages" 
+    if [ -d $OVOSdir ]; then
+      listOVOSskills DOVOSdir
+    else
+      echo "Did not find Minimy nor OVOS skills"
+      exit 1
+    fi
+  fi
+ }                                         # listSkills()
+
+#+--------------------------------------------------------------------------+
+# Global variables"
+lang="en-us"                                # language
+object=""                                   # object type to be listed 
+output=""                                   # the output string 
+outputType="short"                          # 'short' or 'long' listing
+pattern=""                                  # optional search pattern
+skillsType="installed"                      # show skills 'installed', 'uninstalled', or 'all'
+verbose="1"                                 # verbosity level
+
+# main()
+parseArgs $@ 
+listSkills 
+

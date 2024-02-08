@@ -1,0 +1,107 @@
+#!/bin/bash
+#
+# viewlogs - list OVOS logs
+#
+#+--------------------------------------------------------------------------+
+function usage()
+# Give help to the user
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo "Name: viewlogs - List Minimy/OVOS logs" 
+  echo "Usage: viewlogs [OPTIONS] [mycroft|ovos]" 
+  echo ""
+  echo "OPTIONS:"
+  echo "  -h|--help         Give help (this screen)"
+  echo "  -v|--verbose      Increase verbosity" 
+  echo "  -x|--debug        Print commands and arguments as they are executed"
+  exit 51
+ }                                         # usage()
+
+#+--------------------------------------------------------------------------+
+function parseArgs()
+# Parse arguments
+# Args: All arguments passed into script
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  while [ -n "$1" ]                        # loop through args passed in
+  do
+    case "$1" in
+      -h|--help)
+        usage
+        ;;
+      -v|--verbose) 
+        verbose=2
+        ;;
+      -x|--debug)                          # turn trace on
+         set -vx
+         ;;
+      *)
+        if [ "$1" != mycroft -a "$1" != ovos ]; then
+          echo "ERROR: unrecognized argument: $1"
+          usage
+        fi
+        theApp=$1
+        ;;
+    esac
+    shift
+  done
+ }                                         # parseArgs()
+
+#+--------------------------------------------------------------------------+
+function doList()
+# Find, merge and sort log files and view with `less` 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local logDir
+  local logDirs="$HOME/minimy/logs $HOME/.local/state/mycroft $HOME/.local/state/neon" 
+  local nextDir
+  local nextFile
+
+  if [ "$theApp" = mycroft ]; then
+    logDir="$HOME/minimy/logs"
+  elif [ "$theApp" = ovos ]; then
+    logDir="$HOME/.local/state/mycroft"
+  else
+    for nextDir in $logDirs; do
+      if [ -d $nextDir ]; then    
+        logDir=$nextDir
+        break
+      fi
+    done
+  fi
+  if [ ${#logDir} = 0 ]; then              # log directory not found
+    echo "ERROR: Log file directory not found in $logDirs" 
+    exit 1
+  fi
+  stat $logDir/*.log >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # no log files found
+    echo "No log files found in $logDir"
+    exit 2
+  fi
+  local tempFile=`mktemp`
+  for nextFile in $logDir/*.log; do        # merge log files
+    cat $nextFile >> $tempFile
+  done
+  sort -o $tempFile $tempFile              # sort log files by timestamp
+  less $tempFile
+  rm $tempFile
+ }                                         # doList()
+
+#+--------------------------------------------------------------------------+
+# Global variables"
+theApp=""                                  # mycroft or ovos
+verbose=1                                 
+
+# main()
+parseArgs $@                               # parse arguments
+doList                                     # create output  
+

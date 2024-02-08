@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# testplay - test recording with default microphone
+#
+#+--------------------------------------------------------------------------+
+function usage()
+# Give help to the user
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo "testplay - test playing back recording from test file $testFile"
+  echo "Usage: testplay [OPTIONS]" 
+  echo ""
+  echo "OPTIONS:"
+  echo "  -h|--help         Give help (this screen)"
+  echo "  -v|--verbose      Increase verbosity" 
+  echo "  -x|--debug        Print commands and arguments as they are executed"
+  exit 51
+ }                                         # usage()
+
+#+--------------------------------------------------------------------------+
+function parseArgs()
+# Parse arguments
+# Args: All arguments passed into script
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  while [ -n "$1" ]                        # loop through args passed in
+  do
+    case "$1" in
+      -h|--help)
+        usage
+        ;;
+      -v|--verbose) 
+        verbose=2
+        flags="-v"
+        ;;
+      -x|--debug)                          # turn trace on
+         set -vx
+         ;;
+      *)
+        if [ "$1" = cello ]; then          # try playing the cello sound
+          testFile="/usr/share/sounds/sound-icons/violoncello-7.wav"
+        else
+	  echo "ERROR: Too many arguments: $1"
+	  usage 
+        fi
+        ;;
+    esac
+    shift
+  done
+ }                                         # parseArgs()
+
+#+--------------------------------------------------------------------------+
+function doTest()
+# test recording with default microphone
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  if [ ${#testFile} = 0 ]; then            # not testing the cello sound
+    testFile="/tmp/test-mic.wav"           # test recording file from testrecord
+  fi
+
+  if [ ! -f $testFile ]; then 
+    echo "ERROR: did note find test recording in file $testFile"
+    echo "Did you run testrecord?"
+    exit 1
+  else   
+    if [ $verbose -gt 1 ]; then
+      echo "calling command: aplay $flags $testFile"
+    fi
+    aplay $flags $testFile 
+  fi	  
+ }                                         # doTest()
+
+#+--------------------------------------------------------------------------+
+# Global variables"
+testFile=""                                # test file to play 
+verbose=1                                  # verbosity
+flags=""                                   # flags to pass on
+
+# main()
+parseArgs $@                               # parse arguments
+doTest                                     # perform the test 
+

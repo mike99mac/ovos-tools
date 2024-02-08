@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# restartminimy - stop and start OVOS 
+#
+# main() 
+echo
+stopovos
+echo
+startovos

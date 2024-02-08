@@ -1,0 +1,17 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-phal
+Description=Open Voice OS - PHAL Admin
+After=network.target
+
+[Service]
+Environment=XDG_CONFIG_HOME=/home/pi/.config
+Environment=XDG_CACHE_HOME=/home/pi/.cache
+WorkingDirectory=/home/pi/.venvs/ovos
+ExecStart=/home/pi/.venvs/ovos/bin/ovos_PHAL_admin
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
