@@ -32,10 +32,9 @@ The recommended hardware is a Raspberry Pi (RasPi) 4B with 4 or 8 GB of memory. 
 
 A Rasberry Pi 400 is another option.  It allows the CPU to be *offboard* which frees up space onboard to house batteries. The CPUs also run a lot cooler due to the massive heat sink.
 
-Hopefully the RasPi 5 will be out soon and will be more powerful, run cooler, and be easier to procure.
+The RasPi 5 is now available and is more powerful and hopefully easier to procure than the 4 was.
 
-For a microphone, a flat, disk type with a mute/unmute switch for visible privacy is recommended.  Don't use a cheap one.
-It is best to move the microphone away from the speakers and closer to the center of the room.
+For a microphone, a flat, disk type with a mute/unmute switch for visible privacy is recommended.  Don't use a cheap one.  It is best to move the microphone away from the speakers and closer to the center of the room.
 
 You can start with just about any speaker(s) with a 3.5mm jack that will plug into the RasPi.  I could start writing about DAC HATs and audio quality, but that's outside the scope of this document.
 
@@ -47,14 +46,6 @@ The following three flavors of two Linux distributions are supported. Note that 
     - LTS stands for *Long Term Support* - Canonical promises to support it for at least five years.
 - ``Raspbian GNU/Linux 10 (buster)``
 - ``Raspbian GNU/Linux 11 (bullseye)``
-
-**NOTE:** The text above is obtained in the first line of the file ``/etc/os-release``. For example:
-
-**``$ head -1 /etc/os-release``**
-
-``PRETTY_NAME="Ubuntu 22.04.2 LTS"``
-
-You will need another computer running Linux or another OS to copy the Linux image to the memory card.
 
 ### Prepare on Linux
 
@@ -91,8 +82,6 @@ If you only have access to a Windows system Install the *Win 32 disk imager* fro
 
 There is now a port of **``rpi-imager``** to Windows. See: https://downloads.raspberrypi.org/imager/imager_latest.exe
 
-No further details are provided.
-
 ## Connect the hardware
 
 For the initial setup, a keyboard, monitor and mouse are needed. You can access the Internet using either Wi-Fi or with an Ethernet cable.
@@ -118,11 +107,14 @@ To install and configure Ubuntu Desktop Linux, perform the following sections.
 
 ### Boot the RasPi
 
-When you supply power to the RasPi, it should start booting.  On the top, back, left side of the RasPi there are two LEDs:
+When you supply power to the RasPi, it should start booting.  On the top, back, left side of a RasPi 4 there are two LEDs:
 
 - The LED to the left should glow solid red. This signifies it has 5V DC power.
 - The LED to the right should flicker green. This signifies that there is communicaiton with the CPU. If there is a red light, but no green one, it's likely the micro-SD card does not have Linux properly installed.
-- You should see a rainbow colored splash screen on the monitor, then the Ubuntu desktop should initialize.
+
+The RasPi 5 has a single LED that blinks both red and green.
+
+- For Ubuntu, you should see a rainbow colored splash screen on the monitor, then the Ubuntu desktop should initialize.
 
 **IMPORTANT**: Never turn the RasPi off without first shutting Linux down with the **``halt``** or similar command. Doing so can damage the operating system and possibly even the RasPi itself.
 
@@ -149,7 +141,7 @@ A welcome screen should open on the monitor. Perform the following steps:
  - Click **Next** at the *Privacy* window.
  - Click **Done** at the *Ready to go* window.
 
-Ubuntu Desktop 22.04 should now be installed
+Ubuntu Desktop 22.04 should now be installed.
  
 ### Initial Raspbian Desktop configuration
 
@@ -252,9 +244,9 @@ Users other than ``pi`` ideally will work as the environment variable ``$HOME`` 
 
 ## Install and use mycroft-tools
 
-The **``mycroft-tools``** repo has been developed to help with the installation, configuration, use and testing of the free and open personal voice assistants.
+The **``ovos-tools``** repo has been developed to help with the installation, configuration, use and testing of the free and open personal voice assistants.
 
-To install **``mycroft-tools``** perform the following steps:
+To install **``ovos-tools``** perform the following steps:
   
 - Install **``git``** and **``vim``** as they are needed shortly.
 
@@ -278,19 +270,19 @@ To install **``mycroft-tools``** perform the following steps:
     ...
     ```
 
-- Clone the **``mycroft-tools``** package in the ``pi`` home directory with the following commands:
+- Clone the **``ovos-tools``** package in the ``pi`` home directory with the following commands:
 
-    **``$ git clone https://github.com/mike99mac/mycroft-tools.git``**
+    **``$ git clone https://github.com/mike99mac/ovos-tools.git``**
     
     ```
-    Cloning into 'mycroft-tools'...
+    Cloning into 'ovos-tools'...
     ...
     Resolving deltas: 100% (366/366), done.
     ```
     
 - Change to the newly installed directory and run the setup script. It will copy scripts to the directory ``/usr/local/sbin`` which is in the default ``PATH``.
 
-    **``$ cd mycroft-tools``**
+    **``$ cd ovos-tools``**
     
     **``$ sudo ./setup.sh``**
     
@@ -299,11 +291,11 @@ To install **``mycroft-tools``** perform the following steps:
     Success!  There are new scripts in your /usr/local/sbin/ directory
     ```
     
-    The **``mycroft-tools``** repo is now installed.
+    The **``ovos-tools``** repo is now installed.
     
 ### Further customize 
 
-The script **``install1``**, in the **``mycroft-tools``** package you just installed, runs many commands and thus saves typing, time and possible errors.
+The script **``install1``**, in the **``ovos-tools``** package you just installed, runs many commands and thus saves typing, time and possible errors.
 
 It performs the following tasks:
 
@@ -427,7 +419,7 @@ You should see three changes:
 ## Test microphone and speakers
 
 It is important to know your microphone and speakers are working. 
-There are scripts in *mycroft-tools* named **``testrecord``** and **``testplay``**. 
+There are scripts in *ovos-tools* named **``testrecord``** and **``testplay``**. 
 They are wrappers around the **``arecord``** and **``aplay``** commands designed to make it easier to test recording audio to a file and playing it back on the speaker(s).
 
 - To test your microphone and speakers, issue the following command then speak for up to five seconds. 
@@ -446,8 +438,9 @@ You should hear your words played back to you. If you do not, you must debug the
 
 At this point your system should have a solid sound and microphone stack running, especially **``mpd``** and **``pulseaudio``**, and all software necessary for the installation of Minimy.
 
-## Install and configure Minimy
-If you want to install OVOS instead of Minimy, go here: https://github.com/mike99mac/mycroft-tools/tree/master/ovos
+## Install and configure OVOS 
+
+**TODO:** Replace all that is Minimy with all that is OVOS from here down ...
 
 In this section you will perform the following steps:
 - Download and copy Minimy
