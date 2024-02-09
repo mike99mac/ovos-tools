@@ -328,37 +328,12 @@ To run **``intall1``**, perform the following steps:
     **``$ lsenv``**
     
     ```
-    Status of minimy:
-     -) WARNING: minimy is not running as a service ... checking for processes ...
-        WARNING: minimy does not appear to be running
-    ---------------------------------------------------------------------------------
-    Status of mpd:
-     -) WARNING: mpd is not running as a service ... checking for processes ...
-        WARNING: mpd does not appear to be running
-    ---------------------------------------------------------------------------------
-    Status of pulseaudio:
-     -) WARNING: pulseaudio is not running as a service ... checking for processes ...
-        Found matching pulseaudio processes:
-        pi         34471   34454  0 09:44 ?        00:00:01 /usr/bin/pulseaudio --daemonize=no --log-target=journal
-    ---------------------------------------------------------------------------------
-         IP address : 192.168.1.148
-    CPU temperature : 55C / 131F
-      Root fs usage : 14%
-          CPU usage : 0%
-    Memory usage    :
-                     total        used        free      shared  buff/cache   available
-      Mem:           3.7Gi       698Mi       268Mi       120Mi       2.8Gi       2.7Gi
-      Swap:          1.0Gi        11Mi       1.0Gi
-    tmpfs filesystem?
-                          /var/log       Linux logs : no
-              /home/pi/minimy/logs      Minimy logs : no
-               /home/pi/minimy/tmp  Minimy temp dir : no
+              **TODO:** get correct output 
     ```
     
 The output shows that:
 
-- Processes with ``minimy`` in their name are not running.
-- The Music Playing Daemon, **``mpd``** is not running.
+- TODO: rework list
 - There is one **``pulseaudio``** process running, but it does not have **``--system``** as a parameter.
 - Useful information such as IP address, the CPU temperature, root file system, CPU and memory usage.
 - None of the file systems frequently written to are mounted as in-memory ``tmpfs`` file systems.
@@ -376,38 +351,11 @@ Some of the changes made by **``install1``** will not be realized until boot tim
     **``$ lsenv``**
     
     ````
-    Status of minimy:
-     -) WARNING: minimy is not running as a service ... checking for processes ...
-        WARNING: minimy does not appear to be running
-    ---------------------------------------------------------------------------------
-    Status of mpd:
-     -) mpd is running as a service:
-        Active: active (running) since Sat 2023-06-10 10:13:24 EDT; 56s ago
-    ---------------------------------------------------------------------------------
-    Status of pulseaudio:
-     -) pulseaudio is running as a service:
-        Active: active (running) since Sat 2023-06-10 10:13:22 EDT; 58s ago
-        pulseaudio processes:
-        pulse        850       1  0 10:13 ?        00:00:00 /usr/bin/pulseaudio --system --disallow-exit --disallow-module-loading --disable-shm --exit-idle-time=-1
-    ---------------------------------------------------------------------------------
-         IP address : 192.168.1.148
-    CPU temperature : 63C / 145F
-      Root fs usage : 14%
-          CPU usage : 91%
-    Memory usage    :
-                     total        used        free      shared  buff/cache   available
-      Mem:           3.7Gi       707Mi       2.3Gi        13Mi       685Mi       2.8Gi
-      Swap:          1.0Gi          0B       1.0Gi
-    tmpfs filesystem?
-                          /var/log       Linux logs : yes
-              /home/pi/minimy/logs      Minimy logs : no
-               /home/pi/minimy/tmp  Minimy temp dir : no
-
+              **TODO:** get correct output 
     ````
     
 You should see three changes:
 
-- The Music Playing Daemon, **``mpd``** is now running.
 - The one **``pulseaudio``** process shows a **``--system``** parameter which is vital to audio output working correctly.
 - The **``/var/log/``** directory is now an in-memory ``tmpfs`` file system.
 
@@ -435,187 +383,28 @@ At this point your system should have a solid sound and microphone stack running
 
 ## Install and configure OVOS 
 
-**TODO:** Replace all that is Minimy with all that is OVOS from here down ...
+Install OVOS by performing the following tasks:
 
-In this section you will perform the following steps:
-- Download and copy Minimy
-- Install Minimy
-- Configure Minimy
-- Get a Google API key
-
-### Download and copy Minimy 
-It is recommended that you make a second copy of Minimy after you download it.  This way, if you make some changes to the running code, you'll have a reference copy. Also the copy of the code that you run should not have a ``.git/`` directory, thus removing any connection to github.
-
-The new directory ***must*** be named ``minimy``, removing the ``-mike99mac`` suffix, as scripts are coded that way.
-
-To download and copy Minimy, perform the following steps:
-
-- Change to your home directory and clone the repo from github.
-
-    **``$ cd``**
-    
-    **``$ git clone https://github.com/mike99mac/minimy-mike99mac``**
-
-    ```
-    Cloning into 'minimy-mike99mac'...
-    ...
-    Resolving deltas: 100% (450/450), done.
-    ```
-    
-- Copy the directory recursively from ``minimy-mike99mac`` to ``minimy``.
-
-    **``$ cp -a minimy-mike99mac minimy``**
-    
-- Remove the ``.git`` directory from the copy.
-
-    **``$ cd minimy``**
-    
-    **``$ rm -fr .git``**
-    
-    Now the code will run and you can work in ``minimy`` and keep ``minimy-mike99mac`` as a reference copy.
-    
-### Install Minimy    
-    
-- Run the following script to install Minimy and direct ``stdout`` and ``stderr`` to a file. **TAKE A BREAK?** This step can take up to 15 minutes.
-    
-    **``$ ./install/linux_install.sh 2>&1 | tee linux_install.out``**
-    
-    ```
-    ...
-    Install Complete
-    ```
-    
-    It is recommended that you review the output file, checking for warnings or errors.
-    
-- Confirm that **``venv``** is an alias which should have been set in your ``.bash_profile`` after the reboot.
-
-    **``alias venv``**
-    
-    ``alias venv='source /home/pi/minimy/venv_ngv/bin/activate'``
-    
-- Open a virtual environment.
-
-    **``$ venv``**
-    
-    You should notice a new ``(venv_ngv)`` prefix on the command line.
-    
-### Configure Minimy
-
-The system can use local or remote services for speech to text (STT), text to speech (TTS)
-and intent matching. Intent matching is accomplished using natutal language processing (NLP) based on
-the CMU link parser using a simpe enumerated approach referred to as shallow parsing.
-
-As a result you will be asked during configuration if you would like to use remote or local STT, TTS
-and NLP. Unless you have a good reason, for now you should always select local mode (``remote=n``) for NLP.
-
-Remote TTS using polly requires an Amazon ID and key.  If you prefer to not use polly for remote TTS you may 
-choose mimic2 from Mycroft which is a free remote TTS alternative. You could also select local only TTS in 
-which case mimic3 should work fine.
-
-By deault the system will fallback to local mode if a remote service fails. This will happen
-automatically and result in a slower overall response. If the internet is going to be out
-often you should probably just select local mode.  The differences are that remote STT is more accurate
-and remote TTS sounds better. Both are slower but only slightly when given a reasonable internet
-connection. Devices with decent connectivity should use remote for both.
-
-You will also be asked for operating environment.  Currently the options are (p) for piOS, (l) for 
-Ubuntu or (m) for the Mycroft MarkII.
-
-During configuration you will be asked to provide one or more words to act as wake words. You will
-enter them separated by commas with no punctuation.  For example, 
+- Install OVOS with the ``installovos`` command 
 ```
-hey Bubba, bubba
+$ installovos 2>&1 | tee -a installovos.out
 ```
-or
+This should take about 10 minutes
+
+- Reboot the system
+
 ```
-computer
+$ sudo reboot
 ```
 
-Wake words work best when you choose multi-syllable words. Longer names like 'Esmerelda' or  words like
-'computer' or words with distinct sounds like 'expression' (the 'x') or 'kamakazi' (two hard
-'k's) will always work better than words like 'hey' or 'Joe'. You can use the ``test_recognition.sh`` 
-script to see how well your recognition is working.  Just using the word 'computer' should work adequately.
+Start an SSH session when the system comes back up. You should notice the prompt ``(ovos)`` showing that you are in a virtual environment.
 
-You will also be asked to provide an input device index. If you do not know what this means enter the
-value 0. If you would like to see your options you can run 'python framework/tests/list_input_devices.py'.
-Remember, if you do not source your virtual environment first, things will not go well for you. 
-
-Always source the virtual environment before you run anything. 
-
-The ``SVA_BASE_DIR`` and ``PYTHONPATH`` environment variables should set properly in your ``~/.bash_profile``.
-
-- Run the following configuration script. In this example all defaults were accepted by pressing **Enter** for each question (except the log level was set to debug). At the end **y** was entered to save the changes.  
- 
-    **``(venv_ngv) $ ./mmconfig.py sa``**
     
-    ```
-    Advanced Options Selected sa
-    ... all defaults taken except debug level ...
-    Save Changes?y
-    Configuration Updated
-      Advanced
-        ('CrappyAEC', 'n')
-        ('InputDeviceId', '0')
-        ('InputLevelControlName', 'Mic')
-        ('LogLevel', 'd')
-        ('NLP', {'UseRemote': 'n'})
-        ('OutputDeviceName', '')
-        ('OutputLevelControlName', 'Speaker')
-        ('Platform', 'ubuntu')
-        ('STT', {'UseRemote': 'y'})
-        ('TTS', {'Local': 'm', 'Remote': 'p', 'UseRemote': 'y'})
-      Basic
-        ('AWSId', '')
-        ('AWSKey', '')
-        ('BaseDir', '/home/pi/minimy')
-        ('GoogleApiKeyPath', 'install/my_google_key.json')
-        ('Version', '1.0.4')
-        ('WakeWords', ['hey computer', 'computer'])
-    ```
+### Configure OVOS
+**TODO** pick up here 
 
-### Get a Google API key
-
-You need a Google Speech API key in order to be able to convert speech to text.  A template file is in the ``install/`` directory.
-
-An alternative is to use a different STT engine, but that has not been tested.
-
-To get a Google API key file, perform the following steps:
-
-- Change to the install directory.
-
-    **``$ cd /home/pi/minimy/install``**
-    
-- Copy the GPG key template file to the file that will be populated.
-
-    **``$ cp my-google-key.json.template my-google-key.json``**
-
-- Show the file.
-
-    **``$ cat my-google-key.json``**
-    
-    ```
-    (venv_ngv) pi@johnsbox:~/minimy-mike99mac$ cat my-google-key.json.template
-    {
-      "type": "service_account",
-      "project_id": "PROJECT_ID",
-      "private_key_id": "KEY_ID",
-      "private_key": "-----BEGIN PRIVATE KEY-----\nPRIVATE_KEY\n-----END PRIVATE KEY-----\n",
-      "client_email": "SERVICE_ACCOUNT_EMAIL",
-      "client_id": "CLIENT_ID",
-      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-      "token_uri": "https://accounts.google.com/o/oauth2/token",
-      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/SERVICE_ACCOUNT_EMAIL"
-    }
-    ```
-
-- You will need to obtain your own ``PROJECT_ID``, ``KEY_ID``, ``PRIVATE_KEY``, ``SERVICE_ACCOUNT_EMAIL`` and ``CLIENT_ID``. 
-- Go to https://console.cloud.google.com/freetrial/signup/tos and obtain these values.
-- Click on **IAM & Admin** => **Service Accounts** => **ADD KEY** ==> **Create new key**.
-- Populate them in the file.
-
-## Run Minimy
-The scripts **``startminimy``** and **``stopminimy``** are used to start and stop processes. 
+## Run OVOS 
+The scripts **``startovos``** and **``stopovos``** are used to start and stop processes. 
 Each skill and service run as process and use the message bus or file system to synchronize. 
 Their output is written to the ``logs/`` directory under the main install directory. 
 
