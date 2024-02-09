@@ -81,9 +81,9 @@ function installCoreqs
   sudo groupadd -g 993 gpio 
   echo
   
-  # copy a .bash_profile from mycroft-tools
+  # copy a .bash_profile from ovos-tools
   echo "copying .bash_profile ..."
-  runCmd cp ~/mycroft-tools/bash_profile ~/.bash_profile
+  runCmd cp ~/ovos-tools/bash_profile ~/.bash_profile
   
   # turn default and vc4 audio off, don't disable monitor overscan
   cd $bootDir
@@ -116,23 +116,23 @@ function installCoreqs
   # to lengthen the life of the SD card write logs to a tmpfs (mounted at start Minimy time) 
   if [ ! -f /etc/systemd/system/var-log.mount ]; then
     echo "copying var-log.mount ..."
-    runCmd sudo cp ~/mycroft-tools/var-log.mount /etc/systemd/system
+    runCmd sudo cp ~/ovos-tools/var-log.mount /etc/systemd/system
   fi
   
   # start pulseaudio as a service
   serviceFile=/etc/systemd/system/pulseaudio.service
   if [ ! -f $serviceFile ]; then   
     echo "copying pulseaudio service file ..."
-    runCmd sudo cp ~/mycroft-tools/pulseaudio.service.new /etc/systemd/system/pulseaudio.service
+    runCmd sudo cp ~/ovos-tools/pulseaudio.service.new /etc/systemd/system/pulseaudio.service
     echo "starting pulseaudio at boot time ..."
     runCmd sudo systemctl enable pulseaudio
   fi 
 
   # prevent pulseaudio from starting multiple times
   echo "copying pulseaudio.service.old to /usr/lib/systemd/user"
-  runCmd sudo cp ~/mycroft-tools/pulseaudio.service.old /usr/lib/systemd/user/pulseaudio.service
+  runCmd sudo cp ~/ovos-tools/pulseaudio.service.old /usr/lib/systemd/user/pulseaudio.service
   echo "copying pulseaudio.socket to /usr/lib/systemd/user"
-  runCmd sudo cp ~/mycroft-tools/pulseaudio.socket /usr/lib/systemd/user
+  runCmd sudo cp ~/ovos-tools/pulseaudio.socket /usr/lib/systemd/user
 
   # allow anonymous access to pulseaudio
   if [ -f /etc/pulse/system.pa -a ! -f /etc/pulse/system.pa.orig ]; then 
@@ -148,7 +148,7 @@ function installCoreqs
     runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig # rename original
   fi
   echo "copying sample mpd.conf file to /etc"
-  runCmd sudo cp ~/mycroft-tools/mpd.conf /etc # copy sample 
+  runCmd sudo cp ~/ovos-tools/mpd.conf /etc # copy sample 
   echo "changing permissons of /etc/mpd.conf"
   runCmd sudo chmod 644 /etc/mpd.conf  
   echo "setting mpd to start at boot time"
