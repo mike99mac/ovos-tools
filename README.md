@@ -2,11 +2,11 @@
 
 This repository has documentation, scripts and other files to install and work with the Open Voice Operating System (OVOS).
 
-This README document describes how to build a voice system from the ground up.
+This README document describes how to build a *Personal Voice Assistant* from the ground up.
 
 ## The build
 
-The environment used to develop the code and write this document is a RasPi 4B with 4 GB of memory, running Ubuntu Desktop 22.04 inside an *enclosure*.  Details and CNC G-code to build a *smart boombox* are here: https://github.com/mike99mac/ovos-tools/tree/main/gcode
+The environment used to develop the code and write this document is a RasPi 4B with 4 GB of memory, running Ubuntu Desktop 22.04 inside an *enclosure*.  Details on the hardware and CNC G-code to build a *smart boombox* are here: https://github.com/mike99mac/ovos-tools/tree/main/gcode
 
 The Raspberry Pi OS (aka Raspbian) versions 10 (buster) and 11 (bullseye) were also tested. However, this code and these steps should be relatively portable to any hardware that can run any Linux. 
 
@@ -52,6 +52,10 @@ If you have a Linux box with an SD card port, you can use **``rpi-imager``** to 
     **``$ rpi-imager``**
     
     You should see a window as shown in the following figure. **TODO**: add a screenshot
+
+![](parts-front-view.jpg)
+*Front view of boombox carcass and parts*
+
 
 - To flash a Linux image to the card, perform the following steps:
 
