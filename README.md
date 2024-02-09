@@ -6,9 +6,9 @@ This README document describes how to build a voice system from the ground up.
 
 ## The build
 
-The environment used to develop the code and write this document is a RasPi 4B with 4 GB of memory, running Ubuntu Desktop 22.04 inside an *enclosure*.
+The environment used to develop the code and write this document is a RasPi 4B with 4 GB of memory, running Ubuntu Desktop 22.04 inside an *enclosure*.  Details and CNC G-code to build a *smart boombox* are here: https://github.com/mike99mac/ovos-tools/tree/main/gcode
 
-Later Raspberry Pi OS (aka Raspbian) versions 10 (buster) and 11 (bullseye) were tested. However, this code and these steps should be relatively portable to any hardware that can run any Linux. 
+The Raspberry Pi OS (aka Raspbian) versions 10 (buster) and 11 (bullseye) were also tested. However, this code and these steps should be relatively portable to any hardware that can run any Linux. 
 
 The overall steps to build an OVOS box are:
 
@@ -22,13 +22,12 @@ The overall steps to build an OVOS box are:
 - Start Minimy and use it!
 
 ## Acquire the hardware
-The recommended hardware is a Raspberry Pi (RasPi) 4B with 4 or 8 GB of memory.  The RasPi 5 is now available and is more powerful and hopefully easier to procure than the 4 was.
+The recommended hardware is a Raspberry Pi (RasPi) 4B, or 400 with 4 or 8 GB of memory.  The RasPi 5 is now available and is more powerful and hopefully easier to procure than the 4 was.
 
-A Rasberry Pi 400 is another option.  It allows the CPU to be *offboard* which frees up space onboard to house batteries. The CPUs also run a lot cooler due to the massive heat sink.
 
 For a microphone, a flat, disk type with a mute/unmute switch for visible privacy is recommended.  Don't use a cheap one.  It is best to move the microphone away from the speakers and closer to the center of the room.
 
-You can start with just about any speaker(s) with a 3.5mm jack that will plug into the RasPi.  I could start writing about DAC HATs and audio quality, but that's outside the scope of this document.
+You can start with just about any speaker(s) with a 3.5mm jack that will plug into the RasPi.  A *DAC HAT* plugged on top of the RasPi will greatly improve audio quality.
 
 ## Flash Linux to a memory device
 The RasPi boots from a micro-SD card that plugs into its underside. A 32 GB card or larger is recommended. You need to *prime the pump* and copy a Linux distribution to it. 
