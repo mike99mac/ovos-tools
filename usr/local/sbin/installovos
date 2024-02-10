@@ -118,7 +118,7 @@ function installWithGitPip
   local thePkg="$@"
   let curPkg=$curPkg+1
   echo
-  echo "installing package $curPkg of $pkgCnt: $thePkg..." | tee -a $outFile
+  echo "Installing package $curPkg of $pkgCnt: $thePkg..." | tee -a $outFile
   runCmd pip install git+https://github.com/OpenVoiceOS/$thePkg 
  }                                         # installWithGitPip()
 
@@ -135,18 +135,23 @@ function copyServiceFile
   local serviceName="$1"
   local serviceType=$2    
   local serviceFQDN="$HOME/ovos-tools/$1.service"
+  local systemdDir="$HOME/.config/system/user"
 
   if [ ! -f $serviceFQDN ]; then
     echo "ERROR: service file $serviceFQDN not found - is ovos-tools installed?"
     exit 2
   fi    
+  if [ ! -d $systemdDir ]; then            # systemd directory does not exist
+    local cmd="mkdir -p $HOME/.config/system/user"
+    runCmd $cmd
+  fi
 
   if [ "$serviceType" = root ]; then       # copy to systemd system directory
     runCmd sudo cp $serviceFQDN /etc/systemd/system
     runCmd sudo systemctl enable $serviceName 
     runCmd sudo systemctl start $serviceName 
   elif [ "$serviceType" = user ]; then     # copy to systemd user directory
-    runCmd sudo cp $serviceFQDN /etc/systemd/user
+    runCmd sudo cp $serviceFQDN $systemdDir
     runCmd systemctl --user enable $serviceName
     runCmd systemctl --user start $serviceName
   else                                     # not expected
@@ -164,7 +169,7 @@ function installOVOS
   : STACK:  ${FUNCNAME[@]}
 
   local date=`date`
-  echo "Running installovos on $date ..." 
+  echo "Running installovos on $date ..." | tee -a $outFile
   echo 
   if [ -d ~/.venvs ]; then                 #  directory exists
     if [ "$1" != "-y" ]; then 
@@ -180,14 +185,14 @@ function installOVOS
       echo "/usr/bin/rm -fr $HOME/.venvs returned $? trying again ..."
       /usr/bin/rm -fr $HOME/.venvs | tee -a $outFile
       if [ $? != 0 ]; then 
-        echo "/usr/bin/rm -fr $HOME/.venvs failed again with $? ... punt! ..."
+        echo "/usr/bin/rm -fr $HOME/.venvs failed again with $? ... punt! ..." | tee -a $outFile
         exit 5
       fi
     fi	    
   fi
 
   if [ ! -f $HOME/ovos-tools/ovos.git.packages  ]; then
-    echo "ERROR: $HOME/ovos-tools/ovos.git.packages not found - is ovos-tools installed?"
+    echo "ERROR: $HOME/ovos-tools/ovos.git.packages not found - is ovos-tools installed?" | tee -a $outFile
   fi
   
   echo | tee -a $outFile
@@ -223,19 +228,19 @@ function installOVOS
 
   # some packages are "git clone"d, some just use pip and others need pip+git
   local nextPkg
-  echo "Installing ovos packages with git ..."
+  echo "Installing ovos packages with git ..." | tee -a $outFile
   local gitPkgs=`cat $HOME/ovos-tools/ovos.git.packages | xargs`
   for nextPkg in $gitPkgs; do
     installWithGit $nextPkg
   done
 
-  echo "Installing ovos packages with pip ..."
+  echo "Installing ovos packages with pip ..." | tee -a $outFile
   local pipPkgs=`cat $HOME/ovos-tools/ovos.pip.packages | xargs`
   for nextPkg in $pipPkgs; do
     installWithPip $nextPkg
   done
 
-  echo "Installing ovos packages with install ..."
+  echo "Installing ovos packages with install ..." | tee -a $outFile
   local pipPkgs=`cat $HOME/ovos-tools/ovos.pip+git.packages | xargs`
   for nextPkg in $pipPkgs; do
     installWithGitPip $nextPkg

@@ -8,12 +8,10 @@ if [ $# = 0 ]; then                        # no args passed
   exit 1
 fi
 
-if [ -d $HOME/.venvs/ovos/lib/python3.10 ]; then
-  baseDir="$HOME/.venvs/ovos/lib/python3.10/site-packages"
-elif [ -d $HOME/.venvs/ovos/lib/python3.11 ]; then
-  baseDir="$HOME/.venvs/ovos/lib/python3.11/site-packages"
-else
-  echo "ERROR: Neither $HOME/.venvs/ovos/lib/python3.10 nor python3.11 found - is OVOS installed?"
+pythonVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
+baseDir="$HOME/.venvs/ovos/lib/python${pythonVer}/site-packages"
+if [ ! -d $baseDir ]; then
+  echo "ERROR: Directory $baseDir not found - is OVOS installed?"
   exit 1
 fi
 

@@ -60,6 +60,20 @@ function parseArgs()
  }                                         # parseArgs()
 
 #+--------------------------------------------------------------------------+
+function verboseMsg()
+# Print message when in verbose mode
+# Args: message
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  if [ "$verbose" -gt 1 ]; then    
+    echo "$@"
+  fi
+ }                                         # verboseMsg()
+
+#+--------------------------------------------------------------------------+
 function listService()
 # List the status of one service 
 # Arg 1: service to list
@@ -69,30 +83,47 @@ function listService()
   : STACK:  ${FUNCNAME[@]}
 
   local theService=$1
+  local cmd
+  local nextService
   local procs
 
-  echo "Status of $theService:"
-  local tempFile=`mktemp`
-  /usr/sbin/service $theService status > $tempFile 2>/dev/null
-  local activeLine=`grep "active (running)" $tempFile 2>/dev/null`
-  if [ ${#activeLine} != 0 ]; then         # found "active (running)"
-    echo " -) $theService is running as a service:"
-    echo "$activeLine" | sed 's/^ //g'
-    if [ "$theService" = pulseaudio ]; then # always show pulse processes
-      echo "    pulseaudio processes:"
-      ps -ef | grep $theService | grep -v grep | sed 's/^/    /g'
-    fi
+  if [ "$theService" = ovos ]; then        # check OVOS services
+    echo "OVOS services:"
+    cmd="/usr/bin/systemctl status ovos-phal-admin" # the one service running as root
+    echo -n "  ovos-phal-admin: "
+    verboseMsg "Running: $cmd" 
+    cmdOut=`$cmd` 
+    echo "$cmdOut" | egrep 'active|inactive|activating|failed|exited' 
+    verboseMsg "$cmdOut"
+
+    # query the user based services
+    for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
+      cmd="/usr/bin/systemctl --user status $nextService"
+      echo -n "  $nextService: "
+      verboseMsg "Running: $cmd" 
+      cmdOut=`eval $cmd` 
+      printf "$cmdOut" | egrep 'active|inactive|activating|failed|exited' 
+      verboseMsg "$cmdOut"
+    done 
   else
-    echo " -) WARNING: $theService is not running as a service ... checking for processes ..."
-    procs=`ps -ef | grep $theService | grep -v grep`
-    if [ ${#procs} != 0 ]; then            # matching process
-      echo "    Found matching $theService processes:"
-      echo "$procs" | sed 's/^/    /g'
-    else
-      echo "    WARNING: $theService does not appear to be running"
-    fi  
+    echo "$theService service:"
+    cmd="/usr/bin/systemctl status $theService"
+    $cmd | grep "active (running)" 
+    if [ $? != 0 ]; then                   # did not find "active (running)"
+      echo "  WARNING: $theService is not running as a service ... checking for processes ..."
+      procs=`ps -ef | grep $theService | grep -v grep`
+      if [ "$theService" = pulseaudio ]; then # always show pulse processes
+        echo "    pulseaudio processes:"
+        ps -ef | grep $theService | grep -v grep | sed 's/^/    /g'
+      fi
+      if [ ${#procs} != 0 ]; then            # matching process
+        echo "    Found matching $theService processes:"
+        echo "$procs" | sed 's/^/    /g'
+      else
+        echo "    WARNING: $theService does not appear to be running"
+      fi  
+    fi
   fi	  
-  /usr/bin/rm $tempFile                    # remove output file 
   echo $dashes 
  }                                         # listService()
 
@@ -190,13 +221,10 @@ function doList()
   if [ ${#options} = 0 ]; then 
     clear                                  # clear the screen
   fi
-  ps -ef | grep -v grep | grep ovos_PHAL >/dev/null
-  if [ $? = 0 ]; then                      # looks like OVOS is running 
-    service="ovos"
-    listService bin/ovos  
-  fi
-  listService pulseaudio                   # alwasy check for pulse
-  
+  listService ovos
+  listService pulseaudio                   # always check for pulse
+  listService mpd 
+
   distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   OVOSver=`ovosver 2>/dev/null`
   if [ ${#OVOSver} = 0 ]; then             # did not get version
