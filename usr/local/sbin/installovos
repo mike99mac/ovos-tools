@@ -65,16 +65,13 @@ function runCmd
   : STACK:  ${FUNCNAME[@]}
 
   cmd="$@"                                 # get all args
-  echo "Running: $cmd"                     # show the command
-  eval $cmd                                # run the command
+  echo "Running: $cmd ..." | tee -a $outFile # show the command and send to output file
+  eval $cmd >> $outFile 2>&1               # run the command
   rc=$?
   if [ "$rc" != 0 ]; then                  # it failed
-    echo "ERROR: $cmd returned $rc"
+    echo "ERROR: $cmd returned $rc" | tee -a $outFile
     exit 1
-  else
-    echo "command was successful!"
   fi
-  echo ""
  }                                         # runCmd()
 
 #+--------------------------------------------------------------------------+
@@ -86,10 +83,11 @@ function installWithGit
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  local theSkill="$@"
-  local date=`date`
-  echo "installWithGit() installing skill $theSkill..."
-  runCmd git clone https://github.com/OpenVoiceOS/$theSkill 
+  local thePkg="$@"
+  let curPkg=$curPkg+1
+  echo
+  echo "Installing package $curPkg of $pkgCnt: $thePkg..." | tee -a $outFile
+  runCmd git clone https://github.com/OpenVoiceOS/$thePkg 
  }                                         # installWithGit()
 
 #+--------------------------------------------------------------------------+
@@ -101,10 +99,11 @@ function installWithPip
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  local theSkill="$@"
-  local date=`date`
-  echo "installWithGit() installing skill $theSkill..."
-  runCmd pip install $theSkill
+  local thePkg="$@"
+  let curPkg=$curPkg+1
+  echo
+  echo "Installing package $curPkg of $pkgCnt: $thePkg..." | tee -a $outFile
+  runCmd pip install $thePkg 
  }                                         # installWithPip()
 
 #+--------------------------------------------------------------------------+
@@ -116,15 +115,16 @@ function installWithGitPip
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  local theSkill="$@"
-  local date=`date`
-  echo "installWithGit() installing skill $theSkill..."
-  runCmd pip install git+https://github.com/OpenVoiceOS/$theSkill
+  local thePkg="$@"
+  let curPkg=$curPkg+1
+  echo
+  echo "installing package $curPkg of $pkgCnt: $thePkg..." | tee -a $outFile
+  runCmd pip install git+https://github.com/OpenVoiceOS/$thePkg 
  }                                         # installWithGitPip()
 
 #+--------------------------------------------------------------------------+
 function copyServiceFile
-# Copy a systemd service file from ovos-tools to run as root or user then enable it
+# Copy a systemd service file from ovos-tools to run as root or user then enable and start it
 # Arg 1: service file name
 # Arg 2: "root" or "user"
 #+--------------------------------------------------------------------------+
@@ -138,18 +138,20 @@ function copyServiceFile
 
   if [ ! -f $serviceFQDN ]; then
     echo "ERROR: service file $serviceFQDN not found - is ovos-tools installed?"
-    exit 1
+    exit 2
   fi    
 
-  if [ "$serviceType" = root ]; then
+  if [ "$serviceType" = root ]; then       # copy to systemd system directory
     runCmd sudo cp $serviceFQDN /etc/systemd/system
     runCmd sudo systemctl enable $serviceName 
-  elif [ "$serviceType" = user ]; then
+    runCmd sudo systemctl start $serviceName 
+  elif [ "$serviceType" = user ]; then     # copy to systemd user directory
     runCmd sudo cp $serviceFQDN /etc/systemd/user
     runCmd systemctl --user enable $serviceName
+    runCmd systemctl --user start $serviceName
   else                                     # not expected
     echo "INTERNAL ERROR: serviceType = $serviceType"
-    exit 1
+    exit 3
   fi
  }                                         # copyServiceFile()
 
@@ -169,39 +171,54 @@ function installOVOS
       echo -n "~/.venvs directory exists - do you want to remove it and rebuild? (y/n) "
       read ans
       if [ "$ans" != y -a "$ans" != Y ]; then
-        exit 1
+        exit 4
       fi
     fi
     echo "removing ~/.venvs directory ..."
-    runCmd sudo rm -fr ~/.venvs
+    /usr/bin/rm -fr $HOME/.venvs | tee -a $outFile
+    if [ $? != 0 ]; then 
+      echo "/usr/bin/rm -fr $HOME/.venvs returned $? trying again ..."
+      /usr/bin/rm -fr $HOME/.venvs | tee -a $outFile
+      if [ $? != 0 ]; then 
+        echo "/usr/bin/rm -fr $HOME/.venvs failed again with $? ... punt! ..."
+        exit 5
+      fi
+    fi	    
   fi
 
   if [ ! -f $HOME/ovos-tools/ovos.git.packages  ]; then
     echo "ERROR: $HOME/ovos-tools/ovos.git.packages not found - is ovos-tools installed?"
   fi
   
-  echo "Creating a virtual environment ..."
+  echo | tee -a $outFile
+  echo "Creating a virtual environment ..." | tee -a $outFile
   cd                                       # cd to home directory
   runCmd mkdir -p .venvs/ovos
   runCmd python3 -m venv ~/.venvs/ovos
   cd .venvs/ovos                        
-  
-  echo "Activating virtual environment ..."
+
+  echo | tee -a $outFile
+  echo "Activating virtual environment ..." | tee -a $outFile
   runCmd source ./bin/activate
 
-  echo "Cloning ovos-core ..."
+  echo | tee -a $outFile
+  echo "Cloning ovos-core ..." | tee -a $outFile
   runCmd git clone https://github.com/OpenVoiceOS/ovos-core
   
-  echo "Installing packages with apt-get ..."
+  echo | tee -a $outFile
+  echo "Installing packages with apt-get ..." | tee -a $outFile
   runCmd sudo apt-get install -y build-essential python3-dev swig libssl-dev libfann-dev libpulse-dev libasound2-dev mpg123 portaudio19-dev python3-pyaudio liblapack-dev libopenblas-dev flac
   
-  echo "Installing wheel with pip install ..."
+  echo | tee -a $outFile
+  echo "Installing wheel with pip install ..." | tee -a $outFile
   runCmd pip install wheel                 # wheel needs to be in place before other packages 
 
-  echo "Installing other non-ovos packages with pip install ..."
+  echo | tee -a $outFile
+  echo "Installing other non-ovos packages with pip install ..." | tee -a $outFile
   runCmd pip install silero tornado 
 
-  echo "Installing ovos-core ..."
+  echo | tee -a $outFile
+  echo "Installing ovos-core ..." | tee -a $outFile
   runCmd "pip install ovos-core[mycroft]"
 
   # some packages are "git clone"d, some just use pip and others need pip+git
@@ -224,10 +241,12 @@ function installOVOS
     installWithGitPip $nextPkg
   done
 
-  echo "Copying ovos_PHAL_admin file ..."
+  echo | tee -a $outFile
+  echo "Copying ovos_PHAL_admin file ..." | tee -a $outFile
   runCmd cp ~/ovos-tools/ovos_PHAL_admin ~/.venvs/ovos/bin
 
-  echo "Copying .service files and setting to run at boot time .."
+  echo | tee -a $outFile
+  echo "Copying .service files and setting to run at boot time .." | tee -a $outFile
   copyServiceFile ovos-phal-admin root     # the one service that runs as root
   for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus ovos-phal; do
     copyServiceFile $nextService user
@@ -235,15 +254,23 @@ function installOVOS
  }                                         # installOVOS()
 
 # main()
+curPkg=0                                   # current package being installed
+pkgCnt=0                                   # of packages
 verbose=1                                  # verbosity
 yes="no"
 
 parseArgs $@                               # parse arguments
+timeStamp=`date +"%y-%m-%d-%H:%M:%S"`      # YY-MM-DD-HH:MM:SS
+outFile="$HOME/$timeStamp-installovos.out" # output file
+pkgCnt=`wc -l $HOME/ovos-tools/*.packages | tail -1 | awk '{print $1}'`
+
+echo "installovos run at $timeStamp" > $outFile # start new output file
 installOVOS $@                             # do the work
 let min=$SECONDS/60                        # show time spent installing
 let sec=$SECONDS%60
 if [ $sec -lt 10 ]; then                   # add a leading 0
   sec="0$sec"
 fi
-echo "successfully installed OVOS in $min:$sec"
+echo | tee -a $outFile
+echo "Successfully installed OVOS in $min:$sec" | tee -a $outFile
 
