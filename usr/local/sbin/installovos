@@ -253,7 +253,7 @@ function installOVOS
   echo | tee -a $outFile
   echo "Copying .service files and setting to run at boot time .." | tee -a $outFile
   copyServiceFile ovos-phal-admin root     # the one service that runs as root
-  for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus ovos-phal; do
+  for nextService in ovos-messagebus ovos-audio ovos-core ovos-listener ovos-media ovos-phal; do
     copyServiceFile $nextService user
   done
  }                                         # installOVOS()

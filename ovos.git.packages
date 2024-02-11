@@ -1,9 +1,6 @@
 ovos-audio
 ovos-cli-client
 ovos-config
-ovos-media
-ovos-media-plugin-vlc
-ovos-messagebus
 ovos-ocp-news-plugin
 ovos-ocp-youtube-plugin
 ovos-plugin-manager
