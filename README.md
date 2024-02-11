@@ -294,10 +294,10 @@ The script **``install1``**, in the **``ovos-tools``** package you just installe
 
 It performs the following tasks:
 
-- Installs the **``mlocate mpc mpd net-tools pandoc python3 python3-pip python3-rpi.gpio python3.10-venv``** packages
+- Installs the **``cifs-utils curl locate mpc mpd net-tools pandoc python3 python3-pip python3-rpi.gpio python3-venv``** packages
 - Sets  **``vim``** to a better color scheme and turns off the annoying auto-indent features
 - Adds needed groups to users ``pi`` and ``mpd``
-- Copies a ``.bash_profile`` to the user's home directory
+- Copies a ``.bash_profile`` with helpful OVOS shortcuts to the user's home directory
 - Turns ``default`` and ``vc4`` audio off and does not disable monitor overscan in the Linux boot parameters file.
 - Changes a line in the **``rsyslog``** configuration file to prevent *kernel message floods*
 - Copies a **``systemctl``** configuration file to mount ``/var/log/`` in a ``tmpfs`` which helps prolong the life of the micro-SD card
@@ -313,13 +313,15 @@ To run **``intall1``**, perform the following steps:
     
     ``/usr/local/sbin/install1``
 
-- Run the **``install1``** script in the home directory and send ``stdout`` and ``stderr`` to a file.  You may want to reference that file in case of errors. This step will take a couple of minutes.
+- Run the **``install1``** script in the home directory.  This step will take a couple of minutes.
 
     **``$ cd``**
     
-    **``$ install1 2>&1 | tee install1.out``**
+    **``$ install1``**
     
     ``...``
+
+It should take about 5 minutes to run
     
 ### Test the changes
 
@@ -384,11 +386,11 @@ At this point your system should have a solid sound and microphone stack running
 
 Install OVOS by performing the following tasks:
 
-- Install OVOS with the ``installovos`` command 
+- Install OVOS with the ``installovos`` command. 
 ```
-$ installovos 2>&1 | tee -a installovos.out
+$ installovos 
 ```
-This should take about 10 minutes
+This should take about 10-15 minutes
 
 - Reboot the system
 

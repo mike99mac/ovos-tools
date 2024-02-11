@@ -172,7 +172,7 @@ function listTemp()
   local theTemp=`cat /sys/class/thermal/thermal_zone0/temp` # in thousdandths of degrees celcius
   let theTemp=$theTemp/1000                # convert to degrees Celcius
   let tempF=$theTemp*9/5+32                # convert to degrees Farenheit
-  echo "CPU temperature : ${theTemp}C / ${tempF}F"
+  echo " CPU temperature:  ${theTemp}C / ${tempF}F"
  }                                         # listTemp()
 
 #+--------------------------------------------------------------------------+
@@ -250,7 +250,8 @@ function doList()
   getCPU                                   # CPU usage
 
   # memory usage
-  echo "Memory usage    :"
+  echo "$moreDashes"              
+  echo "Memory usage:"
   free -h | sed 's/^/  /g'                 # add two leading spaces
 
   # are log directories using tmpfs? 
@@ -263,7 +264,8 @@ function doList()
 #+--------------------------------------------------------------------------+
 # Global variables"
 clear="yes"                                # clear the screen
-dashes="---------------------------------------------------------------------------------"
+dashes="-----------------------------------"
+moreDashes="----------------------------------------------------------------------------------"
 verbose=1                                 
 
 # main()
