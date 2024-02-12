@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # install1 - first install script to configure a newly flashed Linux
-#            to prepare it for a Minimy installaiton
+#            to prepare it for a OVOS installaiton
 #            Supported Linuxes (from /etc/os-release)
 #              - Ubuntu 22.04.2 LTS
 #              - 
@@ -121,7 +121,7 @@ function installCoreqs
     sudo sed -i 's/^module(load="imklog"/# module(load="imklog"/g' /etc/rsyslog.conf
   fi
   
-  # to lengthen the life of the SD card write logs to a tmpfs (mounted at start Minimy time) 
+  # to lengthen the life of the SD card write logs to a tmpfs (mounted at start OVOS time) 
   if [ ! -f /etc/systemd/system/var-log.mount ]; then
     echo "Copying var-log.mount ..." | tee -a $outFile
     runCmd sudo cp ~/ovos-tools/var-log.mount /etc/systemd/system
@@ -179,6 +179,6 @@ let sec=$SECONDS%60
 if [ $sec -lt 10 ]; then                   # add a leading 0
   sec="0$sec"
 fi
-echo "Successfully installed co-reqs for Minimy/OVOS in $min:$sec" | tee -a $outFile
+echo "Successfully installed co-reqs for OVOS in $min:$sec" | tee -a $outFile
 echo "Log file of all operations: $outFile"
 
