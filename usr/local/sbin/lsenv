@@ -108,10 +108,15 @@ function listService()
       printf '\e[31m%s\e[0m\n' "failed"
     else 
       echo "$cmdOut" | grep "code=exited" >/dev/null
-      if [ $? = 0 ]; then                    # found "failed"
+      if [ $? = 0 ]; then                  # found "exited"
         printf '\e[31m%s\e[0m\n' "exited"
       else
-        echo "TODO: check for inactive|activating"
+        echo "$cmdOut" | grep "inactive (dead)" >/dev/null
+        if [ $? = 0 ]; then                # found "inactive"
+          printf '\e[31m%s\e[0m\n' "inactive (dead)"
+        else
+          echo "Unknown"
+        fi
       fi
     fi
   fi 

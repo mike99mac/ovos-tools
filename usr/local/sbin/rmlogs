@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-# rmlogs - remove Minimy log files 
+# rmlogs - remove OVOS log files 
 #
-echo "Removing log files in /home/pi/minimy/logs..."
-rm /home/pi/minimy/logs/*
+logDir="$HOME/.local/state/mycroft"
+echo "Removing log files in $logDir ..."
+rm $logDir/*.log
 
