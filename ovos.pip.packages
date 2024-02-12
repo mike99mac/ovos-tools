@@ -1,9 +1,7 @@
 ovos-plugin-vlc
 ovos-skill-date-time
-ovos-skill-stop
-ovos-skill-volume
 ovos-skills-manager
 ovos-messagebus
 ovos-media
 ovos-media-plugin-vlc
-
+ovos-skill-fallback-unknown
