@@ -204,9 +204,9 @@ function installOVOS
   cd $HOME/.venvs/ovos                        
   runCmd source ./bin/activate
 
-# echo | tee -a $logFile
-# echo "Cloning ovos-core ..." | tee -a $logFile
-# runCmd git clone https://github.com/OpenVoiceOS/ovos-core
+  echo | tee -a $logFile
+  echo "Cloning ovos-core ..." | tee -a $logFile
+  runCmd git clone https://github.com/OpenVoiceOS/ovos-core
   
   echo | tee -a $logFile
   echo "Installing packages with apt-get ..." | tee -a $logFile
@@ -223,7 +223,7 @@ function installOVOS
 
   echo | tee -a $logFile
   echo "Installing ovos-core ..." | tee -a $logFile
-  runCmd "pip install ovos-core"
+  runCmd "pip install ovos-core[lgpl]"
 
   # some packages are "git clone"d, some just use pip and others need pip+git
   local nextPkg
