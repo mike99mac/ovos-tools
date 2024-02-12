@@ -12,5 +12,13 @@ if [ "$rc" != 0 ]; then                  # error
   echo "ERROR: command $cmd returned $rc" 
   exit 2
 fi
-echo "Success!  There are new scripts in your /usr/local/sbin/ directory"
+cmd="sudo chown pi.pi /usr/local/sbin/*"
+$cmd
+rc=$?
+if [ "$rc" != 0 ]; then                  # error
+  echo "ERROR: command $cmd returned $rc" 
+  exit 3
+fi
+echo "Success! /usr/local/sbin/ directory:"
+ls -l /usr/local/sbin/
 
