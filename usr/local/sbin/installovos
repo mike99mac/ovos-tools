@@ -250,6 +250,9 @@ function installOVOS
   echo "Copying ovos-core file ..." | tee -a $logFile
   runCmd cp $HOME/ovos-tools/ovos-core $HOME/.venvs/ovos/bin
   echo | tee -a $logFile
+  echo "Copying ovos-audio file ..." | tee -a $logFile
+  runCmd cp $HOME/ovos-tools/ovos-audio $HOME/.venvs/ovos/bin
+  echo | tee -a $logFile
   echo "Copying ovos-messagebus file ..." | tee -a $logFile
   runCmd cp $HOME/ovos-tools/ovos-messagebus $HOME/.venvs/ovos/bin
   echo | tee -a $logFile
