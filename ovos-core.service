@@ -6,7 +6,7 @@ Requires=ovos-messagebus.service ovos-phal.service pulseaudio.socket
 
 [Service]
 WorkingDirectory=/home/pi/.venvs/ovos
-ExecStart=/home/pi/ovos-core/venv/bin/ovos-core
+ExecStart=/home/pi/.venvs/ovos/bin/ovos-core
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
 Restart=on-failure
