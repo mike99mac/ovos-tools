@@ -243,7 +243,7 @@ function doList()
   printf "%16s: %s\n" "Distro" "$distro"
   printf "%16s: %s\n" "OVOS version" "$OVOSver"
   printf "%16s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
-  # printf "%15s : %s\n" "PYTHONPATH" "$PYTHONPATH"
+  printf "%16s: %s\n" "PYTHONPATH" "$PYTHONPATH"
 
   local IPaddr=`hostname -I | awk '{print $1}'` # get the IP address
   printf "%16s: %s\n" "IP address" "$IPaddr"

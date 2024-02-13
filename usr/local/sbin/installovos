@@ -201,8 +201,9 @@ function installOVOS
 
   echo | tee -a $logFile
   echo "Activating virtual environment ..." | tee -a $logFile
-  cd $HOME/.venvs/ovos                        
-  runCmd source ./bin/activate
+  runCmd source $HOME/.venvs/ovos/bin/activate
+  local pyVer=`python --version | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
+  cd $HOME/.venvs/ovos/lib/python$pyVer/site-packages
 
   echo | tee -a $logFile
   echo "Cloning ovos-core ..." | tee -a $logFile
@@ -223,7 +224,7 @@ function installOVOS
 
   echo | tee -a $logFile
   echo "Installing ovos-core ..." | tee -a $logFile
-  runCmd "pip install ovos-core[lgpl]"
+  runCmd "pip install ovos-core[all]"
 
   # some packages are "git clone"d, some just use pip and others need pip+git
   local nextPkg

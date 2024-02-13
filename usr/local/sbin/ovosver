@@ -2,8 +2,8 @@
 #
 # ovosver - get the ovos version from the ovos-core CHANGELOG.md file
 #
-
-baseDir="$HOME/.venvs/ovos/ovos-core" 
+pyVer=`python3 --version | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
+baseDir="$HOME/.venvs/ovos/lib/python${pyVer}/site-packages/ovos-core"
 if [ ! -d $baseDir ]; then
   echo "ERROR: directory $baseDir not found - is OVOS installed?"
   exit 1
