@@ -195,6 +195,7 @@ function tmpfsUsage()
   local desc="$@"
   local answer
 
+  verboseMsg "Calling: mount | grep $theDir | grep tmpfs" 
   mount | grep $theDir | grep tmpfs >/dev/null 2>&1
   if [ $? = 0 ]; then                      # directory is using a tmpfs       
     answer=yes
@@ -261,8 +262,8 @@ function doList()
 
   # are log directories using tmpfs? 
   echo "tmpfs filesystem?"
-  tmpfsUsage /var/log/ Linux logs
-  tmpfsUsage $HOME/.local/state/mycroft/ OVOS logs
+  tmpfsUsage /var/log Linux logs
+  tmpfsUsage $HOME/.local/state/mycroft OVOS logs
   echo
  }                                         # doList()
 
