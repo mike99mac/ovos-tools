@@ -121,7 +121,7 @@ function installCoreqs
     sudo sed -i 's/^module(load="imklog"/# module(load="imklog"/g' /etc/rsyslog.conf
   fi
   
-  # to lengthen the life of the SD card write logs to a tmpfs (mounted at start OVOS time) 
+  # to lengthen the life of the memory device, write logs to a tmpfs 
   if [ ! -f /etc/systemd/system/var-log.mount ]; then
     echo "Copying var-log.mount ..." | tee -a $outFile
     runCmd sudo cp ~/ovos-tools/var-log.mount /etc/systemd/system
