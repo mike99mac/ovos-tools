@@ -177,7 +177,7 @@ function listTemp()
   local theTemp=`cat /sys/class/thermal/thermal_zone0/temp` # in thousdandths of degrees celcius
   let theTemp=$theTemp/1000                # convert to degrees Celcius
   let tempF=$theTemp*9/5+32                # convert to degrees Farenheit
-  echo " CPU temperature:  ${theTemp}C / ${tempF}F"
+  printf "%16s: %s\n" "CPU temperature" "${theTemp}C / ${tempF}F"
  }                                         # listTemp()
 
 #+--------------------------------------------------------------------------+
@@ -232,17 +232,15 @@ function doList()
   echo "mpd service:"
   listService mpd root
 
-  echo "$dashes"              
-  distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
-  OVOSver=`ovosver 2>/dev/null`
-  if [ ${#OVOSver} = 0 ]; then             # did not get version
-    OVOSver="unknown"
-  fi
-
   # also list many other settings and status 
+  echo "$dashes"              
+# OVOSver=`ovosver 2>/dev/null`
+# if [ ${#OVOSver} = 0 ]; then             # did not get version
+#   OVOSver="unknown"
+# fi
   local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   printf "%16s: %s\n" "Distro" "$distro"
-  printf "%16s: %s\n" "OVOS version" "$OVOSver"
+# printf "%16s: %s\n" "OVOS version" "$OVOSver"
   printf "%16s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
   printf "%16s: %s\n" "PYTHONPATH" "$PYTHONPATH"
 

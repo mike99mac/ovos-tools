@@ -11,7 +11,7 @@ Before=local-fs.target umount.target
 
 [Mount]
 What=tmpfs
-Where=/home/.local/state/minimy
+Where=$HOME/.local/state/minimy
 Type=tmpfs
 Options=mode=1777,strictatime,nosuid,nodev
 
