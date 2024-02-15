@@ -14,9 +14,9 @@ function runCmd
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  cmd="$@"                                 # get all args
+  cmd="$@"                                 # all args
 
-  echo  | tee -a $outFile                  # add a blank line
+  echo " " | tee -a $outFile               # add a blank line
   echo "Running: $cmd" | tee -a $outFile
   eval $cmd 2>&1 | tee -a $outFile         # run the command
   rc=$?
