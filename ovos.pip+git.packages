@@ -1,4 +1,6 @@
 ovos-core
+ovos-media
+ovos-audio
 ovos-PHAL
 ovos-PHAL-plugin-alsa
 ovos-PHAL-plugin-ipgeo
