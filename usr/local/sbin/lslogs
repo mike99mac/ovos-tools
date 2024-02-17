@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# lslogs - show OVOS log files 
+#
+logDir="$HOME/.local/state/mycroft"
+if [ ! -d $logDir ]; then 
+  echo "OVOS log directory $logDir not found"
+  exit 1
+fi  
+echo "Files in $logDir:"
+ls -latr $logDir                           # show the log files
+
