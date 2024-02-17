@@ -3,6 +3,7 @@ alias vi=/usr/bin/vim
 alias venvs="source $HOME/.venvs/ovos/bin/activate"    # start an OVOS venv
 export LOG="$HOME/.local/state/mycroft"                # OVOS logs
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/.venvs/ovos/bin"
+export SRC="$HOME/.venvs/ovos/lib/python3.11/site-packages"
 export SYS="/etc/systemd/system"
 export USR="/etc/systemd/user"
 export Z="/usr/local/sbin"
