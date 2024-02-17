@@ -323,7 +323,7 @@ function installOVOS
       echo "ERROR: mount file $srcFile not found"
       exit 1
     fi
-    echo "Copying mount file $mountFile ..." | tee -a $outFile
+    echo "Copying and enabling mount file $mountFile ..." | tee -a $outFile
     runCmd sudo cp $srcFile /etc/systemd/system
     runCmd sudo systemctl daemon-reload 
     runCmd sudo systemctl enable $mountFile 

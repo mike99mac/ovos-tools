@@ -3,6 +3,13 @@
 # rmlogs - remove OVOS log files 
 #
 logDir="$HOME/.local/state/mycroft"
+if [ "$1" != "-y" ]; then 
+  echo "Remove all .log files in $logDir? (y/n)"
+  read ans
+  if [ "$ans" != "y" ]; then 
+    exit 1
+  fi
+fi  
 echo "Removing log files in $logDir ..."
 rm $logDir/*.log
 
