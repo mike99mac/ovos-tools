@@ -444,13 +444,16 @@ At this point your system should have a solid sound and microphone stack running
 
 ## Install and configure OVOS 
 
+There are currently two ways to install OVOS using the supplied **``installovos``** script:
+1 Using the *OVOS installer* written and maintained by Goldyfruit.  This is the default.
+1 Using an experimental install process by mike99mac. This requires the **``-m``** flag to be passed.
 Install OVOS by performing the following tasks:
 
-- Install OVOS with the ``installovos`` command. 
+- Install OVOS with or without the ``-m`` flag. 
 ```
 $ installovos 
 ```
-This should take about 10-15 minutes
+This should take about 10 minutes.
 
 - Reboot the system
 
