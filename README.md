@@ -330,13 +330,43 @@ It should take about 5 minutes to run
     **``$ lsenv``**
     
     ```
-              **TODO:** get correct output 
+-----------------------------------
+OVOS services:
+ ovos-phal-admin: Unit ovos-phal-admin.service could not be found.
+      ovos-audio: Unit ovos-audio.service could not be found.
+       ovos-core: Unit ovos-core.service could not be found.
+   ovos-listener: Unit ovos-listener.service could not be found.
+      ovos-media: Unit ovos-media.service could not be found.
+ ovos-messagebus: Unit ovos-messagebus.service could not be found.
+-----------------------------------
+pulseaudio service:
+      pulseaudio: inactive (dead)
+-----------------------------------
+mpd service:
+             mpd: inactive (dead)
+-----------------------------------
+          Distro: Ubuntu 22.04.4 LTS
+     VIRTUAL_ENV:
+      PYTHONPATH:
+      IP address: 192.168.12.233
+ CPU temperature: 55C / 131F
+   Root fs usage: 15%
+       CPU usage: 1%
+----------------------------------------------------------------------------------
+Memory usage:
+                 total        used        free      shared  buff/cache   available
+  Mem:           3.7Gi       799Mi       240Mi       139Mi       2.7Gi       2.6Gi
+  Swap:          1.0Gi        11Mi       1.0Gi
+tmpfs filesystem?
+                      /var/log       Linux logs : no
+ /home/pi/.local/state/mycroft        OVOS logs : no
+
     ```
     
 The output shows that:
 
-- TODO: rework list
-- There is one **``pulseaudio``** process running, but it does not have **``--system``** as a parameter.
+- OVOS does not have any systemctl files enabled.
+- Neither ``pulseaudio`` nor ``mpd`` are running. 
 - Useful information such as IP address, the CPU temperature, root file system, CPU and memory usage.
 - None of the file systems frequently written to are mounted as in-memory ``tmpfs`` file systems.
 
@@ -352,12 +382,42 @@ Some of the changes made by **``install1``** will not be realized until boot tim
     **``$ lsenv``**
     
     ````
-              **TODO:** get correct output 
+-----------------------------------
+OVOS services:
+ ovos-phal-admin: Unit ovos-phal-admin.service could not be found.
+      ovos-audio: Unit ovos-audio.service could not be found.
+       ovos-core: Unit ovos-core.service could not be found.
+   ovos-listener: Unit ovos-listener.service could not be found.
+      ovos-media: Unit ovos-media.service could not be found.
+ ovos-messagebus: Unit ovos-messagebus.service could not be found.
+-----------------------------------
+pulseaudio service:
+      pulseaudio: active (running)
+-----------------------------------
+mpd service:
+             mpd: active (running)
+-----------------------------------
+          Distro: Ubuntu 22.04.4 LTS
+     VIRTUAL_ENV:
+      PYTHONPATH:
+      IP address: 192.168.12.233
+ CPU temperature: 58C / 136F
+   Root fs usage: 15%
+       CPU usage: 0%
+----------------------------------------------------------------------------------
+Memory usage:
+                 total        used        free      shared  buff/cache   available
+  Mem:           3.7Gi       783Mi       2.2Gi        27Mi       764Mi       2.8Gi
+  Swap:          1.0Gi          0B       1.0Gi
+tmpfs filesystem?
+                      /var/log       Linux logs : yes
+ /home/pi/.local/state/mycroft        OVOS logs : no
+
     ````
     
-You should see three changes:
+You should see these changes:
 
-- The one **``pulseaudio``** process shows a **``--system``** parameter which is vital to audio output working correctly.
+- **``pulseaudio``** and **``mpd``** are now running.
 - The **``/var/log/``** directory is now an in-memory ``tmpfs`` file system.
 
 ## Test microphone and speakers
