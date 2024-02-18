@@ -327,6 +327,7 @@ function installOVOS
     runCmd sudo cp $srcFile /etc/systemd/system
     runCmd sudo systemctl daemon-reload 
     runCmd sudo systemctl enable $mountFile 
+    runCmd sudo systemctl start $mountFile 
   fi
  }                                         # installOVOS()
 
