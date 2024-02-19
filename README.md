@@ -359,7 +359,6 @@ Memory usage:
 tmpfs filesystem?
                       /var/log       Linux logs : no
  /home/pi/.local/state/mycroft        OVOS logs : no
-
 ```
     
 The output shows that:
@@ -380,8 +379,7 @@ Some of the changes made by **``install1``** will not be realized until boot tim
 
     **``$ lsenv``**
     
-    ````
------------------------------------
+```
 OVOS services:
  ovos-phal-admin: Unit ovos-phal-admin.service could not be found.
       ovos-audio: Unit ovos-audio.service could not be found.
@@ -412,7 +410,7 @@ tmpfs filesystem?
                       /var/log       Linux logs : yes
  /home/pi/.local/state/mycroft        OVOS logs : no
 
-    ````
+```
     
 You should see these changes:
 

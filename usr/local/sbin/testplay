@@ -14,6 +14,7 @@ function usage()
   echo "Usage: testplay [OPTIONS]" 
   echo ""
   echo "OPTIONS:"
+  echo "  -c|--cello        Play just one cello sound"
   echo "  -h|--help         Give help (this screen)"
   echo "  -v|--verbose      Increase verbosity" 
   echo "  -x|--debug        Print commands and arguments as they are executed"
@@ -32,6 +33,9 @@ function parseArgs()
   while [ -n "$1" ]                        # loop through args passed in
   do
     case "$1" in
+      -c|--cello)
+        cello="yes"
+        ;;
       -h|--help)
         usage
         ;;
@@ -63,6 +67,12 @@ function doTest()
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
+  if [ "$cello" = yes ]; then              # just play one sound
+    echo "Playing one cello sound ..."
+    aplay /usr/share/sounds/sound-icons/violoncello-7.wav
+    exit
+  fi
+
   if [ ${#testFile} = 0 ]; then            # not testing the cello sound
     testFile="/tmp/test-mic.wav"           # test recording file from testrecord
   fi
@@ -81,6 +91,7 @@ function doTest()
 
 #+--------------------------------------------------------------------------+
 # Global variables"
+cello="no"                                 # play just one sound?
 testFile=""                                # test file to play 
 verbose=1                                  # verbosity
 flags=""                                   # flags to pass on
