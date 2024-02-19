@@ -222,7 +222,8 @@ function doList()
   echo "$dashes"              
   echo "OVOS services:"
   listService ovos-phal-admin root
-  for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
+# for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
+  for nextService in ovos-core ovos-listener ovos-media ovos-messagebus; do
     listService $nextService user   
   done
   echo "$dashes"              
@@ -234,15 +235,15 @@ function doList()
 
   # also list many other settings and status 
   echo "$dashes"              
-# OVOSver=`ovosver 2>/dev/null`
-# if [ ${#OVOSver} = 0 ]; then             # did not get version
-#   OVOSver="unknown"
-# fi
+  OVOSver=`ovosver 2>/dev/null`
+  if [ ${#OVOSver} = 0 ]; then             # did not get version
+    OVOSver="unknown"
+  fi
   local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   printf "%16s: %s\n" "Distro" "$distro"
-# printf "%16s: %s\n" "OVOS version" "$OVOSver"
+  printf "%16s: %s\n" "OVOS version" "$OVOSver"
   printf "%16s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
-  printf "%16s: %s\n" "PYTHONPATH" "$PYTHONPATH"
+# printf "%16s: %s\n" "PYTHONPATH" "$PYTHONPATH"
 
   local IPaddr=`hostname -I | awk '{print $1}'` # get the IP address
   printf "%16s: %s\n" "IP address" "$IPaddr"

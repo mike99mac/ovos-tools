@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# restartminimy - stop and start OVOS 
+# restartovos - stop and start OVOS - remove old log files unless "-n" is passed in
 #
 # main() 
 echo

@@ -22,25 +22,20 @@ function umountTmpfs
 #+--------------------------------------------------------------------------+
 function mountTmpfs
 # Mount a file system in a tmpfs using systemd .mount files
-# Arg 1    : systemd .mount file to use
-# Args 2-n : description of the file system
+# Arg 1: file system to mount 
+# Arg 2: systemd .mount file 
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
+  local mountDir=$1
   local mountFile=$1
-  shift
-  local desc="$@"                          # remaining args are desription
 
   local mountDir=`echo $mountFile | sed 's:-:/:g'`
   local fsType=`mount | grep $mountDir | awk '{print $5}'`
-  if [ "$fsType" = tmpfs ]; then           # already a tmpfs
-    echo "$mountDir is already a tmpfs"
-    return
-  fi
-  echo "making directory $fileSystem a tmpfs ..."
-  cmd="systemctl --user start $mountFile"
+  cmd="sudo systemctl start $mountFile"
+  echo "making directory $mountDir a tmpfs with command: $cmd ..."
   eval $cmd
   rc=$?
   if [ "$rc" != 0 ]; then
@@ -52,15 +47,18 @@ function mountTmpfs
 
 #+--------------------------------------------------------------------------+
 function startSystem
-# Start Minimy base components
+# Start OVOS base components
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
   echo "Starting OVOS ..."
+ 
+  # unmount and remount tmpfs over log files
   umountTmpfs $HOME/.local/state/mycroft
-  mountTmpfs home-$USER-.local-state.mount OVOS log files temp directory
+  mountTmpfs $HOME/.local/state/mycroft /etc/systemctl/system/home-pi-.local-state-mycroft.mount 
+  sleep 1                                  # dont start services too soon
 
   # launch all services 
   sudo systemctl start ovos-phal-admin
@@ -69,6 +67,7 @@ function startSystem
   systemctl --user start ovos-messagebus.service
   systemctl --user start ovos-phal.service
   systemctl --user start ovos-media.service
+  systemctl --user start ovos-audio.service
 
   OVOSprocs=`ps -ef | grep ovos | grep -v grep | grep -v startovos` 
   if [ ${#OVOSprocs} = 0 ]; then

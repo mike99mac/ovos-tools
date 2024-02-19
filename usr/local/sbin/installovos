@@ -129,7 +129,7 @@ function installWithGit
 
 #+--------------------------------------------------------------------------+
 function installWithPip
-# install package with "pip install git+URL"
+# install package with "pip install"
 # Arg 1: the URL to install
 #+--------------------------------------------------------------------------+
  {
@@ -235,12 +235,6 @@ function useMike99mac
 
   # some packages are "git clone"d, some just use pip and others need pip+git
   local nextPkg
-  echo "Installing ovos packages with git ..." | tee -a $logFile
-  local gitPkgs=`cat $HOME/ovos-tools/ovos.git.packages | xargs`
-  for nextPkg in $gitPkgs; do
-    installWithGit $nextPkg
-  done
-
   echo "Installing ovos packages with pip ..." | tee -a $logFile
   local pipPkgs=`cat $HOME/ovos-tools/ovos.pip.packages | xargs`
   for nextPkg in $pipPkgs; do
@@ -253,6 +247,12 @@ function useMike99mac
     installWithGitPip $nextPkg
   done
 
+  echo "Installing ovos packages with git ..." | tee -a $logFile
+  local gitPkgs=`cat $HOME/ovos-tools/ovos.git.packages | xargs`
+  for nextPkg in $gitPkgs; do
+    installWithGit $nextPkg
+  done
+  
   # copy executables which don't end up in $HOME/.venvs/ovos/bin for some reason
   echo | tee -a $logFile
   echo "Copying ovos-core file ..." | tee -a $logFile

@@ -3,16 +3,30 @@
 # ovosver - get the ovos version from the ovos-core CHANGELOG.md file
 #
 pyVer=`python3 --version | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
-baseDir="$HOME/.venvs/ovos/lib/python${pyVer}/site-packages/ovos-core"
+baseDir="$HOME/.venvs/ovos/lib/python${pyVer}/site-packages/ovos_core"
 if [ ! -d $baseDir ]; then
   echo "ERROR: directory $baseDir not found - is OVOS installed?"
   exit 1
 fi
-
 cd $baseDir
-ovosVer=`grep "[Full Changelog]" CHANGELOG.md | grep "\.\.\.HEAD)" | awk -F/ {'print $NF'} | sed 's/...HEAD)//g'`
-if [ ${#ovosVer} = 0 ]; then 
-  echo "Unexpected: version not found in $baseDir/CHANGELOG.md file"
-  exit 2
+if [ ! -f version.py ]; then               # version file not found
+  echo "Unknown"
+  exit 1
 fi
+ovosVer=""
+for suf in MAJOR MINOR BUILD ALPHA; do
+  nextNum=`grep ^OVOS_VERSION_$suf version.py | awk '{print $3}'`
+  if [ ${#ovosVer} = 0 ]; then             # first value
+    ovosVer="$nextNum"
+  else
+    ovosVer="$ovosVer.$nextNum"
+  fi
+done
 echo $ovosVer
+
+# version.py
+# OVOS_VERSION_MAJOR = 0
+# OVOS_VERSION_MINOR = 0
+# OVOS_VERSION_BUILD = 8
+# OVOS_VERSION_ALPHA = 75
+
