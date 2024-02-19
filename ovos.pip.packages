@@ -5,3 +5,5 @@ ovos-messagebus
 ovos-media-plugin-vlc
 ovos-skill-fallback-unknown
 ovos-vad-plugin-silero
+ovos-tts-plugin-server
+ovos-ww-plugin-precise-lite

@@ -5,6 +5,7 @@ ovos-PHAL
 ovos-PHAL-plugin-alsa
 ovos-PHAL-plugin-ipgeo
 ovos-PHAL-plugin-system
+ovos-workshop
 ovos-ocp-audio-plugin
 ovos-tts-plugin-edge-tts
 ovos-backend-client
