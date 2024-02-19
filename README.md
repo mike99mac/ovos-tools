@@ -330,7 +330,6 @@ It should take about 5 minutes to run
     **``$ lsenv``**
     
     ```
------------------------------------
 OVOS services:
  ovos-phal-admin: Unit ovos-phal-admin.service could not be found.
       ovos-audio: Unit ovos-audio.service could not be found.
@@ -338,13 +337,13 @@ OVOS services:
    ovos-listener: Unit ovos-listener.service could not be found.
       ovos-media: Unit ovos-media.service could not be found.
  ovos-messagebus: Unit ovos-messagebus.service could not be found.
------------------------------------
+ ----------------------------------
 pulseaudio service:
       pulseaudio: inactive (dead)
------------------------------------
+ ----------------------------------
 mpd service:
              mpd: inactive (dead)
------------------------------------
+ ----------------------------------
           Distro: Ubuntu 22.04.4 LTS
      VIRTUAL_ENV:
       PYTHONPATH:
@@ -352,7 +351,7 @@ mpd service:
  CPU temperature: 55C / 131F
    Root fs usage: 15%
        CPU usage: 1%
-----------------------------------------------------------------------------------
+ ---------------------------------------------------------------------------------
 Memory usage:
                  total        used        free      shared  buff/cache   available
   Mem:           3.7Gi       799Mi       240Mi       139Mi       2.7Gi       2.6Gi
