@@ -329,7 +329,7 @@ It should take about 5 minutes to run
 
     **``$ lsenv``**
     
-    ```
+```
 OVOS services:
  ovos-phal-admin: Unit ovos-phal-admin.service could not be found.
       ovos-audio: Unit ovos-audio.service could not be found.
@@ -360,7 +360,7 @@ tmpfs filesystem?
                       /var/log       Linux logs : no
  /home/pi/.local/state/mycroft        OVOS logs : no
 
-    ```
+```
     
 The output shows that:
 
