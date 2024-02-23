@@ -87,6 +87,12 @@ function listService()
   # GREEN="\e[32m"
   # YELLOW="\e[33m"
 
+  if [ "$theService" = pipewire ]; then    # always runs as processes
+    echo $dashes
+    echo "pipewire processes:"
+    ps -ef | grep pipewire | grep -v grep | sed 's/^/  /g'
+    return
+  fi
   if [ "$serviceType" = root ]; then
     cmd="/usr/bin/systemctl status $theService"
   elif [ "$serviceType" = user ]; then
@@ -97,25 +103,25 @@ function listService()
   fi
   printf "%16s: " "$theService"
   verboseMsg "Running: $cmd ..." 
-  cmdOut=`$cmd` 
+  cmdOut=`eval $cmd` 
   verboseMsg "$cmdOut"
   echo "$cmdOut" | grep "active (running)" >/dev/null
   if [ $? = 0 ]; then                      # found "active"
-    printf '\e[32m%s\e[0m\n' "active (running)"
+    printf '\e[32m%s\e[0m\n' "active (running)" # in green
   else
     echo "$cmdOut" | grep "Active: failed" >/dev/null
     if [ $? = 0 ]; then                    # found "failed"
-      printf '\e[31m%s\e[0m\n' "failed"
+      printf '\e[31m%s\e[0m\n' "failed"    # in red
     else 
       echo "$cmdOut" | grep "code=exited" >/dev/null
       if [ $? = 0 ]; then                  # found "exited"
-        printf '\e[31m%s\e[0m\n' "exited"
+        printf '\e[31m%s\e[0m\n' "exited"  # in red
       else
         echo "$cmdOut" | grep "inactive (dead)" >/dev/null
         if [ $? = 0 ]; then                # found "inactive"
-          printf '\e[31m%s\e[0m\n' "inactive (dead)"
-        else
-          echo "Unknown"
+          printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
+#       else
+#         echo "Unknown"
         fi
       fi
     fi
@@ -222,13 +228,14 @@ function doList()
   echo "$dashes"              
   echo "OVOS services:"
   listService ovos-phal-admin root
-# for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
-  for nextService in ovos-core ovos-listener ovos-media ovos-messagebus; do
+  for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
+# for nextService in ovos-core ovos-listener ovos-media ovos-messagebus; do
     listService $nextService user   
   done
   echo "$dashes"              
   echo "pulseaudio service:"
   listService pulseaudio root              # always check for pulse
+  listService pipewire root     
   echo "$dashes"              
   echo "mpd service:"
   listService mpd root
