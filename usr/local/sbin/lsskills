@@ -107,7 +107,7 @@ function listOVOSskills()
   : STACK:  ${FUNCNAME[@]}
 
   skillsDir=$1
-  echo "$skillsType skills installed in $skillsDir:"
+  echo "$skillsType skills under $skillsDir:"
   local cmd="ls -ld $skillsDir/skill_ovos*$pattern* $skillsDir/ovos_skill*$pattern* 2>/dev/null"
   verboseMsg "command: $cmd"
   if [ "$outputType" = short ]; then 
@@ -147,17 +147,13 @@ function listSkills()
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  if [ -d $HOME/minimy/skills ]; then                               
-    listMinimySkills 
+  local pythonVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
+  local OVOSdir="$HOME/.venvs/ovos/lib/python$pythonVer/site-packages" 
+  if [ -d $OVOSdir ]; then
+    listOVOSskills $OVOSdir
   else
-    local pythonVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
-    local OVOSdir="$HOME/ovos-core/venv/lib/python$pythonVer/site-packages" 
-    if [ -d $OVOSdir ]; then
-      listOVOSskills DOVOSdir
-    else
-      echo "Did not find Minimy nor OVOS skills"
-      exit 1
-    fi
+    echo "Did not find directory $OVOSdir - is OVOS installed?"
+    exit 1
   fi
  }                                         # listSkills()
 
