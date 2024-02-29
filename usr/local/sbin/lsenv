@@ -105,7 +105,7 @@ function listService()
   verboseMsg "Running: $cmd ..." 
   cmdOut=`eval $cmd` 
   verboseMsg "$cmdOut"
-  echo "$cmdOut" | grep "active (running)" >/dev/null
+  echo "$cmdOut" | grep "active (" >/dev/null
   if [ $? = 0 ]; then                      # found "active"
     printf '\e[32m%s\e[0m\n' "active (running)" # in green
   else
@@ -219,19 +219,25 @@ function doList()
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  local service
+  local theType 
   if [ "$clear" = "yes" ]; then            # clear the screen
     clear     
   fi
 
-  # check OVOS services
+  # check for Neon or OVOS services
   echo "$dashes"              
-  echo "OVOS services:"
-  listService ovos-phal-admin root
-  for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
-# for nextService in ovos-core ovos-listener ovos-media ovos-messagebus; do
-    listService $nextService user   
-  done
+  if [ -d /etc/neon ]; then                # assume Neon
+    theType="neon"
+    echo "Neon service:"
+    listService neon root
+  else                                     # assume OVOS
+    theType="ovos"
+    echo "OVOS services:"
+    listService ovos-phal-admin root
+    for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
+      listService $nextService user   
+    done
+  fi  
   echo "$dashes"              
   echo "pulseaudio service:"
   listService pulseaudio root              # always check for pulse
@@ -242,13 +248,16 @@ function doList()
 
   # also list many other settings and status 
   echo "$dashes"              
-  OVOSver=`ovosver 2>/dev/null`
-  if [ ${#OVOSver} = 0 ]; then             # did not get version
-    OVOSver="unknown"
-  fi
+  local theVersion
   local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   printf "%16s: %s\n" "Distro" "$distro"
-  printf "%16s: %s\n" "OVOS version" "$OVOSver"
+  if [ "$theType" = neon ]; then
+    theVersion=`neonver`
+    printf "%16s: %s\n" "Neon version" "$theVersion"
+  else                                     # assume ovos
+    theVersion=`ovosver`
+    printf "%16s: %s\n" "OVOS version" "$OVOSver"
+  fi
   printf "%16s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
 # printf "%16s: %s\n" "PYTHONPATH" "$PYTHONPATH"
 
@@ -267,9 +276,14 @@ function doList()
   free -h | sed 's/^/  /g'                 # add two leading spaces
 
   # are log directories using tmpfs? 
+  echo "$moreDashes"              
   echo "tmpfs filesystem?"
   tmpfsUsage /var/log Linux logs
-  tmpfsUsage $HOME/.local/state/mycroft OVOS logs
+  if [ "$theType" = neon ]; then
+    tmpfsUsage $HOME/.local/state/neon Neon logs
+  else
+    tmpfsUsage $HOME/.local/state/mycroft OVOS logs
+  fi
   echo
  }                                         # doList()
 
