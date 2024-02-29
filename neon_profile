@@ -9,5 +9,4 @@ export USR="/etc/systemd/user"
 export Z="/usr/local/sbin"
 export DBUS_SESSION_BUS_ADDRESS="/run/user/1005/bus"
 export XDG_RUNTIME_DIR="/run/user/1005"
-source $HOME/venvs/bin/activate
-
+source $HOME/venv/bin/activate

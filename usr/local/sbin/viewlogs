@@ -59,6 +59,9 @@ function doList()
   : STACK:  ${FUNCNAME[@]}
 
   local logDir="$HOME/.local/state/mycroft"
+  if [ -d /etc/neon ]; then
+    logDir="$HOME/.local/state/neon"
+  fi
   if [ ! -d $logDir ]; then                # log directory not found
     echo "ERROR: Log file directory $logDir not found" 
     exit 1
