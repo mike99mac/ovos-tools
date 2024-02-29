@@ -44,7 +44,7 @@ function installCoreqs
   fi
   echo "distro = $distro"
   commonPackages="cifs-utils curl locate mpc mpd net-tools pandoc python3 python3-pip python3-rpi.gpio python3-venv"
-  if [ "${distro:0:12}" = "Ubuntu 22.04" -o "${distro:0:12}" = "Ubuntu 23.10" ]; then # Ubuntu desktop
+  if [ "${distro:0:12}" = "Ubuntu 22.04" -o "${distro:0:12}" = "Ubuntu 23.10" -o "${distro:0:6}" = Debian ]; then 
     diffPackages="python3.10-venv" 
     bootDir="/boot/firmware"
   elif [ "$distro" = "Raspbian GNU/Linux 10 (buster)" ]; then 
@@ -89,9 +89,13 @@ function installCoreqs
   sudo groupadd -g 993 gpio 
   echo
   
-  # copy a .bash_profile from ovos-tools
+  # copy a .bash_profile specific to Neon or OVOS 
   echo "Copying .bash_profile ..." | tee -a $outFile
-  runCmd cp ~/ovos-tools/bash_profile ~/.bash_profile
+  if [ -d /etc/neon ]; then   
+    runCmd cp $HOME/ovos-tools/neon_profile $HOME/.bash_profile
+  else                                     # assume OVOS
+    runCmd cp $HOME/ovos-tools/ovos_profile $HOME/.bash_profile
+  fi
   
   # turn default and vc4 audio off, don't disable monitor overscan
   cd $bootDir
