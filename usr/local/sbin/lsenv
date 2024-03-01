@@ -101,25 +101,30 @@ function listService()
     echo "INTERNAL ERROR: serviceType = $serviceType"
     exit 4
   fi
-  printf "%16s: " "$theService"
+  printf "%20s: " "$theService"
   verboseMsg "Running: $cmd ..." 
   cmdOut=`eval $cmd` 
   verboseMsg "$cmdOut"
-  echo "$cmdOut" | grep "active (" >/dev/null
+  echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
   if [ $? = 0 ]; then                      # found "active"
-    printf '\e[32m%s\e[0m\n' "active (running)" # in green
+    printf '\e[32m%s\e[0m\n' "Started"     # in green
   else
-    echo "$cmdOut" | grep "Active: failed" >/dev/null
-    if [ $? = 0 ]; then                    # found "failed"
-      printf '\e[31m%s\e[0m\n' "failed"    # in red
-    else 
-      echo "$cmdOut" | grep "code=exited" >/dev/null
-      if [ $? = 0 ]; then                  # found "exited"
-        printf '\e[31m%s\e[0m\n' "exited"  # in red
-      else
-        echo "$cmdOut" | grep "inactive (dead)" >/dev/null
-        if [ $? = 0 ]; then                # found "inactive"
-          printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
+    echo "$cmdOut" | grep "active (" >/dev/null
+    if [ $? = 0 ]; then
+    printf '\e[32m%s\e[0m\n' "active (running)" # in green
+    else
+      echo "$cmdOut" | grep "Active: failed" >/dev/null
+      if [ $? = 0 ]; then                  # found "failed"
+        printf '\e[31m%s\e[0m\n' "failed"  # in red
+      else 
+        echo "$cmdOut" | grep "code=exited" >/dev/null
+        if [ $? = 0 ]; then                # found "exited"
+          printf '\e[31m%s\e[0m\n' "exited" # in red
+        else
+          echo "$cmdOut" | grep "inactive (dead)" >/dev/null
+          if [ $? = 0 ]; then              # found "inactive"
+            printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
+          fi
 #       else
 #         echo "Unknown"
         fi
@@ -163,7 +168,7 @@ function getCPU()
     sleep 1 
   done
   let cpu_usage=$cpu_total/3               # calculate average
-  printf "%16s: %s\n" "CPU usage" "$cpu_usage%"
+  printf "%20s: %s\n" "CPU usage" "$cpu_usage%"
  }                                         # getCPU()
 
 #+--------------------------------------------------------------------------+
@@ -183,7 +188,7 @@ function listTemp()
   local theTemp=`cat /sys/class/thermal/thermal_zone0/temp` # in thousdandths of degrees celcius
   let theTemp=$theTemp/1000                # convert to degrees Celcius
   let tempF=$theTemp*9/5+32                # convert to degrees Farenheit
-  printf "%16s: %s\n" "CPU temperature" "${theTemp}C / ${tempF}F"
+  printf "%20s: %s\n" "CPU temperature" "${theTemp}C / ${tempF}F"
  }                                         # listTemp()
 
 #+--------------------------------------------------------------------------+
@@ -208,7 +213,7 @@ function tmpfsUsage()
   else
     answer=no
   fi
-  printf "%30s %16s : %s\n" "$theDir" "$desc" "$answer"
+  printf "%30s %20s : %s\n" "$theDir" "$desc" "$answer"
  }                                         # getCPU()
 
 #+--------------------------------------------------------------------------+
@@ -228,8 +233,10 @@ function doList()
   echo "$dashes"              
   if [ -d /etc/neon ]; then                # assume Neon
     theType="neon"
-    echo "Neon service:"
-    listService neon root
+    echo "Neon services:"
+    for nextService in neon-admin-enclosure neon-audio neon-bus neon-enclosure neon-gui neon-skills neon-speech; do
+      listService $nextService root   
+    done
   else                                     # assume OVOS
     theType="ovos"
     echo "OVOS services:"
@@ -250,24 +257,24 @@ function doList()
   echo "$dashes"              
   local theVersion
   local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
-  printf "%16s: %s\n" "Distro" "$distro"
+  printf "%20s: %s\n" "Distro" "$distro"
   if [ "$theType" = neon ]; then
     theVersion=`neonver`
-    printf "%16s: %s\n" "Neon version" "$theVersion"
+    printf "%20s: %s\n" "Neon version" "$theVersion"
   else                                     # assume ovos
     theVersion=`ovosver`
-    printf "%16s: %s\n" "OVOS version" "$OVOSver"
+    printf "%20s: %s\n" "OVOS version" "$OVOSver"
   fi
-  printf "%16s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
-# printf "%16s: %s\n" "PYTHONPATH" "$PYTHONPATH"
+  printf "%20s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
+# printf "%20s: %s\n" "PYTHONPATH" "$PYTHONPATH"
 
   local IPaddr=`hostname -I | awk '{print $1}'` # get the IP address
-  printf "%16s: %s\n" "IP address" "$IPaddr"
+  printf "%20s: %s\n" "IP address" "$IPaddr"
   listTemp                                 # RasPi temperature
 
   # root file system usage
   local rootUsed=`df -h / | tail -1 | awk '{print $5}'`
-  printf "%16s: %s\n" "Root fs usage" "$rootUsed"
+  printf "%20s: %s\n" "Root fs usage" "$rootUsed"
   getCPU                                   # CPU usage
 
   # memory usage
@@ -284,13 +291,14 @@ function doList()
   else
     tmpfsUsage $HOME/.local/state/mycroft OVOS logs
   fi
+  echo "$moreDashes"              
   echo
  }                                         # doList()
 
 #+--------------------------------------------------------------------------+
 # Global variables"
 clear="yes"                                # clear the screen
-dashes="-----------------------------------"
+dashes="--------------------------------------"
 moreDashes="----------------------------------------------------------------------------------"
 verbose=1                                 
 
