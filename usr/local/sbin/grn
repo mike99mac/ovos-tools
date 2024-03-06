@@ -4,14 +4,19 @@
 #
 if [ $# = 0 ]; then                        # no args passed
   echo "ERROR: no search pattern passed in"
-  echo "Usage: gro SEARCH_PATTERN"
+  echo "Usage: grn SEARCH_PATTERN"
   exit 1
 fi
 
-baseDir="$HOME/venv/lib/python3.*/site-packages"
-if [ ! -d $baseDir ]; then
-  echo "ERROR: Directory $baseDir not found" 
+pyDir=`ls -d $HOME/venv/lib/python3.*`
+if [ ! -d $pyDir ]; then
+  echo "ERROR: Python directory not found in $HOME/venv/lib/python3.* Is this a Neon box?"
   exit 1
+fi
+baseDir="$pyDir/site-packages"
+if [ ! -d $baseDir ]; then
+  echo "ERROR: Directory $baseDir not found. Is this a Neon box?"
+  exit 2
 fi
 
 echo

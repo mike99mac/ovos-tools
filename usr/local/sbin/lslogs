@@ -2,11 +2,14 @@
 #
 # lslogs - show OVOS log files 
 #
-logDir="$HOME/.local/state/mycroft"
-if [ ! -d $logDir ]; then 
-  echo "OVOS log directory $logDir not found"
+if [ -d $HOME/.local/state/neon ]; then      # assume this is a Neon box
+  logDir="$HOME/.local/state/neon"
+elif [ -d $HOME/.local/state/mycroft ]; then # assume OVOS
+  logDir="$HOME/.local/state/mycroft"
+else
+  echo "ERROR: could not find log dir in $HOME/.local/state/neon nor $HOME/.local/state/mycroft"
   exit 1
-fi  
+fi
 echo "Files in $logDir:"
 ls -latr $logDir                           # show the log files
 

@@ -60,18 +60,13 @@ function doSearch()
   : STACK:  ${FUNCNAME[@]}
 
   local logDir
-  local logDirs="$HOME/minimy/logs $HOME/.local/state/mycroft $HOME/.local/state/neon" 
-  local nextDir
-  local nextFile
-
-  for nextDir in $logDirs; do
-    if [ -d $nextDir ]; then    
-      logDir=$nextDir
-      break
-    fi
-  done
-  if [ ${#logDir} = 0 ]; then              # log directory not found
-    echo "ERROR: Log file directory not found in $logDirs" 
+  if [ -d /etc/neon ]; then                # this is Neon
+    logDir="$HOME/.local/state/neon" 
+  else                                     # assume OVOS
+    logDir="$HOME/.local/state/mycroft" 
+  fi
+  if [ ! -d $logDir ]; then                # log directory not found
+    echo "ERROR: Log file directory $logDir not found" 
     exit 1
   fi
   stat $logDir/*.log >/dev/null 2>&1

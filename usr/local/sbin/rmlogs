@@ -2,14 +2,26 @@
 #
 # rmlogs - remove OVOS log files 
 #
-logDir="$HOME/.local/state/mycroft"
+if [ -d $HOME/.local/state/neon ]; then      # assume this is a Neon box
+  logDir="$HOME/.local/state/neon"
+elif [ -d $HOME/.local/state/mycroft ]; then # assume OVOS
+  logDir="$HOME/.local/state/mycroft"
+else
+  echo "ERROR: could not find log dir in $HOME/.local/state/neon nor $HOME/.local/state/mycroft"
+  exit 1
+fi 
+stat $logDir/*.log >/dev/null 2>&1
+if [ $? != 0 ]; then                         # no log files found
+  echo "No log files found in log directory $logDir"
+  exit 3
+fi
 if [ "$1" != "-y" ]; then 
   echo "Remove all .log files in $logDir? (y/n)"
   read ans
   if [ "$ans" != "y" ]; then 
-    exit 1
+    exit 2
   fi
 fi  
 echo "Removing log files in $logDir ..."
-rm $logDir/*.log
+sudo rm $logDir/*.log
 

@@ -12,10 +12,11 @@ function usage()
 
   echo "Name: lsenv - List information about the OVOS environment" 
   echo "Usage: lsenv [OPTIONS]" 
-  echo "Where: noclear      Does not clear the screen first"
   echo ""
   echo "OPTIONS:"
   echo "  -h|--help         Give help (this screen)"
+  echo "  --justServices    Just show status of services"
+  echo "  -n|--noclear      Do not clear the screen" 
   echo "  -v|--verbose      Increase verbosity" 
   echo "  -x|--debug        Print commands and arguments as they are executed"
   exit 51
@@ -35,6 +36,9 @@ function parseArgs()
     case "$1" in
       -h|--help)
         usage
+        ;;
+      --justServices) 
+        justServices="yes"
         ;;
       -n|--noclear)                        # do not clear the screen
         clear="no"
@@ -109,9 +113,9 @@ function listService()
   if [ $? = 0 ]; then                      # found "active"
     printf '\e[32m%s\e[0m\n' "Started"     # in green
   else
-    echo "$cmdOut" | grep "active (" >/dev/null
+    echo "$cmdOut" | grep " active (" >/dev/null
     if [ $? = 0 ]; then
-    printf '\e[32m%s\e[0m\n' "active (running)" # in green
+    printf '\e[32m%s\e[0m\n' " active (running)" # in green
     else
       echo "$cmdOut" | grep "Active: failed" >/dev/null
       if [ $? = 0 ]; then                  # found "failed"
@@ -252,6 +256,9 @@ function doList()
   echo "$dashes"              
   echo "mpd service:"
   listService mpd root
+  if [ "$justServices" = "yes" ]; then     # all done
+    exit
+  fi      
 
   # also list many other settings and status 
   echo "$dashes"              
@@ -299,6 +306,7 @@ function doList()
 # Global variables"
 clear="yes"                                # clear the screen
 dashes="--------------------------------------"
+justServices="no"                          # just show services?
 moreDashes="----------------------------------------------------------------------------------"
 verbose=1                                 
 
