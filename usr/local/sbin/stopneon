@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# stopneon - stop all OVOS processes
+#
+echo "Stoping neon-enclosure ..."
+sudo systemctl stop neon-enclosure
+echo "Stoping neon-admin-enclosure ..."
+sudo systemctl stop neon-admin-enclosure
+echo "Stoping neon-skills..."
+sudo systemctl stop neon-skills
+echo "Stoping neon-audio ..."
+sudo systemctl stop neon-audio
+echo "Stoping neon-speech ..."
+sudo systemctl stop neon-speech
+echo "Stoping neon-gui ..."
+sudo systemctl stop neon-gui
+echo "Stoping neon-bus ..."
+sudo systemctl stop neon-bus
+
+lsenv --justServices --noclear

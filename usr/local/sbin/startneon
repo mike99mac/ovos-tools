@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# startneon - start all Neon processes
+#
+#+--------------------------------------------------------------------------+
+function startSystem
+# Start Neon base components
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo "Starting Neon ..."
+  rmlogs -y                                # remove log files 
+
+  # start all services 
+  echo "Starting neon-bus ..."
+  sudo systemctl start neon-bus
+  echo "Starting neon-enclosure ..."
+  sudo systemctl start neon-enclosure
+  echo "Starting neon-admin-enclosure ..."
+  sudo systemctl start neon-admin-enclosure
+  echo "Starting neon-skills..."
+  sudo systemctl start neon-skills
+  echo "Starting neon-audio ..."
+  sudo systemctl start neon-audio
+  echo "Starting neon-speech ..."
+  sudo systemctl start neon-speech
+  echo "Starting neon-gui ..."
+  sudo systemctl start neon-gui
+
+  lsenv --noclear --justServices
+ }                                         # startSystem()
+
+# main()
+logDir="$HOME/.local/state/neon"
+if [ ! -d $baseDir ]; then                 # dir not found
+  echo "ERROR: log directory $logDir not found"
+  exit 1
+fi
+
+startSystem
+
