@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# reloadrules - reload udev rules 
+#
+sudo udevadm control --reload-rules
