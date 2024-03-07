@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# lsskills - list skills installed or uninstalled (symlink to lsintent)   
+# lsskills - list skills installed or uninstalled 
 #
 #+--------------------------------------------------------------------------+
 function usage()
@@ -10,7 +10,7 @@ function usage()
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  echo "Name: lsskills - List Mycroft ${object}s "
+  echo "Name: lsskills - List OVOS/Neon skills "
   echo "Usage: lsskills [OPTIONS] [PATTERN]"
   echo "Where: PATTERN is an optional string pattern to search for"
   echo ""
@@ -39,13 +39,13 @@ function parseArgs()
       -h|--help)
         usage
         ;;
-      -a|--all)                            # valid for lsskills
+      -a|--all)                        
         skillsType="all"
         ;;
       -l|--long)
          outputType=long 
          ;;
-      -u|--uninstalled)                    # valid for lsskills
+      -u|--uninstalled)               
         skillsType="uninstalled"
         ;;
       -v|--verbose) 
@@ -89,8 +89,6 @@ function listMinimySkills()
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  local cmd
-
   if [ "$outputType" = short ]; then
     ps -ef | grep user_skills | grep -v grep | awk -F/ '{print $NF}'
   else
@@ -99,68 +97,75 @@ function listMinimySkills()
  }                                         # listMinimySkills()
 
 #+--------------------------------------------------------------------------+
-function listOVOSskills()
-# List the OVOS skills installed 
+function listSkills()
+# List the OVOS/Neon skills by search log files for "loaded successfully" 
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  skillsDir=$1
-  echo "$skillsType skills under $skillsDir:"
-  local cmd="ls -ld $skillsDir/skill_ovos*$pattern* $skillsDir/ovos_skill*$pattern* 2>/dev/null"
-  verboseMsg "command: $cmd"
+  local logDir=$1
+  cd $logDir
+  local skills=`grep "loaded successfully" skills.log 2>/dev/null`
+  skills=`echo "$skills" | awk '{print \$11}' | sort`
   if [ "$outputType" = short ]; then 
-    local skillsFound=`eval $cmd | grep -v dist-info | awk -F/ '{print $NF}'`
-    local numSkills=`echo "$skillsFound" | wc -l`
+    local numSkills=`echo "$skills" | wc -l`
     verboseMsg "found $numSkills skills:"
-    echo "$skillsFound"
+    echo "$skills"
   else
-    local MDfile
-    local nextSkillDir
-    local skillsDirs
-    skillsDirs=`eval $cmd | grep -v dist-info | awk '{print $9}' | xargs` 
-    for nextSkillDir in $skillsDirs; do 
-      if [ -f ${nextSkillDir}/README.md ]; then # README file not found
-        MDfile="${nextSkillDir}/README.md"
-      elif [ -f ${nextSkillDir}-*.dist-info/METADATA ]; then # METADATA file not found
-        MDfile="${nextSkillDir}-*.dist-info/METADATA"
-      else                                 # no markdown file found
-        echo "WARNING: could not find metadata in $nextSkillDir"
-        return
-      fi
-      echo "Skill in directory $nextSkillDir"
-      if [ -x /usr/bin/pandoc ]; then      # format the markdown
-        pandoc -t plain $MDfile
-      else
-        cat $MDfile
-      fi 
-    done
+    echo "TODO: write code for long output"
+#   local MDfile
+#   local nextSkillDir
+#   local skillsDirs
+#   skillsDirs=`eval $cmd | grep -v dist-info | awk '{print $9}' | xargs` 
+#   for nextSkillDir in $skillsDirs; do 
+#     if [ -f ${nextSkillDir}/README.md ]; then # README file not found
+#       MDfile="${nextSkillDir}/README.md"
+#     elif [ -f ${nextSkillDir}-*.dist-info/METADATA ]; then # METADATA file not found
+#       MDfile="${nextSkillDir}-*.dist-info/METADATA"
+#     else                                 # no markdown file found
+#       echo "WARNING: could not find metadata in $nextSkillDir"
+#       return
+#     fi
+#     echo "Skill in directory $nextSkillDir"
+#     if [ -x /usr/bin/pandoc ]; then      # format the markdown
+#       pandoc -t plain $MDfile
+#     else
+#       cat $MDfile
+#     fi 
+#   done
   fi
- }                                         # listOVOSskills()
+ }                                         # listSkills()
 
 #+--------------------------------------------------------------------------+
-function listSkills()
+function doTheWork()
 # List either Minimy or OVOS skills 
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  local pythonVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
-  local OVOSdir="$HOME/.venvs/ovos/lib/python$pythonVer/site-packages" 
-  if [ -d $OVOSdir ]; then
-    listOVOSskills $OVOSdir
+  local logDir
+  if [ -d $HOME/.local/state/neon ]; then      # assume this is a Neon box
+    logDir="$HOME/.local/state/neon"
+  elif [ -d $HOME/.local/state/mycroft ]; then # assume OVOS
+    logDir="$HOME/.local/state/mycroft"
   else
-    echo "Did not find directory $OVOSdir - is OVOS installed?"
+    echo "ERROR: could not find log dir in $HOME/.local/state/neon nor $HOME/.local/state/mycroft"
     exit 1
   fi
- }                                         # listSkills()
+
+  if [ -d $logDir ]; then
+    listSkills $logDir
+  else
+    echo "Did not find logs directory $logDir"
+    exit 1
+  fi
+ }                                         # doTheWork()
 
 #+--------------------------------------------------------------------------+
 # Global variables"
 lang="en-us"                                # language
-object=""                                   # object type to be listed 
 output=""                                   # the output string 
 outputType="short"                          # 'short' or 'long' listing
 pattern=""                                  # optional search pattern
@@ -169,5 +174,5 @@ verbose="1"                                 # verbosity level
 
 # main()
 parseArgs $@ 
-listSkills 
+doTheWork 
 
