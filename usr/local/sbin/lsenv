@@ -3,7 +3,7 @@
 # lsenv - list many aspects of the Mycroft/Minimy/Neon/OVOS environment
 #
 #+--------------------------------------------------------------------------+
-function usage()
+function usage
 # Give help to the user
 #+--------------------------------------------------------------------------+
  {
@@ -23,7 +23,7 @@ function usage()
  }                                         # usage()
 
 #+--------------------------------------------------------------------------+
-function parseArgs()
+function parseArgs
 # Parse arguments
 # Args: All arguments passed into script
 #+--------------------------------------------------------------------------+
@@ -59,7 +59,7 @@ function parseArgs()
  }                                         # parseArgs()
 
 #+--------------------------------------------------------------------------+
-function verboseMsg()
+function verboseMsg
 # Print message when in verbose mode
 # Args: message
 #+--------------------------------------------------------------------------+
@@ -73,7 +73,7 @@ function verboseMsg()
  }                                         # verboseMsg()
 
 #+--------------------------------------------------------------------------+
-function listService()
+function listService
 # List the status of one service 
 # Arg 1: service to list
 # Arg 2: "root" or "user" service
@@ -128,9 +128,9 @@ function listService()
           echo "$cmdOut" | grep "inactive (dead)" >/dev/null
           if [ $? = 0 ]; then              # found "inactive"
             printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
+          else
+            echo "Unknown"
           fi
-#       else
-#         echo "Unknown"
         fi
       fi
     fi
@@ -138,7 +138,7 @@ function listService()
  }                                         # listService()
 
 #+--------------------------------------------------------------------------+
-function getCPU()
+function getCPU
 # Get CPU usage for 4 seconds then average iterations 2-4 
 #+--------------------------------------------------------------------------+
  {
@@ -176,7 +176,7 @@ function getCPU()
  }                                         # getCPU()
 
 #+--------------------------------------------------------------------------+
-function listTemp()
+function listTemp
 # lstemp - show the temperature of the Raspberry Pi based on
 #          the file /sys/class/thermal/thermal_zone0/temp
 #+--------------------------------------------------------------------------+
@@ -192,11 +192,17 @@ function listTemp()
   local theTemp=`cat /sys/class/thermal/thermal_zone0/temp` # in thousdandths of degrees celcius
   let theTemp=$theTemp/1000                # convert to degrees Celcius
   let tempF=$theTemp*9/5+32                # convert to degrees Farenheit
-  printf "%20s: %s\n" "CPU temperature" "${theTemp}C / ${tempF}F"
+  if [ "$theTemp" -gt 80 ]; then           # too hot
+    printf "%20s: \e[31m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in red
+  elif [ "$theTemp" -lt 65 ]; then         # cool enough
+    printf "%20s: \e[32m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in green
+  else                                     # getting warm
+    printf "%20s: \e[33m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in yellow
+  fi
  }                                         # listTemp()
 
 #+--------------------------------------------------------------------------+
-function tmpfsUsage()
+function tmpfsUsage
 # Is the directory passed in using a tmpfs? 
 # Arg 1   : directory to mount
 # Args 2-n:
@@ -208,20 +214,18 @@ function tmpfsUsage()
   local theDir=$1
   shift
   local desc="$@"
-  local answer
 
   verboseMsg "Calling: mount | grep $theDir | grep tmpfs" 
   mount | grep $theDir | grep tmpfs >/dev/null 2>&1
   if [ $? = 0 ]; then                      # directory is using a tmpfs       
-    answer=yes
+    printf "%30s %20s : \e[32m%s\e[0m\n%s" "$theDir" "$desc" yes 
   else
-    answer=no
+    printf "%30s %20s : \e[31m%s\e[0m\n%s" "$theDir" "$desc" no 
   fi
-  printf "%30s %20s : %s\n" "$theDir" "$desc" "$answer"
  }                                         # getCPU()
 
 #+--------------------------------------------------------------------------+
-function doList()
+function doList
 # List much information about the OVOS environment 
 #+--------------------------------------------------------------------------+
  {
@@ -305,7 +309,7 @@ function doList()
 #+--------------------------------------------------------------------------+
 # Global variables"
 clear="yes"                                # clear the screen
-dashes="--------------------------------------"
+dashes="---------------------------------------"
 justServices="no"                          # just show services?
 moreDashes="----------------------------------------------------------------------------------"
 verbose=1                                 
