@@ -2,6 +2,8 @@ alias la='ls -latr'
 alias sysc=systemctl
 alias vi=/usr/bin/vim
 export LOG="$HOME/.local/state/neon"
+export MPC="$HOME/minimy-mike99mac/skills/user_skills/mpc"
+export M99="$HOME/.local/share/neon/skills/skill-local_music-mike99mac"
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/venv/bin"
 export SRC="$HOME/venv/lib/python3.*/site-packages"
 export SYS="/etc/systemd/system"
@@ -10,3 +12,4 @@ export Z="/usr/local/sbin"
 export DBUS_SESSION_BUS_ADDRESS="/run/user/1005/bus"
 export XDG_RUNTIME_DIR="/run/user/1005"
 source $HOME/venv/bin/activate
+
