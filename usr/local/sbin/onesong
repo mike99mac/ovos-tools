@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# onesong - play "yesterday" 
+#
+mpc clear; mpc search title "yesterday" | mpc add; mpc play
