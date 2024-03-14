@@ -2,4 +2,6 @@
 #
 # reloadrules - reload udev rules 
 #
+echo "Reloading udev rules with: 'sudo udevadm control --reload-rules'"
 sudo udevadm control --reload-rules
+echo "Return code: $?"
