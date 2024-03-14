@@ -3,7 +3,7 @@
 # lsskills - list skills installed or uninstalled 
 #
 #+--------------------------------------------------------------------------+
-function usage()
+function usage
 # Give help to the user
 #+--------------------------------------------------------------------------+
  {
@@ -25,7 +25,7 @@ function usage()
  }                                         # usage()
 
 #+--------------------------------------------------------------------------+
-function parseArgs()
+function parseArgs
 # Parse arguments
 # Args: All arguments passed into script
 #+--------------------------------------------------------------------------+
@@ -69,7 +69,7 @@ function parseArgs()
  }                                         # parseArgs()
 
 #+--------------------------------------------------------------------------+
-function verboseMsg()
+function verboseMsg
 # Print a message when in verbose mode
 #+--------------------------------------------------------------------------+
  {
@@ -82,7 +82,7 @@ function verboseMsg()
  }                                         # verboseMsg()
 
 #+--------------------------------------------------------------------------+
-function listMinimySkills()
+function listMinimySkills
 # List the Minimy skills installed
 #+--------------------------------------------------------------------------+
  {
@@ -97,7 +97,7 @@ function listMinimySkills()
  }                                         # listMinimySkills()
 
 #+--------------------------------------------------------------------------+
-function listSkills()
+function listSkills
 # List the OVOS/Neon skills by search log files for "loaded successfully" 
 #+--------------------------------------------------------------------------+
  {
@@ -107,7 +107,7 @@ function listSkills()
   local logDir=$1
   cd $logDir
   local skills=`grep "loaded successfully" skills.log 2>/dev/null`
-  skills=`echo "$skills" | awk '{print \$11}' | sort`
+  skills=`echo "$skills" | awk '{print \$11}' | sort | uniq`
   if [ "$outputType" = short ]; then 
     local numSkills=`echo "$skills" | wc -l`
     verboseMsg "found $numSkills skills:"
@@ -138,7 +138,7 @@ function listSkills()
  }                                         # listSkills()
 
 #+--------------------------------------------------------------------------+
-function doTheWork()
+function doTheWork
 # List either Minimy or OVOS skills 
 #+--------------------------------------------------------------------------+
  {
