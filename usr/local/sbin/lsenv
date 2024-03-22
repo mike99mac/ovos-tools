@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# lsenv - list many aspects of the Mycroft/Minimy/Neon/OVOS environment
+# lsenv - list many aspects of this Minimy or Neon or OVOS environment
 #
 #+--------------------------------------------------------------------------+
 function usage
@@ -73,6 +73,32 @@ function verboseMsg
  }                                         # verboseMsg()
 
 #+--------------------------------------------------------------------------+
+function listMinimy
+# List the status of Minimy 
+# Args: None
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  procs=`ps -ef | grep minimy | grep -v grep`
+  if [ ${#procs} = 0 ]; then               # matching process
+    printf '%22s\e[31m%s\e[0m\n' "Minimy processes:" " None found"  # in red
+  else
+    echo "Minimy processes:"
+    if [ "$verbose" = 1 ]; then            # normal output
+      userSkills=`echo "$procs" | awk -F/ '{print $NF}' | sort | xargs`
+      systemSkills=`ps -ef|grep -E 'python3 framework|python3 skills'|grep -v grep|awk -F/ '{print $NF}'|sed 's/.py//g'|sort|uniq|xargs`
+      printf '%24s\e[32m%s\e[0m\n' "Minimy user skills: " "$userSkills"  # in green
+      printf '%24s\e[32m%s\e[0m\n' "System skills: " "$systemSkills"     # in green
+    else                                   # verbose mode
+      echo "$procs" | sed 's/^/    /g'
+      ps -ef | grep -E 'python3 framework|python3 skills' | grep -v "grep" | sed 's/^/    /g'
+    fi
+  fi
+ }
+
+#+--------------------------------------------------------------------------+
 function listService
 # List the status of one service 
 # Arg 1: service to list
@@ -128,8 +154,8 @@ function listService
           echo "$cmdOut" | grep "inactive (dead)" >/dev/null
           if [ $? = 0 ]; then              # found "inactive"
             printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
-          else
-            echo "Unknown"
+          # else
+            # echo "Unknown"
           fi
         fi
       fi
@@ -237,20 +263,23 @@ function doList
     clear     
   fi
 
-  # check for Neon or OVOS services
+  # check for Neon, Minimy or OVOS services
   echo "$dashes"              
   if [ -d /etc/neon ]; then                # assume Neon
     theType="neon"
     echo "Neon services:"
     for nextService in neon-admin-enclosure neon-audio neon-bus neon-enclosure neon-gui neon-skills neon-speech; do
-      listService $nextService root   
+      listService $nextService root        # Neon runs as root
     done
+  elif [ -d $HOME/minimy ]; then           # assume Minimy
+    theType="minimy"
+    listMinimy
   else                                     # assume OVOS
     theType="ovos"
     echo "OVOS services:"
-    listService ovos-phal-admin root
+    listService ovos-phal-admin root       # this service runs as root
     for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
-      listService $nextService user   
+      listService $nextService user        # most services run as user
     done
   fi  
   echo "$dashes"              
@@ -272,12 +301,18 @@ function doList
   if [ "$theType" = neon ]; then
     theVersion=`neonver`
     printf "%20s: %s\n" "Neon version" "$theVersion"
+  elif [ "$theType" = minimy ]; then
+    if [ -f $HOME/minimy-mike99mac/version ]; then 
+      theVersion=`cat $HOME/minimy-mike99mac/version`     
+      printf "%20s: %s\n" "Minimy version" "$theVersion"
+    fi
   else                                     # assume ovos
     theVersion=`ovosver`
-    printf "%20s: %s\n" "OVOS version" "$OVOSver"
+    printf "%20s: %s\n" "OVOS version" "$theVersion"
   fi
-  printf "%20s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
-# printf "%20s: %s\n" "PYTHONPATH" "$PYTHONPATH"
+  if [ ${#VIRTUAL_ENV} != 0 ]; then
+    printf "%20s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
+  fi
 
   local IPaddr=`hostname -I | awk '{print $1}'` # get the IP address
   printf "%20s: %s\n" "IP address" "$IPaddr"
