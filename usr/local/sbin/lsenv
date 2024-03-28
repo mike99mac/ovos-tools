@@ -309,7 +309,7 @@ function doList
       theVersion=`cat $HOME/minimy-mike99mac/version`     
       printf "%20s: %s\n" "Minimy version" "$theVersion"
     fi
-  else                                     # assume ovos
+  elif [ "$theType" = ovos ]; then
     theVersion=`ovosver`
     printf "%20s: %s\n" "OVOS version" "$theVersion"
   fi
