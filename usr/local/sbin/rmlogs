@@ -1,17 +1,19 @@
 #!/bin/bash
 #
-# rmlogs - remove OVOS log files 
+# rmlogs - remove minimy/OVOS/neon log files 
 #
-if [ -d $HOME/.local/state/neon ]; then      # assume this is a Neon box
+if [ -d $HOME/minimy/logs ]; then          # this is a Minimy box
+  logDir="$HOME/minimy/logs"
+elif [ -d $HOME/.local/state/neon ]; then  # this is a Neon box
   logDir="$HOME/.local/state/neon"
 elif [ -d $HOME/.local/state/mycroft ]; then # assume OVOS
   logDir="$HOME/.local/state/mycroft"
 else
-  echo "ERROR: could not find log dir in $HOME/.local/state/neon nor $HOME/.local/state/mycroft"
+  echo "ERROR: no log file directory in $HOME/minimy/logs $HOME/.local/state/neon nor $HOME/.local/state/mycroft"
   exit 1
 fi 
 stat $logDir/*.log >/dev/null 2>&1
-if [ $? != 0 ]; then                         # no log files found
+if [ $? != 0 ]; then                       # no log files found
   echo "No log files found in log directory $logDir"
   exit 3
 fi
