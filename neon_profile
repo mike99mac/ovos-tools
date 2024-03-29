@@ -1,4 +1,4 @@
-alias la='ls -latr'
+alias la='ls -laFtr'
 alias sysc=systemctl
 alias vi=/usr/bin/vim
 export LOG="$HOME/.local/state/neon"

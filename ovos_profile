@@ -1,4 +1,4 @@
-alias la='ls -latr'
+alias la='ls -laFtr'
 alias vi=/usr/bin/vim
 alias venvs="source $HOME/.venvs/ovos/bin/activate"    # start an OVOS venv
 export LOG="$HOME/.local/state/mycroft"                # OVOS logs

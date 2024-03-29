@@ -1,4 +1,4 @@
-alias la="ls -latr"
+alias la="ls -laFtr"
 alias vi="/usr/bin/vim"
 alias sctl="sudo systemctl"
 alias jctl="sudo journalctl"
