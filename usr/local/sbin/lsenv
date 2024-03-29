@@ -339,6 +339,9 @@ function doList
     tmpfsUsage $HOME/.local/state/neon Neon logs
   elif [ "$theType" = ovos ]; then
     tmpfsUsage $HOME/.local/state/mycroft OVOS logs
+  elif [ "$theType" = minimy ]; then
+    tmpfsUsage $HOME/minimy/logs Minimy logs
+    tmpfsUsage $HOME/minimy/tmp Minimy temp dir
   fi
   echo "$moreDashes"              
   echo
