@@ -6,4 +6,7 @@ if [ $# = 0 ]; then                        # no args passed
   echo "Usage: gitc <Description of changes>"
   exit 1
 fi
-git commit -a -m "$@"
+cmd="git commit -a -m \"$@\""
+echo "Running command: $cmd"
+eval $cmd
+
