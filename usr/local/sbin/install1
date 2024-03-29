@@ -89,10 +89,12 @@ function installCoreqs
   sudo groupadd -g 993 gpio 
   echo
   
-  # copy a .bash_profile specific to Neon or OVOS 
+  # copy a .bash_profile specific to Neon, Minimy or OVOS 
   echo "Copying .bash_profile ..." | tee -a $outFile
-  if [ -d /etc/neon ]; then   
+  if [ -d /etc/neon ]; then                # assume neon
     runCmd cp $HOME/ovos-tools/neon_profile $HOME/.bash_profile
+  elif [ -d $HOME/minimy ]; then           # assume Minimy
+    runCmd cp $HOME/ovos-tools/minimy_profile $HOME/.bash_profile
   else                                     # assume OVOS
     runCmd cp $HOME/ovos-tools/ovos_profile $HOME/.bash_profile
   fi
