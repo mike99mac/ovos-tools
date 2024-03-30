@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# colorlogs - print out sorted Minimy log files with each file prefix in a unique color 
+#
+# file         code     color
+# ----         ----     -----
+# tts          31       red
+# media_player 32       green
+# intent       33       yellow
+# skills       35       magenta
+# stt          36       cyan
+#
+tempFile=`mktemp`
+cd $HOME/minimy/logs
+for i in tts media_player intent skills stt; do 
+  cat $i.log | sed "s/\(\[.*\] \)\(.*\)/\1`if [ "$i" = tts ]; then \
+                                            printf "\1\033[031m"; \
+                                          elif [ "$i" = media_player ]; then \
+                                            printf "\1\033[032m"; \
+                                          elif [ "$i" = intent ]; then \
+                                            printf "\1\033[033m"; 
+                                          elif [ "$i" = skills ]; then \
+                                            printf "\1\033[035m"; 
+                                          elif [ "$i" = stt ]; then \
+                                            printf "\1\033[036m"; fi` $i `printf "\033[0m"`\2/g";
+done | sort > $tempFile
+cat $tempFile
+echo
+echo "Sorted logs are in: $tempFile"
+echo
+
