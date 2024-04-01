@@ -22,7 +22,7 @@ for i in tts media_player intent skills stt; do
                                           elif [ "$i" = skills ]; then \
                                             printf "\1\033[035m"; 
                                           elif [ "$i" = stt ]; then \
-                                            printf "\1\033[036m"; fi` $i `printf "\033[0m"`\2/g";
+                                            printf "\1\033[036m"; fi` $i `printf "\033[0m"`\2/";
 done | sort > $tempFile
 cat $tempFile
 echo

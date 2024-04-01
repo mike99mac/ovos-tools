@@ -67,7 +67,7 @@ function doSearch()
     logDir="$HOME/minimy/logs" 
   elif [ -d $HOME/.venvs/ovos/lib/python3.*/site-packages/ovos_core ]; then # this is OVOS
     logDir="$HOME/.local/state/mycroft" 
-  else                                     
+  else                                     # assume OVOS
     echo "ERROR: Neon/Minimy/OVOS not installed"
     exit 1 
   fi
@@ -90,7 +90,7 @@ function doSearch()
     echo "log files:"
     ls -l $logDir/*.log
   fi
-  echo "grep \"$theString\" $tempFile"     # show the command
+  echo "grep --color \"$theString\" $tempFile"     # show the command
   grep "$theString" $tempFile 2>/dev/null  # search log files with no stderr
   exit $?                                  # bubble up grep's return code 
  }                                         # doSearch()

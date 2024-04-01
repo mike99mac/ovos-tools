@@ -23,7 +23,7 @@ echo
 echo "Searching Python files below $baseDir ..."
 echo
 cd $baseDir
-grep -n "$@" */*.py ovos_*/*/*.py */*/*/*.py */*/*/*/*.py */*/*/*/*/*.py */*/*/*/*/*/*.py | sed "s:^:$baseDir/:g"
+grep --color -n "$@" */*.py ovos_*/*/*.py */*/*/*.py */*/*/*/*.py */*/*/*/*/*.py */*/*/*/*/*/*.py | sed "s:^:$baseDir/:g"
 
 localDir="$HOME/.local/share/neon/skills/"
 echo

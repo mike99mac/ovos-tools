@@ -19,5 +19,5 @@ echo
 echo "Searching Python files below $baseDir ..."
 echo
 cd $baseDir
-grep -n "$@" ovos_*/*.py ovos_*/*/*.py ovos_*/*/*/*.py skill_ovos_*/*.py skill_ovos_*/*/*.py | sed "s:^:$baseDir/:g"
+grep --color -n "$@" ovos_*/*.py ovos_*/*/*.py ovos_*/*/*/*.py skill_ovos_*/*.py skill_ovos_*/*/*.py | sed "s:^:$baseDir/:g"
 
