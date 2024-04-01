@@ -59,11 +59,17 @@ function doSearch()
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
+
   local logDir
   if [ -d /etc/neon ]; then                # this is Neon
     logDir="$HOME/.local/state/neon" 
-  else                                     # assume OVOS
+  elif [ -d $HOME/minimy ]; then           # this is Minimy 
+    logDir="$HOME/minimy/logs" 
+  elif [ -d $HOME/.venvs/ovos/lib/python3.*/site-packages/ovos_core ]; then # this is OVOS
     logDir="$HOME/.local/state/mycroft" 
+  else                                     
+    echo "ERROR: Neon/Minimy/OVOS not installed"
+    exit 1 
   fi
   if [ ! -d $logDir ]; then                # log directory not found
     echo "ERROR: Log file directory $logDir not found" 
