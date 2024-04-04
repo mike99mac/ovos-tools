@@ -118,7 +118,7 @@ function installCoreqs
   echo "set noautoindent" >> vimrc
   echo "set nocindent" >> vimrc
   echo "set nosmartindent" >> vimrc
-  echo "set indentexpr=" >> vimrc
+  # echo "set indentexpr=" >> vimrc
   
   # rsyslog can send a flood of kernel messages
   if [ -f /etc/rsyslog.conf -a ! -f /etc/rsyslog.conf.orig ]; then 
