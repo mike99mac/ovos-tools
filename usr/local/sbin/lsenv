@@ -274,7 +274,7 @@ function doList
   elif [ -d $HOME/minimy ]; then           # assume Minimy
     theType="minimy"
     listMinimy
-  elif [ -d $HOME/.venvs/ovos/lib/python3.*/site-packages/ovos_core* ]; then # assume OVOS
+  elif [ -d $HOME/.venvs/ovos/lib/python3.*/site-packages/ovos_core ]; then # assume OVOS
     theType="ovos"
     echo "OVOS services:"
     listService ovos-phal-admin root       # this service runs as root
