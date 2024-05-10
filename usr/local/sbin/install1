@@ -58,11 +58,6 @@ function installCoreqs
     exit 1 
   fi
 
-  echo | tee -a $logFile
-  echo "Installing other non-ovos packages with pip install ..." | tee -a $logFile
-  runCmd pip install silero tornado
-
-
   echo "Installing co-req packages ..."
   for nextPkg in $commonPackages $diffPachages; do  
     runCmd sudo apt-get --quiet install -y $nextPkg
