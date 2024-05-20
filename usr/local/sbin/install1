@@ -83,12 +83,12 @@ function installCoreqs
   
   # copy a .bash_profile specific to Neon, Minimy or OVOS 
   echo "Copying .bash_profile ..." | tee -a $outFile
-  if [ -d /etc/neon ]; then                # assume neon
+  if [ $1 = neon ]; then            
     runCmd cp $HOME/ovos-tools/neon_profile $HOME/.bash_profile
-  elif [ -d $HOME/minimy ]; then           # assume Minimy
-    runCmd cp $HOME/ovos-tools/minimy_profile $HOME/.bash_profile
-  else                                     # assume OVOS
+  elif [ $1 = ovos  ]; then          
     runCmd cp $HOME/ovos-tools/ovos_profile $HOME/.bash_profile
+  else                                     # minimy is default
+    runCmd cp $HOME/ovos-tools/minimy_profile $HOME/.bash_profile
   fi
   
   # turn default and vc4 audio off, don't disable monitor overscan
