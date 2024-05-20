@@ -66,11 +66,8 @@ function installCoreqs
   if [ ! -f /etc/vim/vimrc.orig ]; then    # never copied original
     runCmd sudo cp /etc/vim/vimrc /etc/vim/vimrc.orig
   fi    
-  echo "Setting vim to better colors ..." | tee -a $outFile
-  grep "colorscheme desert" /etc/vim/vimrc >/dev/null 2>&1
-  if [ $? != 0 ]; then                     # file has not been modified 
-    echo "colorscheme desert" | sudo tee -a /etc/vim/vimrc
-  fi  
+  echo "Copying vimrc ..." | tee -a $outFile
+  runCmd sudo cp $HOME/ovos-tools/vimrc /etc/vim
   echo
   
   # Configure groups and users

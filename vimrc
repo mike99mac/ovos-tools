@@ -1,4 +1,4 @@
-"runtime! debian.vim
+runtime! debian.vim
 syntax on
 colorscheme desert
 set noautoindent
