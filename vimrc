@@ -5,4 +5,4 @@ set noautoindent
 set nocindent
 set nosmartindent
 set indentexpr=
-set mouse=n
+set mouse=a
