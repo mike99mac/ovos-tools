@@ -3,7 +3,7 @@
 # testplay - test recording with default microphone
 #
 #+--------------------------------------------------------------------------+
-function usage()
+function usage
 # Give help to the user
 #+--------------------------------------------------------------------------+
  {
@@ -14,7 +14,7 @@ function usage()
   echo "Usage: testplay [OPTIONS]" 
   echo ""
   echo "OPTIONS:"
-  echo "  -c|--cello        Play just one cello sound"
+  echo "  -t|--test         Test playing /usr/share/sounds/alsa/Front_Center.wav"
   echo "  -h|--help         Give help (this screen)"
   echo "  -v|--verbose      Increase verbosity" 
   echo "  -x|--debug        Print commands and arguments as they are executed"
@@ -22,7 +22,7 @@ function usage()
  }                                         # usage()
 
 #+--------------------------------------------------------------------------+
-function parseArgs()
+function parseArgs
 # Parse arguments
 # Args: All arguments passed into script
 #+--------------------------------------------------------------------------+
@@ -33,8 +33,8 @@ function parseArgs()
   while [ -n "$1" ]                        # loop through args passed in
   do
     case "$1" in
-      -c|--cello)
-        cello="yes"
+      -t|--test)
+        testFile="/usr/share/sounds/alsa/Front_Center.wav"
         ;;
       -h|--help)
         usage
@@ -47,12 +47,8 @@ function parseArgs()
          set -vx
          ;;
       *)
-        if [ "$1" = cello ]; then          # try playing the cello sound
-          testFile="/usr/share/sounds/sound-icons/violoncello-7.wav"
-        else
-	  echo "ERROR: Too many arguments: $1"
-	  usage 
-        fi
+	echo "ERROR: Too many arguments: $1"
+	usage 
         ;;
     esac
     shift
@@ -60,25 +56,15 @@ function parseArgs()
  }                                         # parseArgs()
 
 #+--------------------------------------------------------------------------+
-function doTest()
+function doTest
 # test recording with default microphone
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  if [ "$cello" = yes ]; then              # just play one sound
-    echo "Playing one cello sound ..."
-    aplay /usr/share/sounds/sound-icons/violoncello-7.wav
-    exit
-  fi
-
-  if [ ${#testFile} = 0 ]; then            # not testing the cello sound
-    testFile="/tmp/test-mic.wav"           # test recording file from testrecord
-  fi
-
   if [ ! -f $testFile ]; then 
-    echo "ERROR: did note find test recording in file $testFile"
+    echo "ERROR: did note find file $testFile"
     echo "Did you run testrecord?"
     exit 1
   else   
@@ -92,7 +78,7 @@ function doTest()
 #+--------------------------------------------------------------------------+
 # Global variables"
 cello="no"                                 # play just one sound?
-testFile=""                                # test file to play 
+testFile="/tmp/test-mic.wav"               # test recording file from testrecord
 verbose=1                                  # verbosity
 flags=""                                   # flags to pass on
 
