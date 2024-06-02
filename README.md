@@ -773,7 +773,8 @@ The Wiki skill is a fallback skill. As such it does not have a vocabulary
 
 There is more documentation, by the original author Ken Smith, here: https://github.com/ken-mycroft/minimy/tree/main/doc
 
-## Installing and running faster-whisper
+# Installing and running faster-whisper
+
 Trying to install ``faster-whisper`` on a Raspberry Pi 5
  
 Mike Gray's writeup on how to do this is here:  https://blog.graywind.org/posts/fasterwhisper-stt-server-script/
@@ -784,9 +785,9 @@ To prepare for the install:
 - Reinstalled ovos-tools from https://github.com/mike99mac/ovos-tools
 - Ran ``install1`` from ovos-tools.
 
-To install it
+To install it, perform the following steps.
 
-- Get Mike Gray's script
+- Get Mike Gray's script:
 
 ```
 cd 
@@ -802,19 +803,79 @@ sudo chown pi.pi fasterwhisper-setup.sh
 chmod +x fasterwhisper-setup.sh
 ```
 
-- Run it and save output
+- Run it and save output:
 
 ```
 fasterwhisper-setup.sh | tee $HOME/fasterwhisper-setup.out
 ```
 
-- Make it a service:
+- Make it a service and set it to run at boot time:
 
 ```
 sudo cp ~/ovos-stt-server.service /etc/systemd/system/ovos-stt-server.service
 sudo systemctl daemon-reload
 sudo systemctl enable ovos-stt-server.service
+```
+
+- Start the service:
+
+```
 sudo systemctl start ovos-stt-server.service
 ```
 
+- Test playing a sample audio file in the ``ovos-tools`` directory. It is an 11 second excerpt from a speech by John F. Kennedy.
 
+```
+aplay /home/pi/ovos-tools/jfk.wav
+```
+
+- Send it the sample audio file:
+
+```
+curl -X POST -H "Content-Type: audio/wav" -i --data-binary -F data="/home/pi/ovos-tools/jfk.wav" http://192.168.1.102:8080/stt
+$ curl -X POST -H "Content-Type: audio/wav" -i --data-binary -F data="/home/pi/ovos-tools/jfk.wav" http://192.168.1.102:8080/stt
+curl: (3) URL using bad/illegal format or missing URL
+HTTP/1.1 500 INTERNAL SERVER ERROR
+Server: Werkzeug/3.0.3 Python/3.11.2
+Date: Sun, 02 Jun 2024 17:55:16 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 265
+Connection: close
+
+<!doctype html>
+<html lang=en>
+<title>500 Internal Server Error</title>
+<h1>Internal Server Error</h1>
+<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
+```
+
+Here is the output from the ``flask`` Web server:
+
+```
+Traceback (most recent call last):
+  File "/home/pi/STT_venv/lib/python3.11/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/STT_venv/lib/python3.11/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/STT_venv/lib/python3.11/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/STT_venv/lib/python3.11/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pi/STT_venv/lib/python3.11/site-packages/ovos_stt_http_server/__init__.py", line 34, in get_stt
+    with AudioFile(fp.name) as source:
+  File "/home/pi/STT_venv/lib/python3.11/site-packages/speech_recognition/__init__.py", line 274, in __enter__
+    raise ValueError("Audio file could not be read as PCM WAV, AIFF/AIFF-C, or Native FLAC; check if file is corrupted or in another format")
+ValueError: Audio file could not be read as PCM WAV, AIFF/AIFF-C, or Native FLAC; check if file is corrupted or in another format
+192.168.1.102 - - [02/Jun/2024 13:55:16] "POST /stt HTTP/1.1" 500 -
+```
+
+- I tried installing flac, restarting flask and sending the request again - same result :((
+
+```
+sudo apt-get install flac
+```
+And res
