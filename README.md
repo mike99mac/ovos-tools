@@ -775,7 +775,7 @@ There is more documentation, by the original author Ken Smith, here: https://git
 
 # Installing and running faster-whisper
 
-Trying to install ``faster-whisper`` on a Raspberry Pi 5
+Trying to install ``faster-whisper`` on a Raspberry Pi 5.
  
 Mike Gray's writeup on how to do this is here:  https://blog.graywind.org/posts/fasterwhisper-stt-server-script/
 
@@ -794,7 +794,7 @@ cd
 wget https://gist.githubusercontent.com/mikejgray/a7067743a3c50ed74f05a401fa6bb9ce/raw/73f9b87082573017d8c486f42d43eecd8181982c/fasterwhisper-setup.sh
 ```
 
-- Copy to /usr/local/sbin:
+- Copy to ``/usr/local/sbin``:
 
 ```
 sudo cp fasterwhisper-setup.sh  /usr/local/sbin
@@ -829,7 +829,7 @@ sudo systemctl start ovos-stt-server.service
 aplay /home/pi/ovos-tools/jfk.wav
 ```
 
-- Send it the sample audio file:
+- Send the sample audio file to the flask Web server using the IP address and port 8080:
 
 ```
 curl -X POST -H "Content-Type: audio/wav" -i --data-binary -F data="/home/pi/ovos-tools/jfk.wav" http://192.168.1.102:8080/stt
@@ -878,4 +878,4 @@ ValueError: Audio file could not be read as PCM WAV, AIFF/AIFF-C, or Native FLAC
 ```
 sudo apt-get install flac
 ```
-And res
+
