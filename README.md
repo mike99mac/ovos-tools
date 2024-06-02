@@ -773,13 +773,48 @@ The Wiki skill is a fallback skill. As such it does not have a vocabulary
 
 There is more documentation, by the original author Ken Smith, here: https://github.com/ken-mycroft/minimy/tree/main/doc
 
-## Afterthought
+## Installing and running faster-whisper
+Trying to install ``faster-whisper`` on a Raspberry Pi 5
+ 
+Mike Gray's writeup on how to do this is here:  https://blog.graywind.org/posts/fasterwhisper-stt-server-script/
 
-One of my mantras is *Less is more*. I like minimy because it is a **Mini-My**croft. Here is a rough estimate of the lines of Python code in the three projects as of May 2023:
+To prepare for the install:
+
+- Reflashed RasPiOS onto a micro-SD card and installed Linux.
+- Reinstalled ovos-tools from https://github.com/mike99mac/ovos-tools
+- Ran ``install1`` from ovos-tools.
+
+To install it
+
+- Get Mike Gray's script
+
 ```
-            Repo         Loc           files
-    mycroft-core       38074             229
-       ovos-core       18067             238
-minimy-mike99mac        9900              79
+cd 
+wget https://gist.githubusercontent.com/mikejgray/a7067743a3c50ed74f05a401fa6bb9ce/raw/73f9b87082573017d8c486f42d43eecd8181982c/fasterwhisper-setup.sh
 ```
-So OVOS is half the size of Mycroft, and Minimy is about half again smaller.
+
+- Copy to /usr/local/sbin:
+
+```
+sudo cp fasterwhisper-setup.sh  /usr/local/sbin
+cd /usr/local/sbin
+sudo chown pi.pi fasterwhisper-setup.sh
+chmod +x fasterwhisper-setup.sh
+```
+
+- Run it and save output
+
+```
+fasterwhisper-setup.sh | tee $HOME/fasterwhisper-setup.out
+```
+
+- Make it a service:
+
+```
+sudo cp ~/ovos-stt-server.service /etc/systemd/system/ovos-stt-server.service
+sudo systemctl daemon-reload
+sudo systemctl enable ovos-stt-server.service
+sudo systemctl start ovos-stt-server.service
+```
+
+
