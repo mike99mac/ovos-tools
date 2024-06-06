@@ -112,7 +112,7 @@ function installCoreqs
   fi
   echo "distro = $distro"
   commonPackages="bind9-dnsutils cifs-utils curl locate mpc mpd net-tools pandoc python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
-  if [ "${distro:0:12}" = "Ubuntu 22.04" -o "${distro:0:12}" = "Ubuntu 23.10" -o "${distro:0:6}" = Debian ]; then 
+  if [ "${distro:0:12}" = "Ubuntu 22.04" -o "${distro:0:12}" = "Ubuntu 23.10" -o "${distro:7:12}" = "Noble Numbat" -o "${distro:0:6}" = Debian ]; then 
     diffPackages="python3.10-venv" 
     bootDir="/boot/firmware"
   elif [ "$distro" = "Raspbian GNU/Linux 10 (buster)" ]; then 
@@ -122,7 +122,7 @@ function installCoreqs
     diffPackages="python3.9-venv" 
     bootDir="/boot"
   else                                     # not supported
-    echo "ERROR: only Ubuntu Desktop 22.04, 23.10 or Raspbian are supported" 
+    echo "ERROR: only Ubuntu Desktop 22.04, 23.10, 24.04 or Raspbian are supported" 
     exit 1 
   fi
 
@@ -238,7 +238,7 @@ flavor="minimy"                            # minimy, neon or ovos
 timeStamp=`date +"%y-%m-%d-%H-%M-%S"`   
 outFile="$HOME/$timeStamp-install1.out"    # output file
 parseArgs $@
-echo "Running install1 on $timestamp to configure $flavor ..." > $outFile # create a new log file
+echo "Running install1 on $timeStamp to configure $flavor ..." > $outFile # create a new log file
 installCoreqs | tee -a $outFile            # do the work
 let min=$SECONDS/60
 let sec=$SECONDS%60
