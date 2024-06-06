@@ -73,6 +73,20 @@ function parseArgs()
   done
  }                                         # parseArgs()
 
+#+--------------------------------------------------------------------------+
+function checkOvosTools
+# Check that ovos-tools is installed in $HOME 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  baseDir="$HOME/ovos-tools"
+  if [ ! -d $baseDir ]; then
+    echo "ERROR: Did not find ovos-tools in $baseDir"
+    exit 1
+  fi
+ }                                         # checkOvosTools()
 
 #+--------------------------------------------------------------------------+
 function runCmd
@@ -86,7 +100,7 @@ function runCmd
 
   echo " " 
   echo "Running: $cmd" 
-  eval $cmd 2>&1 | tee -a $outFile         # run the command
+  eval $cmd 2>&1 
   rc=$?
   if [ "$rc" != 0 ]; then                  # it failed
     echo "ERROR: $cmd returned $rc" 
@@ -94,7 +108,6 @@ function runCmd
   else
     echo "Command was successful!" 
   fi
-  # echo ""
  }                                         # runCmd()
 
 #+--------------------------------------------------------------------------+
@@ -238,6 +251,7 @@ flavor="minimy"                            # minimy, neon or ovos
 timeStamp=`date +"%y-%m-%d-%H-%M-%S"`   
 outFile="$HOME/$timeStamp-install1.out"    # output file
 parseArgs $@
+checkOvosTools                             # verify ovos-tools is installed
 echo "Running install1 on $timeStamp to configure $flavor ..." > $outFile # create a new log file
 installCoreqs | tee -a $outFile            # do the work
 let min=$SECONDS/60
