@@ -2,10 +2,78 @@
 #
 # install1 - first install script to configure a newly flashed Linux
 #            to prepare it for a OVOS installaiton
-#            Supported Linuxes (from /etc/os-release)
-#              - Ubuntu 22.04.2 LTS
-#              - 
 #
+#+--------------------------------------------------------------------------+
+function usage()
+# Give help to the user
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo "install1 - configure Linux for Minimy, Neon or OVOS"
+  echo "Usage: install1 [OPTIONS]" 
+  echo ""
+  echo "OPTIONS:"
+  echo "  -h|--help         Give help (this screen)"
+  echo "  -m|--minimy       Configure for Minimy (default)"
+  echo "  -n|--neon         Configure for Neon"
+  echo "  -o|--ovos         Configure for OVOS"
+  echo "  -v|--verbose      Increase verbosity"
+  echo "  -x|--debug        Print commands and arguments as they are executed"
+  echo ""
+  exit 51
+ }                                         # usage()
+
+#+--------------------------------------------------------------------------+
+function parseArgs()
+# Parse arguments
+# Args: All arguments passed into script
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  while [ -n "$1" ]                        # loop through args passed in
+  do
+    case "$1" in
+      -c|--cardnum)
+        if [ $# = 0 ]; then                # CARD not passed in
+          echo "ERROR! CARD not passed in after $1"
+          usage                            # give help
+        fi
+        shift                              # get to next arg
+        cardToUse=$1
+        ;;
+      -h|--help)
+        usage
+        ;;
+      -m|--minimy)
+        flavor="minimy" 
+        ;;
+      -n|--neon)
+        flavor="neon" 
+        ;;
+      -o|--ovos)
+        flavor="ovos" 
+        ;;
+      -v|--verbose)
+        verbose=2
+        flags="-v"
+        ;;
+      -x|--debug)                          # turn trace on
+         set -vx
+         ;;
+      *)
+        echo "ERROR: Too many arguments: $1"
+        usage
+        ;;
+    esac
+    shift
+  done
+ }                                         # parseArgs()
+
+
 #+--------------------------------------------------------------------------+
 function runCmd
 # run a command, report time spent and exit if it failes
@@ -16,17 +84,17 @@ function runCmd
 
   cmd="$@"                                 # all args
 
-  echo " " | tee -a $outFile               # add a blank line
-  echo "Running: $cmd" | tee -a $outFile
+  echo " " 
+  echo "Running: $cmd" 
   eval $cmd 2>&1 | tee -a $outFile         # run the command
   rc=$?
   if [ "$rc" != 0 ]; then                  # it failed
-    echo "ERROR: $cmd returned $rc" | tee -a $outFile
+    echo "ERROR: $cmd returned $rc" 
     exit 1
   else
-    echo "command was successful!" | tee -a $outFile
+    echo "Command was successful!" 
   fi
-  echo ""
+  # echo ""
  }                                         # runCmd()
 
 #+--------------------------------------------------------------------------+
@@ -39,7 +107,7 @@ function installCoreqs
 
   distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   if [ ${#distro} = 0 ]; then
-    echo "ERROR: did not find PRETTY_NAME in /etc/os-release" | tee -a $outFile
+    echo "ERROR: did not find PRETTY_NAME in /etc/os-release" 
     exit 1
   fi
   echo "distro = $distro"
@@ -54,7 +122,7 @@ function installCoreqs
     diffPackages="python3.9-venv" 
     bootDir="/boot"
   else                                     # not supported
-    echo "ERROR: only Ubuntu Desktop 22.04, 23.10 or Raspbian are supported" | tee -a $outFile
+    echo "ERROR: only Ubuntu Desktop 22.04, 23.10 or Raspbian are supported" 
     exit 1 
   fi
 
@@ -66,35 +134,35 @@ function installCoreqs
   if [ ! -f /etc/vim/vimrc.orig ]; then    # never copied original
     runCmd sudo cp /etc/vim/vimrc /etc/vim/vimrc.orig
   fi    
-  echo "Copying vimrc ..." | tee -a $outFile
+  echo "Copying vimrc ..." 
   runCmd sudo cp $HOME/ovos-tools/vimrc /etc/vim
   echo
   
   # Configure groups and users
-  echo "Adding groups to user pi ..." | tee -a $outFile
+  echo "Adding groups to user pi ..." 
   runCmd sudo usermod -a -G video,pulse,pulse-access,dialout,kmem pi
-  echo "Adding groups to user mpd ..." | tee -a $outFile
+  echo "Adding groups to user mpd ..." 
   runCmd sudo usermod -a -G pulse-access,pi mpd
-  echo "Adding groups spi, i2c and gpio to /etc/groump ..." | tee -a $outFile
+  echo "Adding groups spi, i2c and gpio to /etc/groump ..." 
   sudo groupadd -g 993 spi
   sudo groupadd -g 994 i2c
   sudo groupadd -g 993 gpio 
   echo
   
   # copy a .bash_profile specific to Neon, Minimy or OVOS 
-  echo "Copying .bash_profile ..." | tee -a $outFile
-  if [ $1 = neon ]; then            
-    runCmd cp $HOME/ovos-tools/neon_profile $HOME/.bash_profile
-  elif [ $1 = ovos  ]; then          
-    runCmd cp $HOME/ovos-tools/ovos_profile $HOME/.bash_profile
-  else                                     # minimy is default
+  echo "Copying .bash_profile ..." 
+  if [ "$flavor" = "minimy" ]; then     
     runCmd cp $HOME/ovos-tools/minimy_profile $HOME/.bash_profile
+  elif [ "$flavor" = "neon" ]; then     
+    runCmd cp $HOME/ovos-tools/neon_profile $HOME/.bash_profile
+  elif [ "$flavor" = "ovos" ]; then     
+    runCmd cp $HOME/ovos-tools/ovos_profile $HOME/.bash_profile
   fi
   
   # turn default and vc4 audio off, don't disable monitor overscan
   cd $bootDir
   if [ ! -f config.txt.orig ]; then
-    echo "Customizing boot parameters ..." | tee -a $outFile
+    echo "Customizing boot parameters ..." 
     runCmd sudo cp config.txt config.txt.orig
     sudo sed -i -e 's/dtparam=audio=on/dtparam=audio=off\ndtparam=spi=off/g' \
                 -e 's/^disable_overscan/# disable_overscan/g' \
@@ -102,7 +170,7 @@ function installCoreqs
   fi  
   
   # vim - please just give me a newline
-  echo "Removing annoying autoindent from vim ..." | tee -a $outFile
+  echo "Removing annoying autoindent from vim ..." 
   if [ ! -d $HOME/.vim ]; then
     runCmd mkdir $HOME/.vim 
   fi  
@@ -114,69 +182,69 @@ function installCoreqs
   
   # rsyslog can send a flood of kernel messages
   if [ -f /etc/rsyslog.conf -a ! -f /etc/rsyslog.conf.orig ]; then 
-    echo "preventing rsyslogd from making log message storms ..." | tee -a $outFile
+    echo "preventing rsyslogd from making log message storms ..." 
     runCmd sudo cp /etc/rsyslog.conf /etc/rsyslog.conf.orig
     sudo sed -i 's/^module(load="imklog"/# module(load="imklog"/g' /etc/rsyslog.conf
   fi
   
   # to lengthen the life of the memory device, write logs to a tmpfs 
   if [ ! -f /etc/systemd/system/var-log.mount ]; then
-    echo "Copying var-log.mount ..." | tee -a $outFile
+    echo "Copying var-log.mount ..." 
     runCmd sudo cp ~/ovos-tools/var-log.mount /etc/systemd/system
   fi
   
   # start pulseaudio as a service
   serviceFile=/etc/systemd/system/pulseaudio.service
   if [ ! -f $serviceFile ]; then   
-    echo "Copying pulseaudio service file ..." | tee -a $outFile
+    echo "Copying pulseaudio service file ..." 
     runCmd sudo cp ~/ovos-tools/pulseaudio.service.new /etc/systemd/system/pulseaudio.service
-    echo "Starting pulseaudio at boot time ..." | tee -a $outFile
+    echo "Starting pulseaudio at boot time ..." 
     runCmd sudo systemctl enable pulseaudio
   fi 
 
   # prevent pulseaudio from starting multiple times
-  echo "Copying pulseaudio.service.old to /usr/lib/systemd/user" | tee -a $outFile
+  echo "Copying pulseaudio.service.old to /usr/lib/systemd/user" 
   runCmd sudo cp ~/ovos-tools/pulseaudio.service.old /usr/lib/systemd/user/pulseaudio.service
-  echo "Copying pulseaudio.socket to /usr/lib/systemd/user" | tee -a $outFile
+  echo "Copying pulseaudio.socket to /usr/lib/systemd/user" 
   runCmd sudo cp ~/ovos-tools/pulseaudio.socket /usr/lib/systemd/user
 
   # allow anonymous access to pulseaudio
   if [ -f /etc/pulse/system.pa ]; then
     if [ ! -f /etc/pulse/system.pa.orig ]; then 
-      echo "Making backup of /etc/pulse/system.pa file ..." | tee -a $outFile
+      echo "Making backup of /etc/pulse/system.pa file ..." 
       runCmd sudo cp /etc/pulse/system.pa /etc/pulse/system.pa.orig
     fi
-    echo "Allowing anonymous access to pulseaudio ..." | tee -a $outFile
+    echo "Allowing anonymous access to pulseaudio ..." 
     runCmd sudo "sed -i 's/^load-module module-native-protocol-unix$/load-module module-native-protocol-unix auth-anonymous=1/g' /etc/pulse/system.pa"
   fi
 
   # configure mpd
   if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
-    echo "Making backup of /etc/mpd.conf" | tee -a $outFile
+    echo "Making backup of /etc/mpd.conf" 
     runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig # rename original
   fi
-  echo "Copying sample mpd.conf file to /etc" | tee -a $outFile
+  echo "Copying sample mpd.conf file to /etc" 
   runCmd sudo cp ~/ovos-tools/mpd.conf /etc # copy sample 
-  echo "Changing permissons of /etc/mpd.conf" | tee -a $outFile
+  echo "Changing permissons of /etc/mpd.conf" 
   runCmd sudo chmod 644 /etc/mpd.conf  
-  echo "Setting mpd to start at boot time" | tee -a $outFile
+  echo "Setting mpd to start at boot time" 
   runCmd sudo systemctl enable mpd         # start mpd at boot
   echo "Disabling bluetooth ..."
   sudo systemctl disable bluetooth.service
  }                                         # installCoreqs()
 
 # main()
-
-timeStamp=`date +"%y-%m-%d-%H:%M:%S"`      # YY-MM-DD-HH:MM:SS
+flavor="minimy"                            # minimy, neon or ovos
+timeStamp=`date +"%y-%m-%d-%H-%M-%S"`   
 outFile="$HOME/$timeStamp-install1.out"    # output file
-echo "Running install1 on $timestamp ..." > $outFile # create a new log file
-
-installCoreqs                              # do the work
+parseArgs $@
+echo "Running install1 on $timestamp to configure $flavor ..." > $outFile # create a new log file
+installCoreqs | tee -a $outFile            # do the work
 let min=$SECONDS/60
 let sec=$SECONDS%60
 if [ $sec -lt 10 ]; then                   # add a leading 0
   sec="0$sec"
 fi
-echo "Successfully installed co-reqs for OVOS in $min:$sec" | tee -a $outFile
-echo "Log file of all operations: $outFile"
+echo "Successfully installed co-reqs for $flavor in $min:$sec" | tee -a $outFile
+echo "Log file: $outFile"
 
