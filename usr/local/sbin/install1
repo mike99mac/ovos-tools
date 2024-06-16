@@ -152,6 +152,18 @@ function installCoreqs
   echo
   
   # Configure groups and users
+  id pulse >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # user pulse does not exist
+    sudo useradd -u 125 pulse
+  fi
+  getent group pulse >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # group pulse does not exist
+    sudo groupadd -g 133 pulse       
+  fi    
+  getent group pulse-access >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # group pulse-access does not exist
+    sudo groupadd -g 134 pulse-access
+  fi    
   echo "Adding groups to user pi ..." 
   runCmd sudo usermod -a -G video,pulse,pulse-access,dialout,kmem pi
   echo "Adding groups to user mpd ..." 
