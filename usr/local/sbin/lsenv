@@ -278,7 +278,8 @@ function doList
     theType="ovos"
     echo "OVOS services:"
     listService ovos-phal-admin root       # this service runs as root
-    for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
+    # for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
+    for nextService in ovos-audio ovos-core ovos-listener ovos-messagebus; do
       listService $nextService user        # most services run as user
     done
   else                                     # assume none of the three are installed
