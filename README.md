@@ -45,18 +45,16 @@ If you have a Linux box with an SD card port, you can use **``rpi-imager``** to 
 - Plug the SD adapter into the card reader.
 - If you don't have it already, install the tool.
 
-    **``$ sudo apt-get install -y rpi-imager``**
+```
+sudo apt-get install -y rpi-imager
+```
 
 - Run the tool.
 
-    **``$ rpi-imager``**
+```
+rpi-imager
+```
     
-    You should see a window as shown in the following figure. **TODO**: add a screenshot
-
-![](parts-front-view.jpg)
-*Front view of boombox carcass and parts*
-
-
 - To flash a Linux image to the card, perform the following steps:
 
     - Select one from *Operating System*.
@@ -261,7 +259,7 @@ sudo update-alternatives --install /usr/bin/editor editor /usr/bin/vim 100
 - Allow members of the ``sudo`` group to be able to run **``sudo``** commands without a password, by adding **``NOPASSWD:``** to the line near the bottom of the file.
 
 ```
-    **``$ sudo visudo``**
+sudo visudo
 ```
 
 ```
@@ -302,80 +300,39 @@ It performs the following tasks:
 - Configures **``mpd``**, the music player daemon, which plays most of the sound
 - Turns off **``bluetooth``** as Linux makes connecting to it difficult, while most amplifiers make it easy
 
-To run **``intall1``**, perform the following steps:
 
-- First verify it is in your ``PATH`` with the **``which``** command.
+- Run the **``install1``** script in the home directory.  It will take a couple of minutes.
 
-    **``$ which install1``**
-    
-    ``/usr/local/sbin/install1``
+```
+cd
+install1
+```
 
-- Run the **``install1``** script in the home directory.  This step will take a couple of minutes.
-
-    **``$ cd``**
-    
-    **``$ install1``**
-    
-    ``...``
-
-It should take about 5 minutes to run
-    
 ### Test the changes
 
 - Test your environment with the newly installed **``lsenv``** script which reports on many aspects of your Linux system.
 
-```lsenv```
+```
+lsenv
+```
     
-The output shows that:
+The output should show:
 
-- OVOS does not have any systemctl files enabled.
-- Neither ``pulseaudio`` nor ``mpd`` are running. 
-- Useful information such as IP address, the CPU temperature, root file system, CPU and memory usage.
-- None of the file systems frequently written to are mounted as in-memory ``tmpfs`` file systems.
+- Neither Neon, OVOS, nor Minimy are installed 
+- Neither ``pulseaudio`` nor ``mpd`` are running 
+- Useful information such as IP address, CPU temperature, root file system, CPU and memory usage
+- None of the file systems frequently written to are mounted as in-memory ``tmpfs`` file systems
 
 Some of the changes made by **``install1``** will not be realized until boot time. To test this, perform the following steps:
 
 - Reboot your system
 
-    **``$ sudo reboot``**
+```
+sudo reboot
+```
     
 - Restart your SSH session when it comes back up.
-- Run the same script again to see how the environment has changed.
-
-    **``$ lsenv``**
-    
-```
-OVOS services:
- ovos-phal-admin: Unit ovos-phal-admin.service could not be found.
-      ovos-audio: Unit ovos-audio.service could not be found.
-       ovos-core: Unit ovos-core.service could not be found.
-   ovos-listener: Unit ovos-listener.service could not be found.
-      ovos-media: Unit ovos-media.service could not be found.
- ovos-messagebus: Unit ovos-messagebus.service could not be found.
------------------------------------
-pulseaudio service:
-      pulseaudio: active (running)
------------------------------------
-mpd service:
-             mpd: active (running)
------------------------------------
-          Distro: Ubuntu 22.04.4 LTS
-     VIRTUAL_ENV:
-      PYTHONPATH:
-      IP address: 192.168.12.233
- CPU temperature: 58C / 136F
-   Root fs usage: 15%
-       CPU usage: 0%
-----------------------------------------------------------------------------------
-Memory usage:
-                 total        used        free      shared  buff/cache   available
-  Mem:           3.7Gi       783Mi       2.2Gi        27Mi       764Mi       2.8Gi
-  Swap:          1.0Gi          0B       1.0Gi
-tmpfs filesystem?
-                      /var/log       Linux logs : yes
- /home/pi/.local/state/mycroft        OVOS logs : no
-
-```
+- Run ``lsenv`` again to see how the environment has changed.
     
 You should see these changes:
 
@@ -390,40 +347,41 @@ They are wrappers around the **``arecord``** and **``aplay``** commands designed
 
 - To test your microphone and speakers, issue the following command then speak for up to five seconds. 
 
-    **``$ testrecord``**
+```
+testrecord
+```
     
-    ```
-    Testing your microphone for 5 seconds - SAY SOMETHING!
-    INFO: running command: arecord -r 44100  -f S24_LE -d 5 /tmp/test-mic.wav
-    Recording WAVE '/tmp/test-mic.wav' : Signed 24 bit Little Endian, Rate 44100 Hz, Mono
-    Calling testplay to play back the recording ...
-    Playing WAVE '/tmp/test-mic.wav' : Signed 24 bit Little Endian, Rate 44100 Hz, Mono
-    ```
+```
+Testing your microphone for 5 seconds - SAY SOMETHING!
+INFO: running command: arecord -r 44100  -f S24_LE -d 5 /tmp/test-mic.wav
+Recording WAVE '/tmp/test-mic.wav' : Signed 24 bit Little Endian, Rate 44100 Hz, Mono
+Calling testplay to play back the recording ...
+Playing WAVE '/tmp/test-mic.wav' : Signed 24 bit Little Endian, Rate 44100 Hz, Mono
+```
     
 You should hear your words played back to you. If you do not, you must debug the issues - there's no sense in going forward without a microphone and speaker(s).
 
-At this point your system should have a solid sound and microphone stack running, especially **``mpd``** and **``pulseaudio``**, and all software necessary for the installation of Minimy.
+At this point your system should have a solid sound and microphone stack running, especially **``mpd``** and **``pulseaudio``**, and all software necessary to install one of the three personal voice assistants.
 
 ## Install and configure OVOS 
 
-There are currently two ways to install OVOS using the supplied **``installovos``** script:
-1 Using the *OVOS installer* written and maintained by Goldyfruit.  This is the default.
-1 Using an experimental install process by mike99mac. This requires the **``-m``** flag to be passed.
-Install OVOS by performing the following tasks:
+Using the *OVOS installer*, by Goldyfruit, to install OVOS in a virtual environment
 
-- Install OVOS with or without the ``-m`` flag. 
 ```
-$ installovos 
+sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh"
 ```
+
 This should take about 10 minutes.
 
 - Reboot the system
 
 ```
-$ sudo reboot
+sudo reboot
 ```
 
-Start an SSH session when the system comes back up. You should notice the prompt ``(ovos)`` showing that you are in a virtual environment.
+When the installer finishes, OVOS should be running. 
+
+After a reboot, you should notice the prompt ``(ovos)`` showing that you are in a virtual environment.
 
     
 ### Configure OVOS
