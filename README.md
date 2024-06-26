@@ -363,6 +363,10 @@ You should hear your words played back to you. If you do not, you must debug the
 
 At this point your system should have a solid sound and microphone stack running, especially **``mpd``** and **``pulseaudio``**, and all software necessary to install one of the three personal voice assistants.
 
+If you want to install OVOS, perform the steps in the next section. 
+If you want to install Neon, perform the steps in section after that.
+If you want to install Minimy, go to https://github.com/mike99mac/minimy-mike99mac
+
 ## Install and configure OVOS 
 
 Using the *OVOS installer*, by Goldyfruit, to install OVOS in a virtual environment
@@ -383,69 +387,36 @@ When the installer finishes, OVOS should be running.
 
 After a reboot, you should notice the prompt ``(ovos)`` showing that you are in a virtual environment.
 
-    
-### Configure OVOS
-**TODO** pick up here 
-
 ## Run OVOS 
-The scripts **``startovos``** and **``stopovos``** are used to start and stop processes. 
+The scripts **``startovos``** and **``stopovos``** can be used to start and stop processes. 
 Each skill and service run as process and use the message bus or file system to synchronize. 
 Their output is written to the ``logs/`` directory under the main install directory. 
 
-The system relies on the environment variables ``PYTHONPATH``, ``SVA_BASE_DIR`` and ``GOOGLE_APPLICATION_CREDENTIALS`` which are set in **``startminimy``** 
-with this code:
+- Run **``lsenv``** again. You should see two changes:
 
-    ...
-    export PYTHONPATH="$HOME/minimy:$HOME/minimy/venv_ngv/lib/python3.10/site-packages"
-    export SVA_BASE_DIR="$HOME/minimy"
-    export GOOGLE_APPLICATION_CREDENTIALS="$HOME/minimy/install/my-google-key.json"
-    ...
+- OVOS is now running - the output showing user and system skill processes.
+- The file systems frequently written to are now mounted over in-memory ``tmpfs``'s.
 
-- Start Minimy, ensuring it is run from the base directory, as follows.
+## Install and configure Neon 
+The scripts **``installneon``** was written to make it easy to install Neon.  To use it, perform the following steps.
+ 
+- Clone the Neon core repository:
 
-    **``(venv_ngv) $ cd $HOME/minimy``**
-    
-    **``(venv_ngv) $ ./startminimy``**
-    
-    ``...``
-    
-- Run **``lsenv``** again to see how your environment has changed.    
+```
+git clone https://github.com/NeonGeckoCom/NeonCore
+```
 
-    **``$ lsenv``**
+- Run ``installovos``:
 
-    ```
-    Status of minimy:
-     -) WARNING: minimy is not running as a service ... checking for processes ...
-        Minimy user skills: connectivity email example1 help mpc timedate weather wiki
-             System skills: buttons intent media_player mic skill_alarm skill_fallback skill_media skill_volume stt tts
-    ---------------------------------------------------------------------------------
-    Status of mpd:
-     -) mpd is running as a service:
-        Active: active (running) since Sat 2023-06-10 10:13:24 EDT; 2h 3min ago
-    ---------------------------------------------------------------------------------
-    Status of pulseaudio:
-     -) pulseaudio is running as a service:
-        Active: active (running) since Sat 2023-06-10 10:13:22 EDT; 2h 3min ago
-        pulseaudio processes:
-        pulse        850       1  2 10:13 ?        00:03:35 /usr/bin/pulseaudio --system --disallow-exit --disallow-module-loading --disable-shm --exit-idle-time=-1
-    ---------------------------------------------------------------------------------
-         IP address : 192.168.1.148
-    CPU temperature : 72C / 161F
-      Root fs usage : 18%
-          CPU usage : 58%
-    Memory usage    :
-                     total        used        free      shared  buff/cache   available
-      Mem:           3.7Gi       1.8Gi       224Mi        44Mi       1.7Gi       1.7Gi
-      Swap:          1.0Gi       4.0Mi       1.0Gi
-    tmpfs filesystem?
-                          /var/log       Linux logs : yes
-              /home/pi/minimy/logs      Minimy logs : yes
-               /home/pi/minimy/tmp  Minimy temp dir : yes
-    ```
-You should see two changes:
+```
+installovos
+```
 
-- Minimy is now running - the output showing user and system skill processes.
-- The two minimy file systems frequently written to are now mounted over in-memory ``tmpfs``'s.
+- Reboot the system
+
+```
+sudo reboot
+```
 
 ## The buttons process
 
