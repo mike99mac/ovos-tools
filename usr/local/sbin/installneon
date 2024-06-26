@@ -62,7 +62,7 @@ function runCmd
   local timeStamp=`date +"%y-%m-%d-%H-%M-%S"` 
   cmd="$@"                                 # get all args
   echo "$timeStamp - Running: $cmd ..."    # show the command and send to output file
-  eval $cmd >> $logFile 2>&1               # run the command
+  eval $cmd                                # run the command
   rc=$?
   if [ "$rc" != 0 ]; then                  # it failed
     echo "ERROR: $cmd returned $rc" 
@@ -72,27 +72,45 @@ function runCmd
 
 #+--------------------------------------------------------------------------+
 function addGroupsUsers
-# Configure docker group and user
+# Configure docker group and user 
+# If group named docker e
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
+  local groupExists="yes"                  # assume group docker exists
+  local userExists="yes"                   # assume user docker exists
   getent group docker >/dev/null 2>&1
   if [ $? != 0 ]; then                     # group docker does not exist
-    sudo groupadd -g $dockerGID docker
-    if [ $? != 0 ]; then                   # cannot proceed
-      echo "ERROR: sudo groupadd -g $dockerGID docker returned $? - exiting"
-      exit 1
-    fi
-    id docker >/dev/null 2>&1
-    if [ $? != 0 ]; then                     # user docker does not exist
-      sudo useradd -g $dockerGID -u $dockerUID docker
-      if [ $? != 0 ]; then                   # cannot proceed
-        echo "ERROR: sudo useradd -g $dockerGID -u $dockerUID docker returned $? - exiting"
-        exit 1
-      fi
-    fi
+    groupExists="no"
+  fi    
+  id docker >/dev/null 2>&1           
+  if [ $? != 0 ]; then                     # user docker does not exist
+    userExists="no"
+  fi
+  if [ "$groupExists" = yes -a "$userExists" = yes ]; then # nothing to do
+    echo "User and group 'docker' already exist"
+    return
+  fi
+  if [ "$groupExists" = no -a "$userExists" = yes ]; then
+    echo "ERROR: user docker exists, but group does not"
+    return 1
+  fi
+  if [ "$groupExists" = yes -a "$userExists" = no ]; then
+    echo "ERROR: group docker exists, but user does not"
+    return 1
+  fi
+    
+  sudo groupadd -g $dockerGID docker
+  if [ $? != 0 ]; then                     # cannot proceed
+    echo "ERROR: sudo groupadd -g $dockerGID docker returned $?"
+    return 1
+  fi
+  sudo useradd -g $dockerGID -u $dockerUID docker
+  if [ $? != 0 ]; then                     # cannot proceed
+    echo "ERROR: sudo useradd -g $dockerGID -u $dockerUID docker returned $?"
+    return 1
   fi
  }                                         # addGroupsUsers()
 
@@ -104,12 +122,36 @@ function installNeon
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
+  if [ ! -d "$HOME/NeonCore/docker" ]; then # Neon repo not installed
+    echo "ERROR: directory $HOME/NeonCore/docker does not exist"
+    echo "       Did you install Neon in your home directory with: git clone https://github.com/NeonGeckoCom/NeonCore"
+    exit 1
+  fi
+
+  echo "Adding users and groups ..."
   addGroupsUsers                           # add group and user 'docker'
+  if [ $? != 0 ]; then
+    echo "addGroupsUsers() failed - exiting"
+    exit 1
+  fi
+
+  echo "Installing corequisite packages ..."
   sudo apt install -y docker docker-compose
+  if [ $? != 0 ]; then
+    echo "apt install -y docker docker-compose failed - exiting"
+    exit 1
+  fi
+
+  echo "Starting Neon ..."
+  cd $HOME/NeonCore/docker
+  docker-compose up -d
+  if [ $? != 0 ]; then
+    echo "docker-compose up -d returned $? - exiting"
+    exit 1
+  fi
  }                                         # installNeon()
 
 # main()
-curPkg=0                                   # current package being installed
 dockerUID=1017                             # change if UID 1017 is taken
 dockerGID=1017                             # change if GID 1017 is taken
 verbose=1                                  # verbosity
@@ -117,8 +159,8 @@ verbose=1                                  # verbosity
 parseArgs $@                               # parse arguments
 timeStamp=`date +"%y-%m-%d-%H-%M-%S"`      
 logFile="$HOME/$timeStamp-installneon.out" # output file
-echo "Running installneon ..." | tee $logFile
-installNeon $@ | tee -a $logFile 2>&1     # send output to log file
+echo "Running installneon ..." | tee $logFile # create log file
+installNeon $@ | tee -a $logFile 2>&1      # send stdout and stderr to log file
 let min=$SECONDS/60                        # show time spent installing
 let sec=$SECONDS%60
 if [ $sec -lt 10 ]; then                   # add a leading 0
