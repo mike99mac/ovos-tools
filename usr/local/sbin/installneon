@@ -102,12 +102,12 @@ function addGroupsUsers
     return 1
   fi
     
-  sudo groupadd -g $dockerGID docker
+  runCmd sudo groupadd -g $dockerGID docker
   if [ $? != 0 ]; then                     # cannot proceed
     echo "ERROR: sudo groupadd -g $dockerGID docker returned $?"
     return 1
   fi
-  sudo useradd -g $dockerGID -u $dockerUID docker
+  runCmd sudo useradd -g $dockerGID -u $dockerUID docker
   if [ $? != 0 ]; then                     # cannot proceed
     echo "ERROR: sudo useradd -g $dockerGID -u $dockerUID docker returned $?"
     return 1
@@ -136,18 +136,23 @@ function installNeon
   fi
 
   echo "Installing corequisite packages ..."
-  sudo apt install -y docker docker-compose
+  runCmd sudo apt install -y docker docker-compose
   if [ $? != 0 ]; then
     echo "apt install -y docker docker-compose failed - exiting"
     exit 1
   fi
 
-  echo "Starting Neon ..."
-  cd $HOME/NeonCore/docker
-  docker-compose up -d
-  if [ $? != 0 ]; then
-    echo "docker-compose up -d returned $? - exiting"
-    exit 1
+  # check if docker is a group of current user
+  id | awk -F"groups=" '{print $2}' | grep docker >/dev/null
+  if [ $? != 0 ]; then                      # docker is not a group of current user
+    echo "Adding docker as a group of $USER ..."
+    runCmd sudo gpasswd -a $USER docker
+    # cannot run newgrp in a script ...
+    echo "Please start a new shell and run $0 again ..."
+  else
+    echo "Starting Neon with docker-compose ..." 
+    cd $HOME/NeonCore/docker
+    runCmd docker-compose up -d 
   fi
  }                                         # installNeon()
 
