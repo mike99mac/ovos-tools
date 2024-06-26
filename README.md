@@ -59,8 +59,10 @@ If you have a Linux box with an SD card port, you can use **``rpi-imager``** to 
 
 - To flash a Linux image to the card, perform the following steps:
 
-    - Select one of three choices from *Operating System*.
-        - Raspberry Pi OS (32-bit) Debian Bullseye with Desktop
+    - Select one from *Operating System*.
+        - Raspberry Pi OS (64-bit) Debian Bookworm with Desktop
+        - Raspberry Pi OS (64-bit) Debian Bullseye with Desktop
+        - Raspberry Pi OS (other) => Raspberry Pi OS Lite (64-bit)
         - Raspberry Pi OS (legacy) => Debian Buster with Desktop
         - Other General Purpose OS => Ubuntu => Desktop 22.04.2 LTS (64-bit)
 
@@ -162,41 +164,38 @@ The secure shell (SSH) server is not installed by default on Ubuntu desktop. Ins
 - Open a terminal session by right-clicking the mouse anywhere on the desktop and choosing **Open in Terminal**. You should see a console window open.
 - Show the contents of the ``/etc/os-release`` file just to confirm the Ubuntu release level.
 
-    **``$ cat /etc/os-release``**
     
-    ```
-    PRETTY_NAME="Ubuntu 22.04.2 LTS"
-    NAME="Ubuntu"
-    VERSION_ID="22.04"
-    VERSION="22.04.2 LTS (Jammy Jellyfish)"
-    ...
-    ```
+```
+cat /etc/os-release
+PRETTY_NAME="Ubuntu 22.04.2 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+VERSION="22.04.2 LTS (Jammy Jellyfish)"
+...
+```
     
 - Update and upgrade your system which installs the latest code for all installed packages.
     
-    **``$ sudo apt-get update ``**
+```
+sudo apt-get update
+```
     
-    ``...``
-
-    **``$ sudo apt-get upgrade -y ``**
+```
+sudo apt-get upgrade -y
+```
     
-    ``...``
-
 - Install the ``openssh-server`` package, with the following command.  You will be prompted for your password.
     
-    **``$ sudo apt-get install -y openssh-server ``**
-    
-    ``[sudo] password for pi:``
+```
+sudo apt-get install -y openssh-server
+```
 
 - After it installs **``sshd``** should be running. Verify with the following command:
 
-    **``$ service sshd status``**
-    
-    ```
-    ...
-    Active: active (running) 
-    ...
-    ```
+```
+service sshd status
+```
+
 ### Setting up the SSH server on Raspbian
 
 If you are installing Ubuntu, skip this section.
@@ -209,11 +208,15 @@ To start it now, and enable it at boot time, perform the following steps:
 
 - From the terminal session, start the SSH server for the current session.
 
-    **``$ systemctl start ssh``**
+```
+systemctl start ssh
+```
 
 - Set the SSH server to start at boot time.
 
-    **``$ systemctl enable ssh``**
+```
+systemctl enable ssh
+```
     
 ### Start a terminal or SSH session
 
@@ -221,16 +224,16 @@ You can continue to work from a *terminal session* or you can *SSH in* to your n
 
 - Get your IP address. You should have either a Wi-Fi (``wlan0``) or a hard-wired (``eth0``) connection. To verify, enter the following command. 
 
-    **``$ ip a``**
-    ```
-    1: lo:
-    ...
-    2: eth0:
-    ...
-    3: wlan0:
-    ...
-    inet 192.168.1.229
-    ```
+```
+ip a
+1: lo:
+...
+2: eth0:
+...
+3: wlan0:
+...
+inet 192.168.1.229
+```
 
 SSH as the user ``pi``, if you want to continue from another system. You can use **putty** to SSH in from a Windows box, or just use the **``ssh``** command from a Linux or macOS console.
 
@@ -245,48 +248,42 @@ To install **``ovos-tools``** perform the following steps:
   
 - Install **``git``** and **``vim``** as they are needed shortly.
 
-    **``$ sudo apt-get install -y git vim``**
-    
-    **``...``**
+```
+sudo apt-get install -y git vim
+```
     
 - Make **``vim``** the default editor.
 
-    **``$ sudo update-alternatives --install /usr/bin/editor editor /usr/bin/vim 100``**
-    
-    ``update-alternatives: using /usr/bin/vim to provide /usr/bin/editor (editor) in auto mode``
+```
+sudo update-alternatives --install /usr/bin/editor editor /usr/bin/vim 100
+```
     
 - Allow members of the ``sudo`` group to be able to run **``sudo``** commands without a password, by adding **``NOPASSWD:``** to the line near the bottom of the file.
 
+```
     **``$ sudo visudo``**
+```
 
-    ```
-    ...
-    %sudo   ALL=(ALL:ALL) NOPASSWD: ALL
-    ...
-    ```
+```
+...
+%sudo   ALL=(ALL:ALL) NOPASSWD: ALL
+...
+```
 
 - Clone the **``ovos-tools``** package in the ``pi`` home directory with the following commands:
 
-    **``$ git clone https://github.com/mike99mac/ovos-tools.git``**
-    
-    ```
-    Cloning into 'ovos-tools'...
-    ...
-    Resolving deltas: 100% (366/366), done.
-    ```
+```
+git clone https://github.com/mike99mac/ovos-tools.git
+```
     
 - Change to the newly installed directory and run the setup script. It will copy scripts to the directory ``/usr/local/sbin`` which is in the default ``PATH``.
 
-    **``$ cd ovos-tools``**
+```
+cd ovos-tools
+sudo ./setup.sh
+```
     
-    **``$ sudo ./setup.sh``**
-    
-    ```
-    Copying all scripts to /usr/local/sbin ... 
-    Success!  There are new scripts in your /usr/local/sbin/ directory
-    ```
-    
-    The **``ovos-tools``** repo is now installed.
+The **``ovos-tools``** repo is now installed.
     
 ### Further customize 
 
@@ -294,7 +291,7 @@ The script **``install1``**, in the **``ovos-tools``** package you just installe
 
 It performs the following tasks:
 
-- Installs the **``cifs-utils curl locate mpc mpd net-tools pandoc python3 python3-pip python3-rpi.gpio python3-venv``** packages
+- Installs the **``cifs-utils curl locate mpc mpd net-tools pandoc pulseaudio python3 python3-pip python3-rpi.gpio python3-venv``** packages
 - Sets  **``vim``** to a better color scheme and turns off the annoying auto-indent features
 - Adds needed groups to users ``pi`` and ``mpd``
 - Copies a ``.bash_profile`` with helpful OVOS shortcuts to the user's home directory
@@ -327,39 +324,7 @@ It should take about 5 minutes to run
 
 - Test your environment with the newly installed **``lsenv``** script which reports on many aspects of your Linux system.
 
-    **``$ lsenv``**
-    
-```
-OVOS services:
- ovos-phal-admin: Unit ovos-phal-admin.service could not be found.
-      ovos-audio: Unit ovos-audio.service could not be found.
-       ovos-core: Unit ovos-core.service could not be found.
-   ovos-listener: Unit ovos-listener.service could not be found.
-      ovos-media: Unit ovos-media.service could not be found.
- ovos-messagebus: Unit ovos-messagebus.service could not be found.
- ----------------------------------
-pulseaudio service:
-      pulseaudio: inactive (dead)
- ----------------------------------
-mpd service:
-             mpd: inactive (dead)
- ----------------------------------
-          Distro: Ubuntu 22.04.4 LTS
-     VIRTUAL_ENV:
-      PYTHONPATH:
-      IP address: 192.168.12.233
- CPU temperature: 55C / 131F
-   Root fs usage: 15%
-       CPU usage: 1%
- ---------------------------------------------------------------------------------
-Memory usage:
-                 total        used        free      shared  buff/cache   available
-  Mem:           3.7Gi       799Mi       240Mi       139Mi       2.7Gi       2.6Gi
-  Swap:          1.0Gi        11Mi       1.0Gi
-tmpfs filesystem?
-                      /var/log       Linux logs : no
- /home/pi/.local/state/mycroft        OVOS logs : no
-```
+```lsenv```
     
 The output shows that:
 
