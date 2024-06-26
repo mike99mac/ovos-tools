@@ -57,6 +57,8 @@ rpi-imager
     
 - To flash a Linux image to the card, perform the following steps:
 
+    - Select the type of *Raspberry Pi Device* you have - a 4 or a 5.
+
     - Select one from *Operating System*.
         - Raspberry Pi OS (64-bit) Debian Bookworm with Desktop
         - Raspberry Pi OS (64-bit) Debian Bullseye with Desktop
@@ -70,7 +72,7 @@ rpi-imager
 
     - If you are challenged for credentials, enter the password of the current user.
 
-You should see a progress indicator as the image is copied to the SD card. It should take around 5 minutes.
+You should see a progress indicator as the image is copied to the SD card. It can take quite a while, depending on OS size and throughput. 
 
 ### Prepare an SD card on Windows
 If you only have access to a Windows system Install the *Win 32 disk imager* from https://sourceforge.net/projects/win32diskimager/
@@ -110,6 +112,7 @@ When you supply power to the RasPi, it should start booting.  On the top, back, 
 The RasPi 5 has a single LED that blinks both red and green.
 
 - For Ubuntu, you should see a rainbow colored splash screen on the monitor, then the Ubuntu desktop should initialize.
+- For Raspberry Pi OS, you should see a red raspberries at the top of the screen.
 
 **IMPORTANT**: Never turn the RasPi off without first shutting Linux down with the **``halt``** or similar command. Doing so can damage the operating system and possibly even the RasPi itself.
 
@@ -369,13 +372,13 @@ If you want to install Minimy, go to https://github.com/mike99mac/minimy-mike99m
 
 ## Install and configure OVOS 
 
-Using the *OVOS installer*, by Goldyfruit, to install OVOS in a virtual environment
+Use the *OVOS installer* to install it in a virtual environment.
 
 ```
 sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh"
 ```
 
-This should take about 10 minutes.
+Answer questions as they are asked.
 
 - Reboot the system
 
@@ -394,8 +397,8 @@ Their output is written to the ``logs/`` directory under the main install direct
 
 - Run **``lsenv``** again. You should see two changes:
 
-- OVOS is now running - the output showing user and system skill processes.
-- The file systems frequently written to are now mounted over in-memory ``tmpfs``'s.
+    - OVOS is now running - the output showing user and system skill processes.
+    - The file systems frequently written to are now mounted over in-memory ``tmpfs``'s.
 
 ## Install and configure Neon 
 The scripts **``installneon``** was written to make it easy to install Neon.  To use it, perform the following steps.
@@ -406,10 +409,21 @@ The scripts **``installneon``** was written to make it easy to install Neon.  To
 git clone https://github.com/NeonGeckoCom/NeonCore
 ```
 
-- Run ``installovos``:
+- Run ``installneon``:
 
 ```
-installovos
+installneon
+```
+
+- If the user and group ``docker`` do not exist, they will be created, and the group will be added to the user you are running from. You will see the following messages and will need to start a new shell and run ``installneon`` again.
+
+```
+...
+Adding docker as a group of pi ...
+24-06-26-16-27-17 - Running: sudo gpasswd -a pi docker ...
+Adding user pi to group docker
+Please start a new shell and run /usr/local/sbin/installneon again ...
+...
 ```
 
 - Reboot the system
