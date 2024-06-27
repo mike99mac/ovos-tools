@@ -1,4 +1,5 @@
 alias la="ls -laFtr"
+alias ping='ping -c2'
 alias vi="/usr/bin/vim"
 alias sctl="sudo systemctl"
 alias jctl="sudo journalctl"
@@ -13,5 +14,5 @@ export Z="/usr/local/sbin"
 export SVA_BASE_DIR="$HOME/minimy"
 export DBUS_SESSION_BUS_ADDRESS="/run/user/1000/bus"
 export XDG_RUNTIME_DIR="/run/user/1000"
-source $HOME/minimy/venv_ngv/bin/activate 
+# source $HOME/minimy/venv_ngv/bin/activate 
 
