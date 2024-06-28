@@ -198,6 +198,8 @@ function installCoreqs
       echo "dtoverlay=vc4-kms-v3d,noaudio" | sudo tee -a config.txt
       echo "dtoverlay=hifiberry-dacplus,slave" | sudo tee -a config.txt
       echo "force_eeprom_read=0" | sudo tee -a config.txt
+    else              
+      echo "dtoverlay=hifiberry-dacplus" | sudo tee -a config.txt
     fi
   fi  
   
