@@ -37,6 +37,14 @@ function parseArgs()
   while [ -n "$1" ]                        # loop through args passed in
   do
     case "$1" in
+      -c|--cardnum)
+        if [ $# = 0 ]; then                # CARD not passed in
+          echo "ERROR! CARD not passed in after $1"
+          usage                            # give help
+        fi
+        shift                              # get to next arg
+        cardToUse=$1
+        ;;
       -h|--help)
         usage
         ;;
@@ -116,7 +124,7 @@ function installCoreqs
     exit 1
   fi
   echo "distro = $distro"
-  commonPackages="bind9-dnsutils cifs-utils curl locate mpc mpd net-tools pandoc pulseaudio python3 python3-pip python-gpiozero-doc python3-venv raspi-config"
+  commonPackages="bind9-dnsutils cifs-utils curl locate mpc mpd net-tools pandoc pulseaudio python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
   if [ "${distro:0:6}" = "Ubuntu" -o "${distro:0:12}" = "Ubuntu 23.10" -o "${distro:7:12}" = "Noble Numbat" -o "${distro:0:6}" = Debian ]; then 
     diffPackages="python3.10-venv" 
     bootDir="/boot/firmware"
@@ -190,12 +198,10 @@ function installCoreqs
       echo "dtoverlay=vc4-kms-v3d,noaudio" | sudo tee -a config.txt
       echo "dtoverlay=hifiberry-dacplus,slave" | sudo tee -a config.txt
       echo "force_eeprom_read=0" | sudo tee -a config.txt
-    else              
-      echo "dtoverlay=hifiberry-dacplus" | sudo tee -a config.txt
     fi
   fi  
   
-  # vim - please just give me a newline
+  # vim - traditional defaults, mouse works
   echo "Removing annoying autoindent from vim ..." 
   if [ ! -d $HOME/.vim ]; then
     runCmd mkdir $HOME/.vim 
@@ -247,7 +253,12 @@ function installCoreqs
   # configure mpd
   if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
     echo "Making backup of /etc/mpd.conf" 
-    runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig # rename original
+    runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig 
+  fi
+  if [ ! -d /var/log/mpd ]; then           # no mpd log dir
+    sudo mkdir /var/log/mpd     
+    sudo chown $USER /var/log/mpd
+    sudo touch /var/log/mpd/mpd.log 
   fi
   echo "Copying sample mpd.conf file to /etc" 
   runCmd sudo cp ~/ovos-tools/mpd.conf /etc # copy sample 
@@ -257,6 +268,11 @@ function installCoreqs
   runCmd sudo systemctl enable mpd         # start mpd at boot
   echo "Disabling bluetooth ..."
   sudo systemctl disable bluetooth.service
+
+  # configure USB hot plug
+  sudo cp ~/ovos-tools/99-mount-usb.rules /etc/udev/rules.d
+  sudo cp ~/ovos-tools/usb-mount@.service /etc/systemd/system
+  sudo cp ~/ovos-tools/usb-mount.sh /root 
  }                                         # installCoreqs()
 
 # main()
