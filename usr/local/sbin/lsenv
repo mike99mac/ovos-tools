@@ -344,6 +344,7 @@ function doIt
     tmpfsUsage $HOME/minimy/logs Minimy logs
     tmpfsUsage $HOME/minimy/tmp Minimy temp dir
   fi
+  echo "$moreDashes"              
   aplay /usr/share/sounds/alsa/Front_Center.wav
   echo "$moreDashes"              
   echo
