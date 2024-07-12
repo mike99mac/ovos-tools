@@ -220,10 +220,10 @@ function installCoreqs
   fi
   
   # to lengthen the life of the memory device, write logs to a tmpfs 
-  if [ ! -f /etc/systemd/system/var-log.mount ]; then
-    echo "Copying var-log.mount ..." 
-    runCmd sudo cp ~/ovos-tools/var-log.mount /etc/systemd/system
-  fi
+  #if [ ! -f /etc/systemd/system/var-log.mount ]; then
+  #  echo "Copying var-log.mount ..." 
+  #  runCmd sudo cp ~/ovos-tools/var-log.mount /etc/systemd/system
+  #fi
   
   # start pulseaudio as a service
   serviceFile=/etc/systemd/system/pulseaudio.service

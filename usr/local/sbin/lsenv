@@ -251,7 +251,7 @@ function tmpfsUsage
  }                                         # getCPU()
 
 #+--------------------------------------------------------------------------+
-function doList
+function doIt
 # List much information about the OVOS environment 
 #+--------------------------------------------------------------------------+
  {
@@ -335,7 +335,7 @@ function doList
   # are log directories using tmpfs? 
   echo "$moreDashes"              
   echo "tmpfs filesystem?"
-  tmpfsUsage /var/log Linux logs
+  # tmpfsUsage /var/log Linux logs
   if [ "$theType" = neon ]; then
     tmpfsUsage $HOME/.local/state/neon Neon logs
   elif [ "$theType" = ovos ]; then
@@ -345,8 +345,10 @@ function doList
     tmpfsUsage $HOME/minimy/tmp Minimy temp dir
   fi
   echo "$moreDashes"              
+  aplay /usr/share/sounds/alsa/Front_Center.wav
+  echo "$moreDashes"              
   echo
- }                                         # doList()
+ }                                         # doIt()
 
 #+--------------------------------------------------------------------------+
 # Global variables"
@@ -358,5 +360,5 @@ verbose=1
 
 # main()
 parseArgs $@                               # parse arguments
-doList                                     # create output  
+doIt                                       # create output  
 
