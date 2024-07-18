@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# pypath - List the Python sys.path
+#
+python -c "import sys; print('sys.path:\n'.join(sys.path))"
+
