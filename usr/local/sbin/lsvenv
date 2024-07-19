@@ -1,0 +1,6 @@
+#!/bin/bash
+# 
+# lsvenv - List packages in the virtual environment
+#
+echo "packages in virtual environment $VIRTUAL_ENV:"
+pip freeze --local
