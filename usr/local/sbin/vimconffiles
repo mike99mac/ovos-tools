@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# vimconffiles - list which vim configuration files exist 
+#
+confFiles=`vim --version | grep file: | awk -F: '{print $2}' | xargs`
+for nextFile in $confFiles; do
+  if [ -f $nextFile ]; then              # config file exists
+    numLines=`wc -l $nextFile | awk '{print $1}'`
+    echo "$nextFile:  $numLines lines" 
+  else
+    echo "$nextFile:  Not found"
+  fi
+done
+vim --startuptime /tmp/vimstartup
+echo "startup times in /tmp/vimstartup"
