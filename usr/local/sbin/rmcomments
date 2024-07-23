@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# rmcomments - remove comments and blank lines from files 
+#
+if [ $# != 1 ]; then
+  echo "Usage: rmcomments FILE"
+  exit 1
+fi
+theFile=$1
+egrep -v '(^$|^.*#)' $theFile
