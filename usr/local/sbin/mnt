@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# mnt - show mounted file systems omitting /sys, /dev and /run
+#
+mount | grep -v /sys | grep -v /dev | grep -v /run
