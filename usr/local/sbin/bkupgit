@@ -1,0 +1,173 @@
+#!/bin/bash
+#
+# bkupgit - Back up github repos in one of two ways:
+#         1) git pull - just get the deltas (default)
+#         2) git clone - refresh all repos - if "clone" is passed in
+#
+#+--------------------------------------------------------------------------+
+function usage
+# Give help to the user
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo
+  echo "Name: bkupgit - Back up (default) or rebase git repos"
+  echo "Usage: bkupgit [OPTIONS]" 
+  echo ""
+  echo "OPTIONS:"
+  echo "  -h|--help         Give help (this screen)"
+  echo "  -c|--clone        Replace repos with 'git clone' not just 'git pull'"
+  echo "  -v|--verbose      Verbose output"
+  echo "  -x|--debug        Print commands and arguments as they are executed"
+  echo
+  exit 51
+ }                                         # usage()
+
+#+--------------------------------------------------------------------------+
+function parseArgs
+# Parse arguments
+# Args: All arguments passed into script
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  while [ -n "$1" ]                        # loop through args passed in
+  do
+    case "$1" in
+      -h|--help)
+        usage
+        ;;
+      -c|--clone)
+        bkupType="clone" 
+        ;;
+      -v|--verbose)
+        verbose=2
+        ;;
+      -x|--debug)                          # turn trace on
+         set -vx
+         ;;
+      *)
+        echo "ERROR: Unrecognized argument: $1"
+        usage
+        ;;
+    esac
+    shift
+  done
+ }                                         # parseArgs()
+
+#+--------------------------------------------------------------------------+
+function setUp                             # prepare for the backup 
+# Prepare for the backup 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  if [ ! -d $bkupDir ]; then               # network drive is not mounted
+    echo "Backup directory $bkupDir not found" 
+    exit 1
+  fi
+  if [ -d temp ]; then                     # temp repo exists - delete it
+    sudo rm -fr temp
+    rc=$?
+    if [ "$rc" != 0 ]; then
+      echo "ERROR: sudo rm -fr temp returned $rc" | sudo tee -a $logFile
+      exit 2
+    fi
+  fi
+ }                                         # setUp()
+
+#+--------------------------------------------------------------------------+
+function gitPull
+# Update the deltas with 'git pull' in each repo 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo "Updating git repositories ..."
+  for nextRepo in $repos; do
+    echo
+    echo "Updating repo $nextRepo ..."
+    cd $bkupDir/$nextRepo
+    sudo git pull
+    rc=$?
+    if [ "$rc" != 0 ]; then
+      echo "ERROR: 'git pull' in $bkupDir/$nextRepo returned $rc" | sudo tee -a $logFile
+      exit 3 
+    fi
+    let successes=$successes+1
+  done
+ }                                         # gitPull()
+
+#+--------------------------------------------------------------------------+
+function gitClone                          # clone each repo
+# Prepare for the backup 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  cd $bkupDir                              # clone to backup directory
+  echo "Cloning git repositories ..."
+  for nextRepo in $repos; do
+    echo
+    echo "Cloning repo $nextRepo ..."
+    sudo git clone $gitURL/$nextRepo temp  # clone the repo to ../temp/
+    rc=$?
+    if [ "$rc" != 0 ]; then  
+      echo "ERROR: sudo git clone $gitURL/$nextRepo temp returned $rc" | sudo tee -a $logFile
+      doReport
+      exit 4
+    fi
+    sudo rm -fr $nextRepo                  # remove current repo
+    rc=$?
+    if [ "$rc" != 0 ]; then  
+      echo "ERROR: sudo rm -fr $nextRepo returned $rc" | sudo tee -a $logFile
+      doReport
+      exit 5
+    fi
+    sudo mv temp $nextRepo                 # replace current repo
+    rc=$?
+    if [ "$rc" != 0 ]; then  
+      echo "ERROR: sudo mv temp $nextRepo returned $rc" | sudo tee -a $logFile
+      doReport
+      exit 6
+    fi
+    let successes=$successes+1
+  done
+ }                                         # gitClone()
+
+#+--------------------------------------------------------------------------+
+function doReport
+# Report on the progress 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo "$timeStamp git $bkupType succeeded on $successes of $numRepos repos" | sudo tee -a $logFile
+ }                                         # doReport()
+
+# main()
+timeStamp=`date +"%y-%m-%d-%H-%M-%S"`
+bkupDir="/mnt/share/github"
+logFile="$bkupDir/bkupgit.log"
+bkupType="pull"                            # can be "clone" or "pull"
+gitURL="https://github.com/mike99mac"
+repos="mariacmdb minimy-mike99mac nagios-doc ovos-tools" # repos to back up
+let numRepos=`echo $repos | awk '{print NF}'`
+let successes=0
+
+parseArgs $@
+setUp
+if [ "$bkupType" = "clone" ]; then     
+  gitClone                                 # refresh all repos
+else
+  gitPull                                  # just get deltas
+fi
+doReport
+
