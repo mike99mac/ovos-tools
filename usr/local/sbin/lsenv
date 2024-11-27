@@ -83,8 +83,8 @@ function listMinimy
 
   procs=`ps -ef | grep minimy | grep -v grep`
   if [ ${#procs} = 0 ]; then               # matching process
-    printf '%22s\e[31m%s\e[0m\n' "Minimy processes:" " None found"  # in red
-  else
+    printf '%22s\e[31m%s\e[0m\n' "Ovos/Neon/Minimy procs:" " None found"  # in red
+  else                                     # Minimy is running
     echo "Minimy processes:"
     if [ "$verbose" = 1 ]; then            # normal output
       userSkills=`echo "$procs" | awk -F/ '{print $NF}' | sort | xargs`
@@ -131,7 +131,7 @@ function listService
     echo "INTERNAL ERROR: serviceType = $serviceType"
     exit 4
   fi
-  printf "%20s: " "$theService"
+  printf "%22s: " "$theService"
   verboseMsg "Running: $cmd ..." 
   cmdOut=`eval $cmd` 
   verboseMsg "$cmdOut"
@@ -141,7 +141,7 @@ function listService
   else
     echo "$cmdOut" | grep " active (" >/dev/null
     if [ $? = 0 ]; then
-    printf '\e[32m%s\e[0m\n' " active (running)" # in green
+    printf '\e[32m%s\e[0m\n' "active (running)" # in green
     else
       echo "$cmdOut" | grep "Active: failed" >/dev/null
       if [ $? = 0 ]; then                  # found "failed"
@@ -288,11 +288,11 @@ function doIt
     printf '%22s\e[31m%s\e[0m\n' "Neon/OVOS/Minimy: " " Not installed" # in red
   fi  
   echo "$dashes"              
-  echo "pulseaudio service:"
+  # echo "pulseaudio service:"
   listService pulseaudio root              # always check for pulse
-  listService pipewire root     
+  # listService pipewire root     
   echo "$dashes"              
-  echo "mpd service:"
+  #echo "mpd service:"
   listService mpd root
   if [ "$justServices" = "yes" ]; then     # all done
     exit
