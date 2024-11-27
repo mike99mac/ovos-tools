@@ -16,7 +16,7 @@ function usage
   echo "OPTIONS:"
   echo "  -h|--help         Give help (this screen)"
   echo "  --justServices    Just show status of services"
-  echo "  -n|--noclear      Do not clear the screen" 
+  echo "  -c|--clear        Clear the screen first" 
   echo "  -v|--verbose      Increase verbosity" 
   echo "  -x|--debug        Print commands and arguments as they are executed"
   exit 51
@@ -40,8 +40,8 @@ function parseArgs
       --justServices) 
         justServices="yes"
         ;;
-      -n|--noclear)                        # do not clear the screen
-        clear="no"
+      -c|--clear)                          # clear the screen
+        clear="yes"
         ;;
       -v|--verbose) 
         verbose=2
@@ -185,6 +185,7 @@ function getCPU
     cpu_idle=$((cpu_now[4]- cpu_last[4])) 
     # Calc time spent working 
     cpu_used=$((cpu_delta - cpu_idle)) 
+    #verboseMsg "cpu_now = $cpu_now cpu_sum = $cpu_sum cpu_delta = $cpu_delta cpu_used = $cpu_used"
     # Calc percentage 
     cpu_usage=$((100 * cpu_used / cpu_delta)) 
     
@@ -352,7 +353,7 @@ function doIt
 
 #+--------------------------------------------------------------------------+
 # Global variables"
-clear="yes"                                # clear the screen
+clear="no"                                 # clear the screen first?
 dashes="---------------------------------------"
 justServices="no"                          # just show services?
 moreDashes="----------------------------------------------------------------------------------"
