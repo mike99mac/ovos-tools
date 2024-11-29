@@ -119,7 +119,7 @@ function listService
 
   if [ "$theService" = pipewire ]; then    # always runs as processes
     echo $dashes
-    echo "pipewire processes:"
+    echo "    pipewire processes:"
     ps -ef | grep pipewire | grep -v grep | sed 's/^/  /g'
     return
   fi
@@ -199,7 +199,7 @@ function getCPU
     sleep 1 
   done
   let cpu_usage=$cpu_total/3               # calculate average
-  printf "%20s: %s\n" "CPU usage" "$cpu_usage%"
+  printf "%22s: %s\n" "CPU usage" "$cpu_usage%"
  }                                         # getCPU()
 
 #+--------------------------------------------------------------------------+
@@ -220,11 +220,11 @@ function listTemp
   let theTemp=$theTemp/1000                # convert to degrees Celcius
   let tempF=$theTemp*9/5+32                # convert to degrees Farenheit
   if [ "$theTemp" -gt 80 ]; then           # too hot
-    printf "%20s: \e[31m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in red
+    printf "%22s: \e[31m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in red
   elif [ "$theTemp" -lt 65 ]; then         # cool enough
-    printf "%20s: \e[32m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in green
+    printf "%22s: \e[32m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in green
   else                                     # getting warm
-    printf "%20s: \e[33m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in yellow
+    printf "%22s: \e[33m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in yellow
   fi
  }                                         # listTemp()
 
@@ -285,12 +285,12 @@ function doIt
     done
   else                                     # assume none of the three are installed
     theType="none"
-    printf '%22s\e[31m%s\e[0m\n' "Neon/OVOS/Minimy: " " Not installed" # in red
+    printf '%22s\e[31m%s\e[0m\n' "Ovos/Neon/Minimy: " " Not installed" # in red
   fi  
   echo "$dashes"              
   # echo "pulseaudio service:"
   listService pulseaudio root              # always check for pulse
-  # listService pipewire root     
+  listService pipewire root     
   echo "$dashes"              
   #echo "mpd service:"
   listService mpd root
@@ -302,30 +302,30 @@ function doIt
   echo "$dashes"              
   local theVersion
   local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
-  printf "%20s: %s\n" "Distro" "$distro"
+  printf "%22s: %s\n" "Distro" "$distro"
   if [ "$theType" = neon ]; then
     theVersion=`neonver`
     printf "%20s: %s\n" "Neon version" "$theVersion"
   elif [ "$theType" = minimy ]; then
     if [ -f $HOME/minimy-mike99mac/version ]; then 
       theVersion=`cat $HOME/minimy-mike99mac/version`     
-      printf "%20s: %s\n" "Minimy version" "$theVersion"
+      printf "%22s: %s\n" "Minimy version" "$theVersion"
     fi
   elif [ "$theType" = ovos ]; then
     theVersion=`ovosver`
-    printf "%20s: %s\n" "OVOS version" "$theVersion"
+    printf "%22s: %s\n" "OVOS version" "$theVersion"
   fi
   if [ ${#VIRTUAL_ENV} != 0 ]; then
-    printf "%20s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
+    printf "%22s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
   fi
 
   local IPaddr=`hostname -I | awk '{print $1}'` # get the IP address
-  printf "%20s: %s\n" "IP address" "$IPaddr"
+  printf "%22s: %s\n" "IP address" "$IPaddr"
   listTemp                                 # RasPi temperature
 
   # root file system usage
   local rootUsed=`df -h / | tail -1 | awk '{print $5}'`
-  printf "%20s: %s\n" "Root fs usage" "$rootUsed"
+  printf "%22s: %s\n" "Root fs usage" "$rootUsed"
   getCPU                                   # CPU usage
 
   # memory usage
@@ -336,7 +336,6 @@ function doIt
   # are log directories using tmpfs? 
   echo "$moreDashes"              
   echo "tmpfs filesystem?"
-  # tmpfsUsage /var/log Linux logs
   if [ "$theType" = neon ]; then
     tmpfsUsage $HOME/.local/state/neon Neon logs
   elif [ "$theType" = ovos ]; then
