@@ -285,7 +285,7 @@ function doIt
     done
   else                                     # assume none of the three are installed
     theType="none"
-    printf '%22s\e[31m%s\e[0m\n' "Ovos/Neon/Minimy: " " Not installed" # in red
+    printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
   fi  
   echo "$dashes"              
   # echo "pulseaudio service:"
@@ -335,14 +335,18 @@ function doIt
 
   # are log directories using tmpfs? 
   echo "$moreDashes"              
-  echo "tmpfs filesystem?"
   if [ "$theType" = neon ]; then
+    echo "tmpfs filesystems: "
     tmpfsUsage $HOME/.local/state/neon Neon logs
   elif [ "$theType" = ovos ]; then
+    echo "tmpfs filesystems: "
     tmpfsUsage $HOME/.local/state/mycroft OVOS logs
   elif [ "$theType" = minimy ]; then
+    echo "tmpfs filesystems: "
     tmpfsUsage $HOME/minimy/logs Minimy logs
     tmpfsUsage $HOME/minimy/tmp Minimy temp dir
+  else
+    printf "%23s\n" "tmpfs filesystems:"
   fi
   echo "$moreDashes"              
   aplay /usr/share/sounds/alsa/Front_Center.wav
