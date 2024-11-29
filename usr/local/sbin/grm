@@ -3,4 +3,8 @@
 # grm - short command to search through Minimy python files 
 #
 cd $HOME/minimy
-grep --color -n "$@" *py bus/*py framework/*py framework/*/*py framework/*/*/*py framework/*/*/*/*/*py framework/*/*/*/*py skills/*py skills/*/*py skills/*/*/*py 2>/dev/null | sed "s:^:$HOME/minimy/:g"
+fw="$HOME/minimy/framework"
+frameworkFiles="$fw/*py $fw/*/*py $fw/*/*/*py $fw/*/*/*/*py $fw/*/*/*/*/*py $fw/*/*/*/*/*/*py $fw/*/*/*/*/*/*/*py"
+mn="$HOME/minimy"
+srcFiles="$mn/*py $mn/bus/*py $mn/skills/*py $mn/skills/*/*py $mn/skills/*/*/*py"
+grep -n --color "$@" $frameworkFiles $srcFiles 2>/dev/null 
