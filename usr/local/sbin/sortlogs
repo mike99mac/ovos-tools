@@ -7,6 +7,7 @@ cd $HOME/minimy/logs
 for i in *.log; do                         # copy all log files
   cat $i >> $tmpFile
 done
-outFile="/tmp/logs-`date +\"%F-%T\"`"
+timeStamp=`date +"%y-%m-%d-%H-%M-%S"`
+outFile="$HOME/$timeStamp-minimy.logs"
 sort $tmpFile > $outFile                   # sort by timestamp
 echo "sorted logs saved to: $outFile"
