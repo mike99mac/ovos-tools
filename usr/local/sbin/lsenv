@@ -220,7 +220,7 @@ function listTemp
   let theTemp=$theTemp/1000                # convert to degrees Celcius
   let tempF=$theTemp*9/5+32                # convert to degrees Farenheit
   if [ "$theTemp" -gt 80 ]; then           # too hot
-    printf "%22s: \e[31m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in red
+    printf "%22s: \e[31m%s\e[0m\n" "CPU temp" "${theTemp}C / ${tempF}F" # in red
   elif [ "$theTemp" -lt 65 ]; then         # cool enough
     printf "%22s: \e[32m%s\e[0m\n" "CPU temperature" "${theTemp}C / ${tempF}F" # in green
   else                                     # getting warm
