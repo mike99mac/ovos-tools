@@ -192,6 +192,8 @@ function installCoreqs
     sudo sed -i -e 's/dtparam=audio=on/dtparam=audio=off\ndtparam=spi=off/g' \
                 -e 's/^disable_overscan/# disable_overscan/g' \
                 -e 's/^dtoverlay=vc4-kms-v3/# dtoverlay=vc4-kms-v3/g' config.txt
+    echo "dtoverlay=hifiberry-dacplus" | sudo tee -a config.txt # add hifiberry driver
+
     # Need 3 lines to get the HiFiBerry running on a RasPi 5
     local piModel=`cat /sys/firmware/devicetree/base/model | awk '{print $3}'`
     if [ "$piModel" = 5 ]; then            # on a RasPi 5
