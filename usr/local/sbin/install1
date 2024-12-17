@@ -1,0 +1,294 @@
+#!/bin/bash
+#
+# install1 - first install script to configure a newly flashed Linux
+#            to prepare it for a OVOS installaiton
+#
+#+--------------------------------------------------------------------------+
+function usage()
+# Give help to the user
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  echo "install1 - configure Linux for Minimy, Neon or OVOS"
+  echo "Usage: install1 [OPTIONS]" 
+  echo ""
+  echo "OPTIONS:"
+  echo "  -h|--help         Give help (this screen)"
+  echo "  -m|--minimy       Configure for Minimy (default)"
+  echo "  -n|--neon         Configure for Neon"
+  echo "  -o|--ovos         Configure for OVOS"
+  echo "  -v|--verbose      Increase verbosity"
+  echo "  -x|--debug        Print commands and arguments as they are executed"
+  echo ""
+  exit 51
+ }                                         # usage()
+
+#+--------------------------------------------------------------------------+
+function parseArgs()
+# Parse arguments
+# Args: All arguments passed into script
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  while [ -n "$1" ]                        # loop through args passed in
+  do
+    case "$1" in
+      -c|--cardnum)
+        if [ $# = 0 ]; then                # CARD not passed in
+          echo "ERROR! CARD not passed in after $1"
+          usage                            # give help
+        fi
+        shift                              # get to next arg
+        cardToUse=$1
+        ;;
+      -h|--help)
+        usage
+        ;;
+      -m|--minimy)
+        flavor="minimy" 
+        ;;
+      -n|--neon)
+        flavor="neon" 
+        ;;
+      -o|--ovos)
+        flavor="ovos" 
+        ;;
+      -v|--verbose)
+        verbose=2
+        flags="-v"
+        ;;
+      -x|--debug)                          # turn trace on
+         set -vx
+         ;;
+      *)
+        echo "ERROR: Too many arguments: $1"
+        usage
+        ;;
+    esac
+    shift
+  done
+ }                                         # parseArgs()
+
+#+--------------------------------------------------------------------------+
+function checkOvosTools
+# Check that ovos-tools is installed in $HOME 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  baseDir="$HOME/ovos-tools"
+  if [ ! -d $baseDir ]; then
+    echo "ERROR: Did not find ovos-tools in $baseDir"
+    exit 1
+  fi
+ }                                         # checkOvosTools()
+
+#+--------------------------------------------------------------------------+
+function runCmd
+# run a command, report time spent and exit if it failes
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  cmd="$@"                                 # all args
+
+  echo " " 
+  echo "Running: $cmd" 
+  eval $cmd 2>&1 
+  rc=$?
+  if [ "$rc" != 0 ]; then                  # it failed
+    echo "ERROR: $cmd returned $rc" 
+    exit 1
+  else
+    echo "Command was successful!" 
+  fi
+ }                                         # runCmd()
+
+#+--------------------------------------------------------------------------+
+function installCoreqs
+# Do the work to install and configure everything to run Mycroft driven by ovos-core
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
+  if [ ${#distro} = 0 ]; then
+    echo "ERROR: did not find PRETTY_NAME in /etc/os-release" 
+    exit 1
+  fi
+  echo "distro = $distro"
+  commonPackages="bind9-dnsutils cifs-utils curl locate mpc mpd net-tools pandoc pulseaudio python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
+  if [ "${distro:0:6}" = "Ubuntu" -o "${distro:0:12}" = "Ubuntu 23.10" -o "${distro:7:12}" = "Noble Numbat" -o "${distro:0:6}" = Debian ]; then 
+    diffPackages="python3.10-venv" 
+    bootDir="/boot/firmware"
+  elif [ "$distro" = "Raspbian GNU/Linux 10 (buster)" ]; then 
+    diffPackages="python3.9-venv" 
+    bootDir="/boot"
+  elif [ "$distro" = "Raspbian GNU/Linux 11 (bullseye)" ]; then
+    diffPackages="python3.9-venv" 
+    bootDir="/boot"
+  else                                     # not supported
+    echo "ERROR: only Ubuntu Desktop 22.04, 23.10, 24.04 or Raspbian are supported" 
+    exit 1 
+  fi
+
+  echo "Installing co-req packages ..."
+  for nextPkg in $commonPackages $diffPachages; do  
+    runCmd sudo apt-get --quiet install -y $nextPkg
+  done
+  
+  if [ ! -f /etc/vim/vimrc.orig ]; then    # never copied original
+    runCmd sudo cp /etc/vim/vimrc /etc/vim/vimrc.orig
+  fi    
+  echo "Copying vimrc ..." 
+  runCmd sudo cp $HOME/ovos-tools/vimrc /etc/vim
+  echo
+  
+  # Configure groups and users
+  id pulse >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # user pulse does not exist
+    sudo useradd -u 125 pulse
+  fi
+  getent group pulse >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # group pulse does not exist
+    sudo groupadd -g 133 pulse       
+  fi    
+  getent group pulse-access >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # group pulse-access does not exist
+    sudo groupadd -g 134 pulse-access
+  fi    
+  echo "Adding groups to user pi ..." 
+  runCmd sudo usermod -a -G video,pulse,pulse-access,dialout,kmem pi
+  echo "Adding groups to user mpd ..." 
+  runCmd sudo usermod -a -G pulse-access,pi mpd
+  echo "Adding groups spi, i2c and gpio to /etc/groump ..." 
+  sudo groupadd -g 993 spi
+  sudo groupadd -g 994 i2c
+  sudo groupadd -g 993 gpio 
+  echo
+  
+  # copy a .bash_profile specific to Neon, Minimy or OVOS 
+  echo "Copying .bash_profile ..." 
+  if [ "$flavor" = "minimy" ]; then     
+    runCmd cp $HOME/ovos-tools/minimy_profile $HOME/.bash_profile
+  elif [ "$flavor" = "neon" ]; then     
+    runCmd cp $HOME/ovos-tools/neon_profile $HOME/.bash_profile
+  elif [ "$flavor" = "ovos" ]; then     
+    runCmd cp $HOME/ovos-tools/ovos_profile $HOME/.bash_profile
+  fi
+  
+  # turn default and vc4 audio off, don't disable monitor overscan
+  cd $bootDir
+  if [ ! -f config.txt.orig ]; then
+    echo "Customizing boot parameters ..." 
+    runCmd sudo cp config.txt config.txt.orig
+    sudo sed -i -e 's/dtparam=audio=on/dtparam=audio=off\ndtparam=spi=off/g' \
+                -e 's/^disable_overscan/# disable_overscan/g' \
+                -e 's/^dtoverlay=vc4-kms-v3/# dtoverlay=vc4-kms-v3/g' config.txt
+    local piModel=`cat /sys/firmware/devicetree/base/model | awk '{print $3}'`
+    if [ "$piModel" = 5 ]; then            # 3 lines to get HiFiBerry running on a RasPi 5
+      echo "dtoverlay=vc4-kms-v3d,noaudio" | sudo tee -a config.txt
+      echo "dtoverlay=hifiberry-dacplus,slave" | sudo tee -a config.txt
+      echo "force_eeprom_read=0" | sudo tee -a config.txt
+    else                                   # assume RasPi 4
+      echo "dtoverlay=hifiberry-dacplus" | sudo tee -a config.txt # add hifiberry driver
+    fi
+  fi  
+  
+  # vim - traditional defaults, mouse works
+  echo "Removing annoying autoindent from vim ..." 
+  if [ ! -d $HOME/.vim ]; then
+    runCmd mkdir $HOME/.vim 
+  fi  
+  cd $HOME/.vim
+  echo "set noautoindent" >> vimrc
+  echo "set nocindent" >> vimrc
+  echo "set nosmartindent" >> vimrc
+  # echo "set indentexpr=" >> vimrc
+  
+  # rsyslog can send a flood of kernel messages
+  if [ -f /etc/rsyslog.conf -a ! -f /etc/rsyslog.conf.orig ]; then 
+    echo "preventing rsyslogd from making log message storms ..." 
+    runCmd sudo cp /etc/rsyslog.conf /etc/rsyslog.conf.orig
+    sudo sed -i 's/^module(load="imklog"/# module(load="imklog"/g' /etc/rsyslog.conf
+  fi
+  
+  # to lengthen the life of the memory device, write logs to a tmpfs 
+  #if [ ! -f /etc/systemd/system/var-log.mount ]; then
+  #  echo "Copying var-log.mount ..." 
+  #  runCmd sudo cp ~/ovos-tools/var-log.mount /etc/systemd/system
+  #fi
+  
+  # start pulseaudio as a service
+  serviceFile=/etc/systemd/system/pulseaudio.service
+  if [ ! -f $serviceFile ]; then   
+    echo "Copying pulseaudio service file ..." 
+    runCmd sudo cp ~/ovos-tools/pulseaudio.service.new /etc/systemd/system/pulseaudio.service
+    echo "Starting pulseaudio at boot time ..." 
+    runCmd sudo systemctl enable pulseaudio
+  fi 
+
+  # prevent pulseaudio from starting multiple times
+  echo "Copying pulseaudio.service.old to /usr/lib/systemd/user" 
+  runCmd sudo cp ~/ovos-tools/pulseaudio.service.old /usr/lib/systemd/user/pulseaudio.service
+  echo "Copying pulseaudio.socket to /usr/lib/systemd/user" 
+  runCmd sudo cp ~/ovos-tools/pulseaudio.socket /usr/lib/systemd/user
+
+  # allow anonymous access to pulseaudio
+  if [ -f /etc/pulse/system.pa ]; then
+    if [ ! -f /etc/pulse/system.pa.orig ]; then 
+      echo "Making backup of /etc/pulse/system.pa file ..." 
+      runCmd sudo cp /etc/pulse/system.pa /etc/pulse/system.pa.orig
+    fi
+    echo "Allowing anonymous access to pulseaudio ..." 
+    runCmd sudo "sed -i 's/^load-module module-native-protocol-unix$/load-module module-native-protocol-unix auth-anonymous=1/g' /etc/pulse/system.pa"
+  fi
+
+  # configure mpd
+  if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
+    echo "Making backup of /etc/mpd.conf" 
+    runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig 
+  fi
+  if [ ! -d /var/log/mpd ]; then           # no mpd log dir
+    sudo mkdir /var/log/mpd     
+    sudo chown $USER /var/log/mpd
+    sudo touch /var/log/mpd/mpd.log 
+  fi
+  echo "Copying sample mpd.conf file to /etc" 
+  runCmd sudo cp ~/ovos-tools/mpd.conf /etc # copy sample 
+  echo "Changing permissons of /etc/mpd.conf" 
+  runCmd sudo chmod 644 /etc/mpd.conf  
+  echo "Setting mpd to start at boot time" 
+  runCmd sudo systemctl enable mpd         # start mpd at boot
+  echo "Disabling bluetooth ..."
+  sudo systemctl disable bluetooth.service
+
+  # configure USB hot plug
+  sudo cp ~/ovos-tools/99-mount-usb.rules /etc/udev/rules.d
+  sudo cp ~/ovos-tools/usb-mount@.service /etc/systemd/system
+  sudo cp ~/ovos-tools/usb-mount.sh /root 
+ }                                         # installCoreqs()
+
+# main()
+flavor="minimy"                            # minimy, neon or ovos
+timeStamp=`date +"%y-%m-%d-%H-%M-%S"`   
+outFile="$HOME/$timeStamp-install1.out"    # output file
+parseArgs $@
+checkOvosTools                             # verify ovos-tools is installed
+echo "Running install1 on $timeStamp to configure $flavor ..." > $outFile # create a new log file
+installCoreqs | tee -a $outFile            # do the work
+let min=$SECONDS/60
+let sec=$SECONDS%60
+if [ $sec -lt 10 ]; then                   # add a leading 0
+  sec="0$sec"
+fi
+echo "Successfully installed co-reqs for $flavor in $min:$sec" | tee -a $outFile
+echo "Log file: $outFile"
+
