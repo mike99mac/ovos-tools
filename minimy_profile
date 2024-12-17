@@ -1,9 +1,10 @@
+alias diff="diff --color"
 alias la="ls -laFtr"
 alias ping='ping -c2'
 alias vi="/usr/bin/vim"
-alias sctl="sudo systemctl"
+alias sys="sudo systemctl -l --no-pager"
 alias jctl="sudo journalctl"
-alias venv="source $HOME/minimy/venv_ngv/bin/activate"
+alias venv="source $HOME/minimy/minimy_venv/bin/activate"
 export LOG="$HOME/minimy/logs"
 export MPC="$HOME/minimy/skills/user_skills/mpc"              # mpc/mpd music skill
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/$HOME/.local/bin"
