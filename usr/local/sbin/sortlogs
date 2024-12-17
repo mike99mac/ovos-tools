@@ -1,9 +1,16 @@
 #!/bin/bash
 #
-# sortlogs - merge and sort all log files 
+# sortlogs - merge and sort all log files
 #
 tmpFile=`mktemp`                           # make a temp file
-cd $HOME/minimy/logs
+logDir="$HOME/minimy/logs"
+if [ ! -d $logDir ]; then                  # log directory not found
+  echo "ERROR: log directory $logDir does not exist"
+  exit 1
+elif [ ! -f *.log ]; then                  # no log files found
+  echo "ERROR: no log files found in $logDir"
+  exit 2
+fi
 for i in *.log; do                         # copy all log files
   cat $i >> $tmpFile
 done
@@ -11,3 +18,4 @@ timeStamp=`date +"%y-%m-%d-%H-%M-%S"`
 outFile="$HOME/$timeStamp-minimy.logs"
 sort $tmpFile > $outFile                   # sort by timestamp
 echo "sorted logs saved to: $outFile"
+
