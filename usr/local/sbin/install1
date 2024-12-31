@@ -124,7 +124,7 @@ function installCoreqs
     exit 1
   fi
   echo "distro = $distro"
-  commonPackages="bind9-dnsutils cifs-utils curl locate mpc mpd net-tools pandoc pulseaudio python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
+  commonPackages="bind9-dnsutils cifs-utils curl locate lsof mpc mpd net-tools pandoc pulseaudio python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
   if [ "${distro:0:6}" = "Ubuntu" -o "${distro:0:12}" = "Ubuntu 23.10" -o "${distro:7:12}" = "Noble Numbat" -o "${distro:0:6}" = Debian ]; then 
     diffPackages="python3.10-venv" 
     bootDir="/boot/firmware"
