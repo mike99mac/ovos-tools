@@ -1,5 +1,7 @@
 alias diff="diff --color"
 alias la="ls -laFtr"
+alias sm="startminimy"
+alias hm="stopminimy"
 alias ping='ping -c2'
 alias vi="/usr/bin/vim"
 alias sys="sudo systemctl -l --no-pager"
@@ -18,5 +20,3 @@ export Z="/usr/local/sbin"
 export SVA_BASE_DIR="$HOME/minimy"
 export DBUS_SESSION_BUS_ADDRESS="/run/user/1000/bus"
 export XDG_RUNTIME_DIR="/run/user/1000"
-# source $HOME/minimy/venv_ngv/bin/activate 
-
