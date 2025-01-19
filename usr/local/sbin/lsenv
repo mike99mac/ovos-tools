@@ -303,6 +303,8 @@ function doIt
   local theVersion
   local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   printf "%22s: %s\n" "Distro" "$distro"
+  local kernel=`uname -r`
+  printf "%22s: %s\n" "Kernel" "$kernel"
   if [ "$theType" = neon ]; then
     theVersion=`neonver`
     printf "%20s: %s\n" "Neon version" "$theVersion"
