@@ -7,9 +7,13 @@ logDir="$HOME/minimy/logs"
 if [ ! -d $logDir ]; then                  # log directory not found
   echo "Log directory $logDir does not exist"
   exit 1
-elif [ ! -f *.log ]; then                  # no log files found
-  echo "No log files found in $logDir"
-  exit 2
+else
+  cd $LOG
+  ls *.log >/dev/null 2>&1
+  if [ $? != 0 ]; then                  # no log files found
+    echo "No log files found in $logDir"
+    exit 2
+  fi
 fi
 for i in *.log; do                         # copy all log files
   cat $i >> $tmpFile
