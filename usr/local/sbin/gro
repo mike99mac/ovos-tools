@@ -9,7 +9,7 @@ if [ $# = 0 ]; then                        # no args passed
 fi
 
 pythonVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
-baseDir="$HOME/.venvs/ovos/lib/python${pythonVer}/site-packages"
+baseDir="$HOME/ovos_venv/lib/python${pythonVer}/site-packages"
 if [ ! -d $baseDir ]; then
   echo "ERROR: Directory $baseDir not found - is OVOS installed?"
   exit 1

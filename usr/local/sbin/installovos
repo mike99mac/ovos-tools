@@ -17,7 +17,6 @@ function usage
   echo ""
   echo "OPTIONS:"
   echo "  -h|--help         Give help (this screen)"
-  echo "  -m|--mike99mac    Try Mike Mac's experimental approach"
   echo "  -v|--verbose      Increase verbosity"
   echo "  -x|--debug        Print commands and arguments as they are executed"
   echo "  -y|--yes          Do not prompt to remove old venv"
@@ -39,9 +38,6 @@ function parseArgs
       -h|--help)
         usage
         ;;
-      -m|--mike99mac)                      # try Mike Mac's experimental code
-        installType="mike99mac"
-        ;;
       -v|--verbose)
         verbose=2
         ;;
@@ -62,7 +58,7 @@ function parseArgs
 
 #+--------------------------------------------------------------------------+
 function runCmd
-# run a command, report time spent and exit if it failes
+# run a command, report time spent and exit if it fails
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -70,46 +66,15 @@ function runCmd
 
   local timeStamp=`date +"%y-%m-%d-%H:%M:%S"`      # YY-MM-DD-HH:MM:SS
   cmd="$@"                                 # get all args
-  echo "$timeStamp - Running: $cmd ..." | tee -a $logFile # show the command and send to output file
-  eval $cmd >> $logFile 2>&1               # run the command
+  echo "$timeStamp - Running: $cmd ..." | tee -a $logFile # show command and send to output file
+  eval $cmd >> $logFile 2>&1               # run command
   rc=$?
   if [ "$rc" != 0 ]; then                  # it failed
     echo "ERROR: $cmd returned $rc" | tee -a $logFile
+    echo "Output written to: $logFile"
     exit 1
   fi
  }                                         # runCmd()
-
-#+--------------------------------------------------------------------------+
-function useInstaller
-# Install OVOS with goldyfruit's installer.sh 
-#+--------------------------------------------------------------------------+
- {
-  : SOURCE: ${BASH_SOURCE}
-  : STACK:  ${FUNCNAME[@]}
-
-  # first be sure scenario.yaml is present to automate the install
-  local configDir="$HOME/.config/ovos-installer"
-  local configFile="$configDir/scenario.yaml"
-
-  if [ ! -d $configDir ]; then             # config directory does not exist
-    runCmd mkdir -p $configDir
-  fi
-
-  if [ ! -f $configFile ]; then            # config file does not exist
-    if [ ! -f $HOME/ovos-tools/scenario.yaml ]; then # not expected
-      echo "ERROR: unexpected $HOME/ovos-tools/scenario.yaml not found - is ovos-tools installed?"
-      exit 1
-    fi
-    runCmd cp $HOME/ovos-tools/scenario.yaml $configDir
-  fi 
-
-  # run the installer
-  cd                                       # start in the home directory
-  runCmd curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh
-  runCmd chmod +x installer.sh 
-  echo "Installing OVOS with install.sh ... this will take some time ... Log File: $logFile" 
-  runCmd sudo ./installer.sh
- }                                         # useInstaller()
 
 #+--------------------------------------------------------------------------+
 function installWithGit 
@@ -124,6 +89,10 @@ function installWithGit
   let curPkg=$curPkg+1
   echo | tee -a $logFile
   echo "Installing package $curPkg of $pkgCnt: $thePkg..." | tee -a $logFile
+  if [ -d $thePkg ]; then 
+    echo "Removing existing directory $thePkg..." | tee -a $logFile
+    rm -fr $thePkg
+  fi
   runCmd git clone https://github.com/OpenVoiceOS/$thePkg 
  }                                         # installWithGit()
 
@@ -197,29 +166,25 @@ function copyServiceFile
  }                                         # copyServiceFile()
 
 #+--------------------------------------------------------------------------+
-function useMike99mac
-# Install OVOS with goldyfruit's installer.sh
+function doTheWork
+# Install OVOS 
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-
-  if [ ! -f $HOME/ovos-tools/ovos.git.packages  ]; then
+  if [ ! -f $HOME/ovos-tools/ovos.git.packages ]; then
     echo "ERROR: $HOME/ovos-tools/ovos.git.packages not found - is ovos-tools installed?" | tee -a $logFile
     exit 1
   fi
   
   echo | tee -a $logFile
   echo "Creating a virtual environment ..." | tee -a $logFile
-  runCmd mkdir -p $HOME/.venvs/ovos
-  runCmd python3 -m venv $HOME/.venvs/ovos
+  runCmd python3 -m venv $venvDir          # create virtual environment
 
   echo | tee -a $logFile
   echo "Activating virtual environment ..." | tee -a $logFile
-  runCmd source $HOME/.venvs/ovos/bin/activate
-  local pyVer=`python --version | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
-  cd $HOME/.venvs/ovos/lib/python$pyVer/site-packages
+  runCmd source $venvDir/bin/activate      # start the virtual environment
 
   echo | tee -a $logFile
   echo "Installing packages with apt-get ..." | tee -a $logFile
@@ -253,19 +218,18 @@ function useMike99mac
     installWithGit $nextPkg
   done
   
-  # copy executables which don't end up in $HOME/.venvs/ovos/bin for some reason
   echo | tee -a $logFile
   echo "Copying ovos-core file ..." | tee -a $logFile
-  runCmd cp $HOME/ovos-tools/ovos-core $HOME/.venvs/ovos/bin
+  runCmd cp $HOME/ovos-tools/ovos-core $venvDir/bin
   echo | tee -a $logFile
   echo "Copying ovos-audio file ..." | tee -a $logFile
-  runCmd cp $HOME/ovos-tools/ovos-audio $HOME/.venvs/ovos/bin
+  runCmd cp $HOME/ovos-tools/ovos-audio $venvDir/bin
   echo | tee -a $logFile
   echo "Copying ovos-messagebus file ..." | tee -a $logFile
-  runCmd cp $HOME/ovos-tools/ovos-messagebus $HOME/.venvs/ovos/bin
+  runCmd cp $HOME/ovos-tools/ovos-messagebus $venvDir/bin
   echo | tee -a $logFile
   echo "Copying ovos_PHAL_admin file ..." | tee -a $logFile
-  runCmd cp $HOME/ovos-tools/ovos_PHAL_admin $HOME/.venvs/ovos/bin
+  runCmd cp $HOME/ovos-tools/ovos_PHAL_admin $venvDir/bin
 
   echo | tee -a $logFile
   echo "Copying .service files and setting to run at boot time .." | tee -a $logFile
@@ -273,7 +237,7 @@ function useMike99mac
   for nextService in ovos-messagebus ovos-phal ovos-audio ovos-core ovos-listener ovos-media; do
     copyServiceFile $nextService user
   done
- }                                         # useMike99mac()
+ }                                         # doTheWork()
 
 #+--------------------------------------------------------------------------+
 function installOVOS
@@ -284,36 +248,24 @@ function installOVOS
   : STACK:  ${FUNCNAME[@]}
 
   local date=`date`
-  echo "Running installovos installType = $installType ..." | tee -a $logFile
-  if [ -d $HOME/.venvs ]; then                 #  directory exists
+  echo "Running installovos ..." | tee -a $logFile
+  if [ -d $venvDir ]; then                 #  directory exists
     if [ "$1" != "-y" ]; then
-      echo -n "$HOME/.venvs directory exists - do you want to remove it and rebuild? (y/n) "
+      echo -n "$venvDir directory exists - do you want to remove it and rebuild? (y/n) "
       read ans
       if [ "$ans" != y -a "$ans" != Y ]; then
         exit 4
       fi
     fi
-    echo "removing $HOME/.venvs directory ..."
-    sudo /usr/bin/rm -fr $HOME/.venvs | tee -a $logFile
+    echo "removing $venvDir directory ..."
+    sudo /usr/bin/rm -fr $venvDir | tee -a $logFile
     if [ $? != 0 ]; then
-      echo "/usr/bin/rm -fr $HOME/.venvs returned $? trying again ..."
-      /usr/bin/rm -fr $HOME/.venvs | tee -a $logFile
-      if [ $? != 0 ]; then
-        echo "/usr/bin/rm -fr $HOME/.venvs failed again with $? ... punt! ..." | tee -a $logFile
-        exit 5
-      fi
+      echo "/usr/bin/rm -fr $venvDirs returned $? exiting ..."
+      exit 2
     fi
   fi
 
-  # perform one of two install types
-  if [ "$installType" = "goldyfruit" ]; then # use installer.sh
-    useInstaller
-  elif [ "$installType" = "mike99mac" ]; then # use Mike's code
-    useMike99mac
-  else
-    echo "ERROR: unexpected: installType = $installType"
-    exit 1
-  fi
+  doTheWork
 
   # for longer main memory life, write OVOS logs to a tmpfs
   local mountFile="home-pi-.local-state-mycroft.mount"
@@ -333,16 +285,16 @@ function installOVOS
 
 # main()
 curPkg=0                                   # current package being installed
-installType="goldyfruit"                   # install code to use - default - installer.sh
 pkgCnt=0                                   # of packages
+venvDir="$HOME/ovos_venv"                  # virtual environment directory
 verbose=1                                  # verbosity
 yes="no"
 
 parseArgs $@                               # parse arguments
-timeStamp=`date +"%y-%m-%d-%H:%M:%S"`      # YY-MM-DD-HH:MM:SS
+timeStamp=`date +"%y-%m-%d-%H-%M-%S"`      # YY-MM-DD-HH:MM:SS
 logFile="$HOME/$timeStamp-installovos.out" # output file
 pkgCnt=`wc -l $HOME/ovos-tools/*.packages | tail -1 | awk '{print $1}'`
-
+cd $HOME                                   # install in home directory
 installOVOS $@                             # do the work
 let min=$SECONDS/60                        # show time spent installing
 let sec=$SECONDS%60

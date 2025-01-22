@@ -6,8 +6,7 @@ After=network.target
 [Service]
 Environment=XDG_CONFIG_HOME=/home/pi/.config
 Environment=XDG_CACHE_HOME=/home/pi/.cache
-WorkingDirectory=/home/pi/.venvs/ovos
-ExecStart=/home/pi/.venvs/ovos/bin/ovos_PHAL_admin
+ExecStart=/bin/bash -c $HOME/ovos_venv/bin/ovos_PHAL_admin
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
 Restart=on-failure

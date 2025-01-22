@@ -2,15 +2,12 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-phal
 Description=Open Voice OS - PHAL
 After=network.target ovos-messagebus.service
-Requires=ovos-messagebus.service pulseaudio.socket
+Requires=ovos-messagebus.service 
 
 [Service]
-WorkingDirectory=/home/pi/.venvs/ovos
-ExecStart=/home/pi/.venvs/ovos/bin/ovos_PHAL
+ExecStart=/bin/bash -c $HOME/ovos_venv/bin/ovos_PHAL
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
-Restart=on-failure
-RestartSec=5s
 
 [Install]
 WantedBy=default.target

@@ -61,12 +61,19 @@ function startSystem
   sleep 1                                  # dont start services too soon
 
   # launch all services 
+  echo "Starting ovos-phal-admin ..."
   sudo systemctl start ovos-phal-admin
+  echo "Starting ovos-core ..."
   systemctl --user start ovos-core.service
+  echo "Starting ovos-listener ..."
   systemctl --user start ovos-listener.service
+  echo "Starting ovos-messagebus ..."
   systemctl --user start ovos-messagebus.service
+  echo "Starting ovos-phal ..."
   systemctl --user start ovos-phal.service
+  echo "Starting ovos-media ..."
   systemctl --user start ovos-media.service
+  echo "Starting ovos-audio ..."
   systemctl --user start ovos-audio.service
 
   OVOSprocs=`ps -ef | grep ovos | grep -v grep | grep -v startovos` 
@@ -85,7 +92,6 @@ if [ ! -d $baseDir ]; then                 # dir not found
   exit 1
 fi
 
-echo "Starting OVOS..."
 startSystem
 cd $baseDir
 source $HOME/.venvs/ovos/bin/activate 

@@ -1,4 +1,4 @@
-#!/home/pi/.venvs/ovos/bin/python3
+#!/home/pi/ovos_venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

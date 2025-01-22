@@ -2,15 +2,12 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-audio
 Description=Open Voice OS - Audio
 After=network.target ovos-messagebus.service ovos-phal.service
-Requires=ovos-messagebus.service ovos-phal.service pulseaudio.socket
+Requires=ovos-messagebus.service ovos-phal.service 
 
 [Service]
-WorkingDirectory=/home/pi/.venvs/ovos
-ExecStart=/home/pi/.venvs/ovos/bin/ovos-audio
+ExecStart=/bin/bash -c "$HOME/ovos_venv/bin/ovos-audio"
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
-Restart=on-failure
-RestartSec=5s
 
 [Install]
 WantedBy=default.target
