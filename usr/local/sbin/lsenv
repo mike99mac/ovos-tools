@@ -275,14 +275,15 @@ function doIt
   elif [ -d $HOME/minimy ]; then           # assume Minimy
     theType="minimy"
     listMinimy
-  elif [ -d $HOME/.venvs/ovos/lib/python3.*/site-packages/ovos_core ]; then # assume OVOS
+  elif [ -f $HOME/ovos_venv/bin/ovos-core ]; then # assume OVOS
     theType="ovos"
     echo "OVOS services:"
-    listService ovos-phal-admin root       # this service runs as root
+    lsovos
+    # listService ovos-phal-admin root       # this service runs as root
     # for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
-    for nextService in ovos-audio ovos-core ovos-listener ovos-messagebus; do
-      listService $nextService user        # most services run as user
-    done
+    # for nextService in ovos-audio ovos-core ovos-listener ovos-messagebus; do
+    #  listService $nextService user        # most services run as user
+    # done
   else                                     # assume none of the three are installed
     theType="none"
     printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red

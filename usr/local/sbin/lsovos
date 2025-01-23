@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+# lsovos - list OVOS processes
+#
+#+--------------------------------------------------------------------------+
+function listService
+# List the status of one service 
+# Arg 1: service to list
+# Arg 2: "root" or "user" service
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local theService=$1
+  local serviceType=$2
+
+  local cmd
+  local status 
+  # RED="\e[31m"              print in colors
+  # GREEN="\e[32m"
+  # YELLOW="\e[33m"
+
+  if [ "$theService" = pipewire ]; then    # always runs as processes
+    echo $dashes
+    echo "    pipewire processes:"
+    ps -ef | grep pipewire | grep -v grep | sed 's/^/  /g'
+    return
+  fi
+  if [ "$serviceType" = root ]; then
+    cmd="/usr/bin/systemctl status $theService"
+  elif [ "$serviceType" = user ]; then
+    cmd="/usr/bin/systemctl --user status $theService"
+  else                                     # not expected
+    echo "INTERNAL ERROR: serviceType = $serviceType"
+    exit 4
+  fi
+  printf "%22s: " "$theService"
+  cmdOut=`eval $cmd` 
+  echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
+  if [ $? = 0 ]; then                      # found "active"
+    printf '\e[32m%s\e[0m\n' "Started"     # in green
+  else
+    echo "$cmdOut" | grep " active (" >/dev/null
+    if [ $? = 0 ]; then
+    printf '\e[32m%s\e[0m\n' "active (running)" # in green
+    else
+      echo "$cmdOut" | grep "Active: failed" >/dev/null
+      if [ $? = 0 ]; then                  # found "failed"
+        printf '\e[31m%s\e[0m\n' "failed"  # in red
+      else 
+        echo "$cmdOut" | grep "code=exited" >/dev/null
+        if [ $? = 0 ]; then                # found "exited"
+          printf '\e[31m%s\e[0m\n' "exited" # in red
+        else
+          echo "$cmdOut" | grep "inactive (dead)" >/dev/null
+          if [ $? = 0 ]; then              # found "inactive"
+            printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
+          # else
+            # echo "Unknown"
+          fi
+        fi
+      fi
+    fi
+  fi 
+ }                                         # listService()
+
+#+--------------------------------------------------------------------------+
+# Global variables
+dashes="---------------------------------------"
+
+# main()
+listService ovos-phal-admin root       # this service runs as root
+# for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
+for nextService in ovos-audio ovos-core ovos-listener ovos-messagebus; do
+  listService $nextService user        # most services run as user
+done
+
