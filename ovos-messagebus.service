@@ -4,7 +4,7 @@ Description=Open Voice OS - Message bus service
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c $HOME/ovos_venv/bin/ovos-messagebus
+ExecStart=/home/pi/ovos_venv/lib/python3.11/site-packages/ovos-messagebus
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
 

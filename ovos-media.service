@@ -4,7 +4,7 @@ Description=Open Voice OS - Media
 After=network.target ovos-messagebus.service ovos-phal.service
 
 [Service]
-ExecStart=/bin/bash -c $HOME/ovos_venv/bin/ovos-media
+ExecStart=/home/pi/ovos_venv/lib/python3.11/site-packages/ovos-media
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
 

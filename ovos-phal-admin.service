@@ -6,11 +6,9 @@ After=network.target
 [Service]
 Environment=XDG_CONFIG_HOME=/home/pi/.config
 Environment=XDG_CACHE_HOME=/home/pi/.cache
-ExecStart=/bin/bash -c $HOME/ovos_venv/bin/ovos_PHAL_admin
+ExecStart=/home/pi/ovos_venv/lib/python3.11/site-packages/ovos_PHAL_admin
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
-Restart=on-failure
-RestartSec=5s
 
 [Install]
 WantedBy=default.target

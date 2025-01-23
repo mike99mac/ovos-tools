@@ -5,7 +5,7 @@ After=network.target ovos-messagebus.service
 Requires=ovos-messagebus.service 
 
 [Service]
-ExecStart=/bin/bash -c $HOME/ovos_venv/bin/ovos_PHAL
+ExecStart=/home/pi/ovos_venv/lib/python3.11/site-packages/ovos_PHAL
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
 

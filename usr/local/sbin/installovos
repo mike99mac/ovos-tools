@@ -220,16 +220,17 @@ function doTheWork
   
   echo | tee -a $logFile
   echo "Copying ovos-core file ..." | tee -a $logFile
-  runCmd cp $HOME/ovos-tools/ovos-core $venvDir/bin
+  runCmd cp $HOME/ovos-tools/ovos-core $venvDir/lib/python3.11/site-packages
   echo | tee -a $logFile
   echo "Copying ovos-audio file ..." | tee -a $logFile
-  runCmd cp $HOME/ovos-tools/ovos-audio $venvDir/bin
+  runCmd cp $HOME/ovos-tools/ovos-audio $venvDir/lib/python3.11/site-packages
   echo | tee -a $logFile
   echo "Copying ovos-messagebus file ..." | tee -a $logFile
-  runCmd cp $HOME/ovos-tools/ovos-messagebus $venvDir/bin
+  runCmd cp $HOME/ovos-tools/ovos-messagebus $venvDir/lib/python3.11/site-packages
   echo | tee -a $logFile
   echo "Copying ovos_PHAL_admin file ..." | tee -a $logFile
-  runCmd cp $HOME/ovos-tools/ovos_PHAL_admin $venvDir/bin
+  #runCmd cp $HOME/ovos-tools/ovos_PHAL_admin $venvDir/bin
+  runCmd cp $HOME/ovos-tools/ovos_PHAL_admin ~/ovos_venv/lib/python3.11/site-packages
 
   echo | tee -a $logFile
   echo "Copying .service files and setting to run at boot time .." | tee -a $logFile
@@ -237,6 +238,7 @@ function doTheWork
   for nextService in ovos-messagebus ovos-phal ovos-audio ovos-core ovos-listener ovos-media; do
     copyServiceFile $nextService user
   done
+  runCmd cp $HOME/ovos-tools/ovos_profile $HOME/.bash_profile  # custom .bash_profile
  }                                         # doTheWork()
 
 #+--------------------------------------------------------------------------+
