@@ -5,6 +5,7 @@ alias vi=/usr/bin/vim
 alias sys="sudo systemctl -l --no-pager"
 alias jou="journalctl --since '5 minutes ago' --no-pager"
 alias venv="source $HOME/ovos_venv/bin/activate"    # start an OVOS venv
+export CFG="~/.config/mycroft"
 export LOG="$HOME/.local/state/mycroft"                # OVOS logs
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$HOME/ovos_venv/bin"
 export SRC="$HOME/ovos_venv/lib/python3.*/site-packages"
