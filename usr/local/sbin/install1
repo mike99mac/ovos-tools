@@ -198,7 +198,7 @@ function installCoreqs
       echo "dtoverlay=hifiberry-dacplus,slave" | sudo tee -a config.txt
       echo "force_eeprom_read=0" | sudo tee -a config.txt
     else                                   # assume RasPi 4
-      echo "dtoverlay=hifiberry-dacplus" | sudo tee -a config.txt # add hifiberry driver
+      echo "dtoverlay=hifiberry-dacplus-pro" | sudo tee -a config.txt # add hifiberry driver
     fi
   fi  
   
