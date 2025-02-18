@@ -124,7 +124,8 @@ function installCoreqs
     exit 1
   fi
   echo "distro = $distro"
-  commonPackages="bind9-dnsutils cifs-utils curl jq locate lsof mpc mpd net-tools pandoc pulseaudio python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
+  #commonPackages="bind9-dnsutils cifs-utils curl jq locate lsof mpc mpd net-tools pandoc pulseaudio python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
+  commonPackages="bind9-dnsutils cifs-utils curl jq locate lsof mpc mpd net-tools pandoc python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
   if [ "${distro:0:6}" = "Ubuntu" -o "${distro:0:12}" = "Ubuntu 23.10" -o "${distro:7:12}" = "Noble Numbat" -o "${distro:0:6}" = Debian ]; then 
     diffPackages="python3.10-venv" 
     bootDir="/boot/firmware"
@@ -152,22 +153,24 @@ function installCoreqs
   echo
   
   # Configure groups and users
-  id pulse >/dev/null 2>&1
-  if [ $? != 0 ]; then                     # user pulse does not exist
-    sudo useradd -u 125 pulse
-  fi
-  getent group pulse >/dev/null 2>&1
-  if [ $? != 0 ]; then                     # group pulse does not exist
-    sudo groupadd -g 133 pulse       
-  fi    
-  getent group pulse-access >/dev/null 2>&1
-  if [ $? != 0 ]; then                     # group pulse-access does not exist
-    sudo groupadd -g 134 pulse-access
-  fi    
+#  id pulse >/dev/null 2>&1
+#  if [ $? != 0 ]; then                     # user pulse does not exist
+#    sudo useradd -u 125 pulse
+#  fi
+#  getent group pulse >/dev/null 2>&1
+#  if [ $? != 0 ]; then                     # group pulse does not exist
+#    sudo groupadd -g 133 pulse       
+#  fi    
+#  getent group pulse-access >/dev/null 2>&1
+#  if [ $? != 0 ]; then                     # group pulse-access does not exist
+#    sudo groupadd -g 134 pulse-access
+#  fi    
   echo "Adding groups to user pi ..." 
-  runCmd sudo usermod -a -G video,pulse,pulse-access,dialout,kmem pi
+#  runCmd sudo usermod -a -G video,pulse,pulse-access,dialout,kmem pi
+  runCmd sudo usermod -a -G audio,video,dialout,kmem pi
   echo "Adding groups to user mpd ..." 
-  runCmd sudo usermod -a -G pulse-access,pi mpd
+  # runCmd sudo usermod -a -G pulse-access,pi mpd
+  runCmd sudo usermod -a -G pi mpd
   echo "Adding groups spi, i2c and gpio to /etc/groump ..." 
   sudo groupadd -g 993 spi
   sudo groupadd -g 994 i2c
@@ -198,7 +201,7 @@ function installCoreqs
       echo "dtoverlay=hifiberry-dacplus,slave" | sudo tee -a config.txt
       echo "force_eeprom_read=0" | sudo tee -a config.txt
     else                                   # assume RasPi 4
-      echo "dtoverlay=hifiberry-dacplus" | sudo tee -a config.txt # add hifiberry driver
+      echo "dtoverlay=hifiberry-dacplus-pro" | sudo tee -a config.txt # add hifiberry driver
     fi
   fi  
   
@@ -227,29 +230,29 @@ function installCoreqs
   #fi
   
   # start pulseaudio as a service
-  serviceFile=/etc/systemd/system/pulseaudio.service
-  if [ ! -f $serviceFile ]; then   
-    echo "Copying pulseaudio service file ..." 
-    runCmd sudo cp ~/ovos-tools/pulseaudio.service.new /etc/systemd/system/pulseaudio.service
-    echo "Starting pulseaudio at boot time ..." 
-    runCmd sudo systemctl enable pulseaudio
-  fi 
+#  serviceFile=/etc/systemd/system/pulseaudio.service
+#  if [ ! -f $serviceFile ]; then   
+#    echo "Copying pulseaudio service file ..." 
+#    runCmd sudo cp ~/ovos-tools/pulseaudio.service.new /etc/systemd/system/pulseaudio.service
+#    echo "Starting pulseaudio at boot time ..." 
+#    runCmd sudo systemctl enable pulseaudio
+#  fi 
 
   # prevent pulseaudio from starting multiple times
-  echo "Copying pulseaudio.service.old to /usr/lib/systemd/user" 
-  runCmd sudo cp ~/ovos-tools/pulseaudio.service.old /usr/lib/systemd/user/pulseaudio.service
-  echo "Copying pulseaudio.socket to /usr/lib/systemd/user" 
-  runCmd sudo cp ~/ovos-tools/pulseaudio.socket /usr/lib/systemd/user
+#  echo "Copying pulseaudio.service.old to /usr/lib/systemd/user" 
+#  runCmd sudo cp ~/ovos-tools/pulseaudio.service.old /usr/lib/systemd/user/pulseaudio.service
+#  echo "Copying pulseaudio.socket to /usr/lib/systemd/user" 
+#  runCmd sudo cp ~/ovos-tools/pulseaudio.socket /usr/lib/systemd/user
 
   # allow anonymous access to pulseaudio
-  if [ -f /etc/pulse/system.pa ]; then
-    if [ ! -f /etc/pulse/system.pa.orig ]; then 
-      echo "Making backup of /etc/pulse/system.pa file ..." 
-      runCmd sudo cp /etc/pulse/system.pa /etc/pulse/system.pa.orig
-    fi
-    echo "Allowing anonymous access to pulseaudio ..." 
-    runCmd sudo "sed -i 's/^load-module module-native-protocol-unix$/load-module module-native-protocol-unix auth-anonymous=1/g' /etc/pulse/system.pa"
-  fi
+#  if [ -f /etc/pulse/system.pa ]; then
+#    if [ ! -f /etc/pulse/system.pa.orig ]; then 
+#      echo "Making backup of /etc/pulse/system.pa file ..." 
+#      runCmd sudo cp /etc/pulse/system.pa /etc/pulse/system.pa.orig
+#    fi
+#    echo "Allowing anonymous access to pulseaudio ..." 
+#    runCmd sudo "sed -i 's/^load-module module-native-protocol-unix$/load-module module-native-protocol-unix auth-anonymous=1/g' /etc/pulse/system.pa"
+#  fi
 
   # configure mpd
   if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
@@ -270,10 +273,30 @@ function installCoreqs
   echo "Disabling bluetooth ..."
   sudo systemctl disable bluetooth.service
 
-  # configure USB hot plug
+  # configure USB hot plug to mount USB drive over /mnt/usb
   sudo cp ~/ovos-tools/99-mount-usb.rules /etc/udev/rules.d
   sudo cp ~/ovos-tools/usb-mount@.service /etc/systemd/system
   sudo cp ~/ovos-tools/usb-mount.sh /root 
+
+  # configure the gateway to be the DNS resolver
+  DNSstmt=`grep ^DNS /etc/systemd/resolved.conf`
+  if [ ${#DNSstmt} = 0 ]; then             # DNS resolver not found
+    gw=`ip route | head -1 | awk '{print $3}'` # get the gatway
+    numDots=`echo $gw | awk -F'.' '{print NF}'` # check that it is dotted decimal
+    if [ "$numDots" != 4 ]; then           # error
+      echo "ERROR: $gw does not appear to be an IPv4 address"
+      exit 1
+    fi  
+    echo "Setting $gw to DNS resolver..."
+    echo "DNS=$gw" | sudo tee -a /etc/systemd/resolved.conf
+    rc=$?
+    if [ "$rc" != 0 ]; then
+      echo "ERROR: echo DNS=$gw | sudo tee -a /etc/systemd/resolved.conf returned $rc"	  
+    fi  
+    runCmd sudo systemctl restart systemd-resolved
+  else
+    echo "Found: $DNSstmt in /etc/systemd/resolved.conf"
+  fi
  }                                         # installCoreqs()
 
 # main()
