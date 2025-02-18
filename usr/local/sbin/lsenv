@@ -252,6 +252,43 @@ function tmpfsUsage
  }                                         # getCPU()
 
 #+--------------------------------------------------------------------------+
+function soundCheck 
+# Check play and record devices 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  spkrs=`aplay -l 2>&1 | grep ^card`
+  numSpkrs=`echo "$spkrs" | wc -l`
+  mics=`arecord -l 2>&1 | grep ^card`
+  numMics=`echo "$mics" | wc -l`
+  # echo "spkrs: '$spkrs' numSpkrs: $numSpkrs"
+  # echo "mics: '$mics' numMics: $numMics"
+  if [ $numMics = 0 ]; then 
+    echo "WARNING: no microphones found"
+  else
+    mic=`echo $mics | head -1 | awk -F',' '{print $1}'`
+    if [ $numMics = 1 ]; then 
+      echo "Mic     : $mic" 
+    else
+      echo "Mics    : $mics" 
+    fi
+  fi  
+  if [ $numSpkrs = 0 ]; then 
+    echo "WARNING: no speakers found"
+  else
+    spkr=`echo $spkrs | head -1 | awk -F',' '{print $1}'`
+    if [ $numSpkrs = 1 ]; then 
+      echo "Speaker : $spkr" 
+    else
+      echo "Speakers: $spkrs" 
+    fi
+    aplay /usr/share/sounds/alsa/Front_Center.wav
+  fi  
+ }                                         #  soundCheck()
+
+#+--------------------------------------------------------------------------+
 function doIt
 # List much information about the OVOS environment 
 #+--------------------------------------------------------------------------+
@@ -279,21 +316,14 @@ function doIt
     theType="ovos"
     echo "OVOS services:"
     lsovos
-    # listService ovos-phal-admin root       # this service runs as root
-    # for nextService in ovos-audio ovos-core ovos-listener ovos-media ovos-messagebus; do
-    # for nextService in ovos-audio ovos-core ovos-listener ovos-messagebus; do
-    #  listService $nextService user        # most services run as user
-    # done
   else                                     # assume none of the three are installed
     theType="none"
     printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
   fi  
   echo "$dashes"              
-  # echo "pulseaudio service:"
   listService pulseaudio root              # always check for pulse
   listService pipewire root     
   echo "$dashes"              
-  #echo "mpd service:"
   listService mpd root
   if [ "$justServices" = "yes" ]; then     # all done
     exit
@@ -352,7 +382,7 @@ function doIt
     printf "%23s\n" "tmpfs filesystems:"
   fi
   echo "$moreDashes"              
-  aplay /usr/share/sounds/alsa/Front_Center.wav
+  soundCheck                               # check play and record
   echo "$moreDashes"              
   echo
  }                                         # doIt()
