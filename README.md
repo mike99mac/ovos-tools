@@ -6,7 +6,7 @@ This README document describes how to build a *Personal Voice Assistant* from th
 
 ## The build
 
-The environment used to develop the code and write this document is a RasPi 4B with 4 GB of memory, running Ubuntu Desktop 22.04 inside an *enclosure*.  Details on the hardware and CNC G-code to build a *smart boombox* are here: https://github.com/mike99mac/ovos-tools/tree/main/gcode
+The environment used to develop the code and write this document is a RasPi 4B with 4 GB of memory, running Ubuntu Desktop 24.10 inside an *enclosure*.  Details on the hardware and CNC G-code to build a *smart boombox* are here: https://github.com/mike99mac/ovos-tools/tree/main/gcode
 
 The Raspberry Pi OS (aka Raspbian) versions 10 (buster) and 11 (bullseye) were also tested. However, this code and these steps should be relatively portable to any hardware that can run any Linux. 
 
@@ -32,11 +32,9 @@ You can start with just about any speaker(s) with a 3.5mm jack that will plug in
 ## Flash Linux to a memory device
 The RasPi boots from a micro-SD card that plugs into its underside. A 32 GB card or larger is recommended. You need to *prime the pump* and copy a Linux distribution to it. 
 
-The following three flavors of two Linux distributions are supported. Note that *Raspbian* has been renamed to *Raspberry Pi OS* but in many places the original name is still used.
-- ``Ubuntu 22.04.2 LTS``
-    - LTS stands for *Long Term Support* - Canonical promises to support it for at least five years.
-- ``Raspbian GNU/Linux 10 (buster)``
-- ``Raspbian GNU/Linux 11 (bullseye)``
+The following Linux distributions have been tested
+- ``Ubuntu Desktop 24.10``
+- ``Raspi OS Lite Debian GNU/Linux 12 (bookworm)``
 
 ### Prepare on Linux
 
@@ -60,11 +58,8 @@ rpi-imager
     - Select the type of *Raspberry Pi Device* you have - a 4 or a 5.
 
     - Select one from *Operating System*.
-        - Raspberry Pi OS (64-bit) Debian Bookworm with Desktop
-        - Raspberry Pi OS (64-bit) Debian Bullseye with Desktop
         - Raspberry Pi OS (other) => Raspberry Pi OS Lite (64-bit)
-        - Raspberry Pi OS (legacy) => Debian Buster with Desktop
-        - Other General Purpose OS => Ubuntu => Desktop 22.04.2 LTS (64-bit)
+        - Other General Purpose OS => Ubuntu => Desktop 24.10 (64-bit)
 
     - Select the *Storage* device. You should see just one micro-SD card in the dropdown menu. If you don't see any entry, your SD card has not been recognized.
 
