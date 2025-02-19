@@ -54,17 +54,12 @@ rpi-imager
 ```
     
 - To flash a Linux image to the card, perform the following steps:
-
     - Select the type of *Raspberry Pi Device* you have - a 4 or a 5.
-
     - Select one from *Operating System*.
         - Raspberry Pi OS (other) => Raspberry Pi OS Lite (64-bit)
         - Other General Purpose OS => Ubuntu => Desktop 24.10 (64-bit)
-
     - Select the *Storage* device. You should see just one micro-SD card in the dropdown menu. If you don't see any entry, your SD card has not been recognized.
-
     - Click **Write**.
-
     - If you are challenged for credentials, enter the password of the current user.
 
 You should see a progress indicator as the image is copied to the SD card. It can take quite a while, depending on OS size and throughput. 
@@ -113,7 +108,7 @@ The RasPi 5 has a single LED that blinks both red and green.
 
 ### Initial Ubuntu Desktop configuration
 
-If you are installing Raspbian, skip to the next section.
+If you are installing RasPi OS, skip to the next section.
 
 A welcome screen should open on the monitor. Perform the following steps:
 
@@ -134,42 +129,51 @@ A welcome screen should open on the monitor. Perform the following steps:
  - Click **Next** at the *Privacy* window.
  - Click **Done** at the *Ready to go* window.
 
-Ubuntu Desktop 22.04 should now be installed.
+- Right click on the desktop and select ``Open in terminal``.  A command prompt should open
+- At the command prompt type ``ip a`` - check the IP address of ``wlan0``.
+- Install the OpenSSH server:
+
+```
+sudo apt-get install -y openssh-server
+```
+
+- Enable SSH to start at boot time:
+
+```
+sudo systemctl enable ssh
+```
+
+- Reboot the new system
+
+```
+sudo reboot 
+```
+
+Ubuntu Desktop 24.10 should now be installed.
  
-### Initial Raspbian Desktop configuration
+### Initial RasPi OS Lite configuration
 
-If you are installing Ubuntu, skip this section.
+To install and configure RasPi OS Lite, perform the following steps:
 
-To install and configure Raspbian, perform the following steps:
+- At the *Configuring Keyboard* panel, choose your keyboard.
+- At the *Enter a user name panel - enter ``pi``. 
+- Enter a password for ``pi`` twice.
+- You will be prompted to login - enter the credentials for ``pi``.
+- Type ``sudo raspi-config`` and perform the following configurations:
+  - Select **5 Localisation Options**.
+    - Select **L2 Timezone** and choose your time zone.
+  - Select **1 System Options**.
+    - Select **S1 Wireless LAN** and enter the SSID and password of your WiFi.
+    - Select **S4 Hostname** and enter the host name you would like.
+  - Tab to the bottom and select **Finish**
+  - When prompted to reboot - type **No**
+- At the command prompt type ``ip a`` - check the IP address of ``wlan0``.
+- At the command prompt type ``sudo sytsemctl enable ssh`` - this will start ``sshd``. 
+- At the command prompt type ``sudo reboot`` - this will restart the Raspberry Pi.
 
-- At the *Welcome to the Raspberry Pi Desktop!* window => click **Next**.
-- At the *Set Country* window - choose your country, language and time zone and click **Next**.
-- At the *Create User* window - The user name must be ``pi``.
-- At the *Set up screen* window - Check the box if you see a black box around the monitor and click **Next**.
-- At the *Select WiFi Network* window - choose your network and click **Next**.
-    - At the *Enter WiFi Password* window, enter the password and click **Next**.
-- At the *Update Software* window - click **Skip** - the upgrade will be done from a terminal session.
-- At the *Setup complete* window - click **Done** or **Restart**.
-
-### Setting up the SSH server on Ubuntu
-
-If you are installing Raspbian, skip to the next section.
-
-The secure shell (SSH) server is not installed by default on Ubuntu desktop. Install it so you can access your system remotely. To do so, perform the following steps:
-
-- Open a terminal session by right-clicking the mouse anywhere on the desktop and choosing **Open in Terminal**. You should see a console window open.
-- Show the contents of the ``/etc/os-release`` file just to confirm the Ubuntu release level.
-
-    
-```
-cat /etc/os-release
-PRETTY_NAME="Ubuntu 22.04.2 LTS"
-NAME="Ubuntu"
-VERSION_ID="22.04"
-VERSION="22.04.2 LTS (Jammy Jellyfish)"
-...
-```
-    
+### Start an SSH session
+You should now be able to start an SSH session to the IP address or hostname of your new system.
+- Login as ``pi``.
 - Update and upgrade your system which installs the latest code for all installed packages.
     
 ```
@@ -179,62 +183,6 @@ sudo apt-get update
 ```
 sudo apt-get upgrade -y
 ```
-    
-- Install the ``openssh-server`` package, with the following command.  You will be prompted for your password.
-    
-```
-sudo apt-get install -y openssh-server
-```
-
-- After it installs **``sshd``** should be running. Verify with the following command:
-
-```
-service sshd status
-```
-
-### Setting up the SSH server on Raspbian
-
-If you are installing Ubuntu, skip this section.
-
-The secure shell (SSH) server is installed by default on Raspbian, but not running. 
-
-To start it now, and enable it at boot time, perform the following steps:
-
-- Click the red Raspberry icon in the upper left corner, then in the drop-down menu choose **Accessories** then **Terminal**. 
-
-- From the terminal session, start the SSH server for the current session.
-
-```
-systemctl start ssh
-```
-
-- Set the SSH server to start at boot time.
-
-```
-systemctl enable ssh
-```
-    
-### Start a terminal or SSH session
-
-You can continue to work from a *terminal session* or you can *SSH in* to your new Linux system.  To SSH in, perform the following steps.
-
-- Get your IP address. You should have either a Wi-Fi (``wlan0``) or a hard-wired (``eth0``) connection. To verify, enter the following command. 
-
-```
-ip a
-1: lo:
-...
-2: eth0:
-...
-3: wlan0:
-...
-inet 192.168.1.229
-```
-
-SSH as the user ``pi``, if you want to continue from another system. You can use **putty** to SSH in from a Windows box, or just use the **``ssh``** command from a Linux or macOS console.
-
-**IMPORTANT**: Do not run as ``root``. Doing so will almost certainly screw up your system. 
-Users other than ``pi`` ideally will work as the environment variable ``$HOME`` is used in scripts, however, this has never been tested.
 
 ## Install and use ovos-tools
 
