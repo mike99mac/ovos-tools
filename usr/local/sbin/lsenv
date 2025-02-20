@@ -117,12 +117,6 @@ function listService
   # GREEN="\e[32m"
   # YELLOW="\e[33m"
 
-  #if [ "$theService" = pipewire ]; then    # always runs as processes
-  #  echo $dashes
-  #  echo "    pipewire processes:"
-  #  ps -ef | grep pipewire | grep -v grep | sed 's/^/  /g'
-  #  return
-  #fi
   if [ "$serviceType" = root ]; then
     cmd="/usr/bin/systemctl status $theService"
   elif [ "$serviceType" = user ]; then
@@ -284,7 +278,8 @@ function soundCheck
     else
       echo "Speakers: $spkrs" 
     fi
-    aplay /usr/share/sounds/alsa/Front_Center.wav
+    echo "Playing : /usr/share/sounds/alsa/Front_Center.wav"
+    aplay -q /usr/share/sounds/alsa/Front_Center.wav
   fi  
  }                                         #  soundCheck()
 
@@ -320,9 +315,8 @@ function doIt
     theType="none"
     printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
   fi  
-  # echo "$dashes"              
-  # listService pulseaudio root              # always check for pulse
-  # listService pipewire root     
+  echo "$dashes"              
+  listService pipewire user     
   echo "$dashes"              
   listService wireplumber user
   echo "$dashes"              

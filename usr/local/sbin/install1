@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# install1 - first install script to configure a newly flashed Linux
-#            to prepare it for a OVOS installaiton
+# install1 - configure a new Linux for a Minimy or OVOS installation
 #
 #+--------------------------------------------------------------------------+
 function usage()
@@ -90,7 +89,7 @@ function checkOvosTools
 
 #+--------------------------------------------------------------------------+
 function runCmd
-# run a command, report time spent and exit if it failes
+# run a command, report time spent and exit if it fails
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -124,23 +123,11 @@ function installCoreqs
     exit 1
   fi
   echo "distro = $distro"
-  commonPackages="bind9-dnsutils cifs-utils curl jq locate lsof mpc mpd net-tools pandoc pipewire wireplumber python3 python3-pip python3-rpi.gpio python3-venv raspi-config"
-  if [ "${distro:0:6}" = "Ubuntu" -o "${distro:0:12}" = "Ubuntu 23.10" -o "${distro:7:12}" = "Noble Numbat" -o "${distro:0:6}" = Debian ]; then 
-    diffPackages="python3.10-venv" 
-    bootDir="/boot/firmware"
-  elif [ "$distro" = "Raspbian GNU/Linux 10 (buster)" ]; then 
-    diffPackages="python3.9-venv" 
-    bootDir="/boot"
-  elif [ "$distro" = "Raspbian GNU/Linux 11 (bullseye)" ]; then
-    diffPackages="python3.9-venv" 
-    bootDir="/boot"
-  else                                     # not supported
-    echo "ERROR: only Ubuntu Desktop 22.04, 23.10, 24.04 or Raspbian are supported" 
-    exit 1 
-  fi
+  pyVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
+  commonPackages="bind9-dnsutils cifs-utils curl jq locate lsof mpc mpd net-tools pandoc pipewire pipewire-audio-client-libraries python3 python3-pip python3-rpi.gpio python3-venv python${pyVer}-venv raspi-config wireplumber" 
 
   echo "Installing co-req packages ..."
-  for nextPkg in $commonPackages $diffPachages; do  
+  for nextPkg in $commonPackages; do  
     runCmd sudo apt-get --quiet install -y $nextPkg
   done
   
@@ -172,7 +159,7 @@ function installCoreqs
   fi
   
   # turn default and vc4 audio off, don't disable monitor overscan
-  cd $bootDir
+  cd /boot/firmware 
   if [ ! -f config.txt.orig ]; then
     echo "Customizing boot parameters ..." 
     runCmd sudo cp config.txt config.txt.orig
@@ -230,34 +217,34 @@ function installCoreqs
   echo "Setting mpd to start at boot time" 
   runCmd sudo systemctl enable mpd         # start mpd at boot
   echo "Setting pipewire and pipewire-pulse to start at boot time..."
-  sudo systemctl --user --now enable pipewire pipewire-pulse
+  runCmd sudo systemctl --user enable pipewire pipewire-pulse
   echo "Disabling bluetooth ..."
-  sudo systemctl disable bluetooth.service
+  runCmd sudo systemctl disable bluetooth.service
 
   # configure USB hot plug to mount USB drive over /mnt/usb
-  sudo cp ~/ovos-tools/99-mount-usb.rules /etc/udev/rules.d
-  sudo cp ~/ovos-tools/usb-mount@.service /etc/systemd/system
-  sudo cp ~/ovos-tools/usb-mount.sh /root 
+  runCmd sudo cp ~/ovos-tools/99-mount-usb.rules /etc/udev/rules.d
+  runCmd sudo cp ~/ovos-tools/usb-mount@.service /etc/systemd/system
+  runCmd sudo cp ~/ovos-tools/usb-mount.sh /root 
 
   # configure the gateway to be the DNS resolver
-  DNSstmt=`grep ^DNS /etc/systemd/resolved.conf`
-  if [ ${#DNSstmt} = 0 ]; then             # DNS resolver not found
-    gw=`ip route | head -1 | awk '{print $3}'` # get the gatway
-    numDots=`echo $gw | awk -F'.' '{print NF}'` # check that it is dotted decimal
-    if [ "$numDots" != 4 ]; then           # error
-      echo "ERROR: $gw does not appear to be an IPv4 address"
-      exit 1
-    fi  
-    echo "Setting $gw to DNS resolver..."
-    echo "DNS=$gw" | sudo tee -a /etc/systemd/resolved.conf
-    rc=$?
-    if [ "$rc" != 0 ]; then
-      echo "ERROR: echo DNS=$gw | sudo tee -a /etc/systemd/resolved.conf returned $rc"	  
-    fi  
-    runCmd sudo systemctl restart systemd-resolved
-  else
-    echo "Found: $DNSstmt in /etc/systemd/resolved.conf"
-  fi
+  # DNSstmt=`grep ^DNS /etc/systemd/resolved.conf`
+  # if [ ${#DNSstmt} = 0 ]; then             # DNS resolver not found
+  #   gw=`ip route | head -1 | awk '{print $3}'` # get the gatway
+  #   numDots=`echo $gw | awk -F'.' '{print NF}'` # check that it is dotted decimal
+  #   if [ "$numDots" != 4 ]; then           # error
+  #     echo "ERROR: $gw does not appear to be an IPv4 address"
+  #     exit 1
+  #   fi  
+  #   echo "Setting $gw to DNS resolver..."
+  #   echo "DNS=$gw" | sudo tee -a /etc/systemd/resolved.conf
+  #   rc=$?
+  #   if [ "$rc" != 0 ]; then
+  #     echo "ERROR: echo DNS=$gw | sudo tee -a /etc/systemd/resolved.conf returned $rc"	  
+  #   fi  
+  #   runCmd sudo systemctl restart systemd-resolved
+  # else
+  #   echo "Found: $DNSstmt in /etc/systemd/resolved.conf"
+  # fi
  }                                         # installCoreqs()
 
 # main()
