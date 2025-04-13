@@ -104,8 +104,6 @@ The RasPi 5 has a single LED that blinks both red and green.
 - For Ubuntu, you should see a rainbow colored splash screen on the monitor, then the Ubuntu desktop should initialize.
 - For Raspberry Pi OS, you should see a red raspberries at the top of the screen.
 
-**IMPORTANT**: Never turn the RasPi off without first shutting Linux down with the **``halt``** or similar command. Doing so can damage the operating system and possibly even the RasPi itself.
-
 ### Initial Ubuntu Desktop configuration
 
 If you are installing RasPi OS, skip to the next section.
@@ -156,7 +154,7 @@ Ubuntu Desktop 24.10 should now be installed.
 To install and configure RasPi OS Lite, perform the following steps:
 
 - At the *Configuring Keyboard* panel, choose your keyboard.
-- At the *Enter a user name panel - enter ``pi``. 
+- At the *Enter a user name* panel - enter ``pi``. 
 - Enter a password for ``pi`` twice.
 - You will be prompted to login - enter the credentials for ``pi``.
 - Type ``sudo raspi-config`` and perform the following configurations:
@@ -168,8 +166,10 @@ To install and configure RasPi OS Lite, perform the following steps:
   - Tab to the bottom and select **Finish**
   - When prompted to reboot - type **No**
 - At the command prompt type ``ip a`` - check the IP address of ``wlan0``.
-- At the command prompt type ``sudo sytsemctl enable ssh`` - this will start ``sshd``. 
+- At the command prompt type ``sudo sytsemctl enable ssh`` - this will set ``sshd`` to start at boot time. 
 - At the command prompt type ``sudo reboot`` - this will restart the Raspberry Pi.
+
+RasPi OS Lite - Debian GNU/Linux 12 (bookworm) should now be installed.
 
 ### Start an SSH session
 You should now be able to start an SSH session to the IP address or hostname of your new system.
@@ -227,31 +227,15 @@ cd ovos-tools
 sudo ./setup.sh
 ```
     
-The **``ovos-tools``** repo is now installed.
+The ``ovos-tools`` repo is now installed.
     
 ### Further customize 
 
-The script **``install1``**, in the **``ovos-tools``** package you just installed, runs many commands and thus saves typing, time and possible errors.
+The script ``install1`` configures your system to run OVOS. It runs many commands and thus saves typing, time and possible errors.
 
-It performs the following tasks:
-
-- Installs the **``cifs-utils curl locate mpc mpd net-tools pandoc pulseaudio python3 python3-pip python3-rpi.gpio python3-venv``** packages
-- Sets  **``vim``** to a better color scheme and turns off the annoying auto-indent features
-- Adds needed groups to users ``pi`` and ``mpd``
-- Copies a ``.bash_profile`` with helpful OVOS shortcuts to the user's home directory
-- Turns ``default`` and ``vc4`` audio off and does not disable monitor overscan in the Linux boot parameters file.
-- Changes a line in the **``rsyslog``** configuration file to prevent *kernel message floods*
-- Copies a **``systemctl``** configuration file to mount ``/var/log/`` in a ``tmpfs`` which helps prolong the life of the micro-SD card
-- Sets **``pulseaudio``** to start as a system service at boot time, and allows anonymous access so audio services work
-- Configures **``mpd``**, the music player daemon, which plays most of the sound
-- Turns off **``bluetooth``** as Linux makes connecting to it difficult, while most amplifiers make it easy
-
-
-- Run the **``install1``** script in the home directory.  It will take a couple of minutes.
-
+- Run ``install1``:
 ```
-cd
-install1
+time install1
 ```
 
 ### Test the changes
