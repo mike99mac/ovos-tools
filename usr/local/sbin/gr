@@ -2,4 +2,4 @@
 #
 # gr - short command for grep but don't output errors
 #
-grep "$@" 2>/dev/null
+grep -n "$@" 2>/dev/null

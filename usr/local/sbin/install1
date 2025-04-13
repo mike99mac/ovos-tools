@@ -217,7 +217,7 @@ function installCoreqs
   echo "Setting mpd to start at boot time" 
   runCmd sudo systemctl enable mpd         # start mpd at boot
   echo "Setting pipewire and pipewire-pulse to start at boot time..."
-  runCmd sudo systemctl --user enable pipewire pipewire-pulse
+  runCmd systemctl --user enable pipewire pipewire-pulse
   echo "Disabling bluetooth ..."
   runCmd sudo systemctl disable bluetooth.service
 
