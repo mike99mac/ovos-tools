@@ -1,0 +1,5 @@
+#!/bin/bash
+# 
+# mount - remove Linux mounts
+#
+/usr/bin/mount | grep -E -v 'proc|sysfs|devtmpfs|tmpfs|cgroup|cgroup2|devpts|pstore|efivarfs|fusectl|selinuxfs|debugfs|mqueue|hugetlbfs|binfmt_misc|rpc_pipefs|tracefs|autofs|sunrpc|ramfs|securityfs|bpf|configfs'
