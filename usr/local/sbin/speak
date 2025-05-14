@@ -1,0 +1,12 @@
+#!/bin/bash
+# 
+# speak - speak some text using piper     
+#
+words="$@" 
+if [ ${#words} = 0 ]; then
+  words="You didn't tell me what to say"
+fi
+#echo $words | ~/minimy/framework/services/tts/local/piper/piper --model ~/minimy/framework/services/tts/local/piper/en_US-hfc_female-medium.onnx -f /tmp/speak.wav
+echo $words | ~/minimy/framework/services/tts/local/piper/piper --model ~/minimy/framework/services/tts/local/piper/en_US-hfc_male-medium.onnx -f /tmp/speak.wav
+aplay /tmp/speak.wav
+
