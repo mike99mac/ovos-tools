@@ -141,7 +141,7 @@ function installCoreqs
   echo "Adding groups to user pi ..." 
   runCmd sudo usermod -a -G audio,video,dialout,kmem pi
   echo "Adding groups to user mpd ..." 
-  runCmd sudo usermod -a -G pi mpd
+  runCmd sudo usermod -a -G pi users mpd
   echo "Adding groups spi, i2c and gpio to /etc/groump ..." 
   sudo groupadd -g 993 spi
   sudo groupadd -g 994 i2c
@@ -194,12 +194,6 @@ function installCoreqs
     sudo sed -i 's/^module(load="imklog"/# module(load="imklog"/g' /etc/rsyslog.conf
   fi
   
-  # to lengthen the life of the memory device, write logs to a tmpfs 
-  #if [ ! -f /etc/systemd/system/var-log.mount ]; then
-  #  echo "Copying var-log.mount ..." 
-  #  runCmd sudo cp ~/ovos-tools/var-log.mount /etc/systemd/system
-  #fi
-  
   # configure mpd
   if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
     echo "Making backup of /etc/mpd.conf" 
@@ -215,7 +209,7 @@ function installCoreqs
   echo "Changing permissons of /etc/mpd.conf" 
   runCmd sudo chmod 644 /etc/mpd.conf  
   echo "Setting mpd to start at boot time" 
-  runCmd sudo systemctl enable mpd         # start mpd at boot
+  runCmd systemctl --user enable mpd         # start mpd at boot
   echo "Setting pipewire and pipewire-pulse to start at boot time..."
   runCmd systemctl --user enable pipewire pipewire-pulse
   echo "Disabling bluetooth ..."

@@ -320,7 +320,7 @@ function doIt
   echo "$dashes"              
   listService wireplumber user
   echo "$dashes"              
-  listService mpd root
+  listService mpd user
   if [ "$justServices" = "yes" ]; then     # all done
     exit
   fi      
