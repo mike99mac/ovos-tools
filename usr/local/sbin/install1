@@ -124,7 +124,7 @@ function installCoreqs
   fi
   echo "distro = $distro"
   pyVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
-  commonPackages="bind9-dnsutils cifs-utils curl jq locate lsof mpc mpd net-tools pandoc pipewire pipewire-audio-client-libraries python3 python3-pip python3-rpi.gpio python3-venv python${pyVer}-venv raspi-config wireplumber" 
+  commonPackages="bind9-dnsutils cifs-utils curl jq locate lsof mpc mpd net-tools pandoc pipewire pipewire-audio-client-libraries pipewire-pulse python3 python3-pip python3-rpi.gpio python3-venv python${pyVer}-venv raspi-config wireplumber" 
 
   echo "Installing co-req packages ..."
   for nextPkg in $commonPackages; do  
