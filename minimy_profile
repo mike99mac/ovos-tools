@@ -1,8 +1,8 @@
 alias diff="diff --color"
 alias la="ls -laFtr"
-alias sm="startminimy"
-alias hm="stopminimy"
 alias ping='ping -c2'
+alias sta="startminimy"
+alias sto="stopminimy"
 alias vi="/usr/bin/vim"
 alias sys="sudo systemctl -l --no-pager"
 alias jou="journalctl --since '5 minutes ago' --no-pager"
