@@ -17,6 +17,7 @@ function usage()
   echo "  -h|--help         Give help (this screen)"
   echo "  -m|--minimy       Configure for Minimy (default)"
   echo "  -n|--neon         Configure for Neon"
+  echo "  -N|--nopipewire   Do not install pipewire"
   echo "  -o|--ovos         Configure for OVOS"
   echo "  -v|--verbose      Increase verbosity"
   echo "  -x|--debug        Print commands and arguments as they are executed"
@@ -52,6 +53,9 @@ function parseArgs()
         ;;
       -n|--neon)
         flavor="neon" 
+        ;;
+      -N|--nopipewire)
+        addPipewire="no" 
         ;;
       -o|--ovos)
         flavor="ovos" 
@@ -117,12 +121,12 @@ function installCoreqs
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
-  if [ ${#distro} = 0 ]; then
-    echo "ERROR: did not find PRETTY_NAME in /etc/os-release" 
-    exit 1
-  fi
-  echo "distro = $distro"
+  # distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
+  # if [ ${#distro} = 0 ]; then
+  #   echo "ERROR: did not find PRETTY_NAME in /etc/os-release" 
+  #   exit 1
+  # fi
+  # echo "distro = $distro"
   pyVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
   commonPackages="bind9-dnsutils cifs-utils curl jq locate lsof mpc mpd net-tools pandoc python3 python3-pip python3-venv python${pyVer}-venv raspi-config" 
 
@@ -131,13 +135,13 @@ function installCoreqs
     runCmd sudo apt-get --quiet install -y $nextPkg
   done
   
-  if [ "$platform" = "linux" ]; then       # not on an Nvidia GPU 
-    linuxOnly="pipewire pipewire-audio-client-libraries pipewire-pulse python3-rpi.gpio wireplumber"
-    for nextPkg in $linuxOnly; do
+  if [ "$addPipewire" = "yes" ]; then      # also install pipewire 
+    pipePkgs="pipewire pipewire-audio-client-libraries pipewire-pulse python3-rpi.gpio wireplumber"
+    for nextPkg in $pipePkgs; do
       runCmd sudo apt-get --quiet install -y $nextPkg 
     done
-  else                                     # assume Nvidia
-    echo "NOT installing pipewire and GPIO packages on Nvidia GPU" | tee -a $outFile
+  else
+    echo "Pipewire will not be intalled ..."
   fi   
 
   if [ ! -f /etc/vim/vimrc.orig ]; then    # never copied original
@@ -252,11 +256,10 @@ function installCoreqs
  }                                         # installCoreqs()
 
 # main()
+addPipewire="yes"                          # install pipewire?
 flavor="minimy"                            # minimy, neon or ovos
 if [ -d /usr/share/doc/nvidia-jetpack ]; then # on an Nvidia GPU 
-  platform="nvidia"
-else                                       # assume Raspberry Pi
-  platform="raspi"
+  addPipewire="no"                         # installing pipewire breaks pulseaudio
 fi
 timeStamp=`date +"%y-%m-%d-%H-%M-%S"`   
 outFile="$HOME/$timeStamp-install1.out"    # output file

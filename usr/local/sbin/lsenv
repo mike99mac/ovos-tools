@@ -253,34 +253,22 @@ function soundCheck
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  spkrs=`aplay -l 2>&1 | grep ^card`
+  spkrs=`aplay -l 2>&1 | grep ^card | head -1`
   numSpkrs=`echo "$spkrs" | wc -l`
-  mics=`arecord -l 2>&1 | grep ^card`
+  mics=`arecord -l 2>&1 | grep ^card | head -1`
   numMics=`echo "$mics" | wc -l`
-  # echo "spkrs: '$spkrs' numSpkrs: $numSpkrs"
-  # echo "mics: '$mics' numMics: $numMics"
   if [ $numMics = 0 ]; then 
     echo "WARNING: no microphones found"
   else
-    mic=`echo $mics | head -1 | awk -F',' '{print $1}'`
-    if [ $numMics = 1 ]; then 
-      echo "Mic     : $mic" 
-    else
-      echo "Mics    : $mics" 
-    fi
+    echo "Mic     : $mics" 
   fi  
   if [ $numSpkrs = 0 ]; then 
     echo "WARNING: no speakers found"
   else
-    spkr=`echo $spkrs | head -1 | awk -F',' '{print $1}'`
-    if [ $numSpkrs = 1 ]; then 
-      echo "Speaker : $spkr" 
-    else
-      echo "Speakers: $spkrs" 
-    fi
-    echo "Playing : /usr/share/sounds/alsa/Front_Center.wav"
-    aplay -q /usr/share/sounds/alsa/Front_Center.wav
-  fi  
+    echo "Speakers: $spkrs" 
+  fi
+  echo "Playing : /usr/share/sounds/alsa/Front_Center.wav"
+  aplay -q /usr/share/sounds/alsa/Front_Center.wav
  }                                         #  soundCheck()
 
 #+--------------------------------------------------------------------------+
