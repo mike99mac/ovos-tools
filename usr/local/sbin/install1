@@ -131,7 +131,7 @@ function installCoreqs
     runCmd sudo apt-get --quiet install -y $nextPkg
   done
   
-  if [ "$platform" = "linux" ]; then       # not on an Nvidia GPU 
+  if [ "$platform" = "raspi" ]; then       # not on an Nvidia GPU 
     linuxOnly="pipewire pipewire-audio-client-libraries pipewire-pulse python3-rpi.gpio wireplumber"
     for nextPkg in $linuxOnly; do
       runCmd sudo apt-get --quiet install -y $nextPkg 
