@@ -73,6 +73,21 @@ function verboseMsg
  }                                         # verboseMsg()
 
 #+--------------------------------------------------------------------------+
+function getPlatform
+# Set platform to either "Raspberry Pi" or "NVIDIA Jetson" else exit
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  platform=`cat /proc/device-tree/model | awk '{print $1 " " $2}'`
+  if [ "$platform" != "Raspberry Pi" -a "$platform" != "NVIDIA Jetson" ]; then
+    echo "ERROR: only NVIDIA Jetson and Raspberry Pi platforms are supported"
+    exit 1
+  fi
+ }                                         # getPlatform()
+
+#+--------------------------------------------------------------------------+
 function listMinimy
 # List the status of Minimy 
 # Args: None
@@ -255,17 +270,23 @@ function soundCheck
 
   spkrs=`aplay -l 2>&1 | grep ^card | head -1`
   numSpkrs=`echo "$spkrs" | wc -l`
+  spkrsCard=`echo "$spkrs" | awk -F"," '{print $1}'`
+  spkrsDevice=`echo "$spkrs" | awk -F"," '{print $2}' | sed 's/^ //g'`
   mics=`arecord -l 2>&1 | grep ^card | head -1`
   numMics=`echo "$mics" | wc -l`
+  micsCard=`echo "$mics" | awk -F"," '{print $1}'`
+  micsDevice=`echo "$mics" | awk -F"," '{print $2}' | sed 's/^ //g'`
   if [ $numMics = 0 ]; then 
     echo "WARNING: no microphones found"
   else
-    echo "Mic     : $mics" 
+    echo "Mic     : $micsCard" 
+    echo "          $micsDevice" 
   fi  
   if [ $numSpkrs = 0 ]; then 
     echo "WARNING: no speakers found"
   else
-    echo "Speakers: $spkrs" 
+    echo "Speakers: $spkrsCard" 
+    echo "          $spkrsDevice" 
   fi
   echo "Playing : /usr/share/sounds/alsa/Front_Center.wav"
   aplay -q /usr/share/sounds/alsa/Front_Center.wav
@@ -303,10 +324,20 @@ function doIt
     theType="none"
     printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
   fi  
+echo "platform = $platform"
+  if [ "$platform" = "Raspberry Pi" ]; then # pipewire and wireplumber do audio 
+    echo "$dashes"              
+    listService pipewire user     
+    echo "$dashes"              
+    listService wireplumber user
+  else                                     # pulseaudio does audio
+    echo "$dashes"              
+    listService pulseaudio root 
+  fi
   echo "$dashes"              
-  listService pipewire user     
+  listService redis root
   echo "$dashes"              
-  listService wireplumber user
+  listService whisper root
   echo "$dashes"              
   listService mpd user
   if [ "$justServices" = "yes" ]; then     # all done
@@ -372,7 +403,8 @@ function doIt
  }                                         # doIt()
 
 #+--------------------------------------------------------------------------+
-# Global variables"
+# Global variables
+platform="unknown"                         # can be Nvidia or RasPi
 clear="no"                                 # clear the screen first?
 dashes="---------------------------------------"
 justServices="no"                          # just show services?
@@ -381,5 +413,6 @@ verbose=1
 
 # main()
 parseArgs $@                               # parse arguments
+getPlatform                                # either Nvidia or RasPi
 doIt                                       # create output  
 

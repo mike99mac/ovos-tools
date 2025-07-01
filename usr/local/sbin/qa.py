@@ -8,7 +8,7 @@ import requests
 
 def answer_question(question: str):
   # keep answers short by prepending: "short answer:" before the question
-  print(f"question: {question}")
+  # TO DO: get the Ollam server and the model from Minimy config file
   hub = "papabear"                         # host name of Ollama server
   model = "gemma3"                         # AI model
   info = {"model": f"{model}", 
