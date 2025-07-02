@@ -36,25 +36,8 @@ function parseArgs()
   while [ -n "$1" ]                        # loop through args passed in
   do
     case "$1" in
-      -c|--cardnum)
-        if [ $# = 0 ]; then                # CARD not passed in
-          echo "ERROR! CARD not passed in after $1"
-          usage                            # give help
-        fi
-        shift                              # get to next arg
-        cardToUse=$1
-        ;;
       -h|--help)
         usage
-        ;;
-      -m|--minimy)
-        flavor="minimy" 
-        ;;
-      -n|--neon)
-        flavor="neon" 
-        ;;
-      -o|--ovos)
-        flavor="ovos" 
         ;;
       -v|--verbose)
         verbose=2
@@ -71,6 +54,21 @@ function parseArgs()
     shift
   done
  }                                         # parseArgs()
+
+#+--------------------------------------------------------------------------+
+function getPlatform
+# Set platform to either "Raspberry Pi" or "NVIDIA Jetson" else exit 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  platform=`cat /proc/device-tree/model | awk '{print $1 " " $2}'`
+  if [ "$platform" != "Raspberry Pi" -a "$platform" != "NVIDIA Jetson"; then
+    echo "ERROR: only NVIDIA Jetson and Raspberry Pi platforms are supported"
+    exit 1
+  fi
+ }                                         # getPlatform()
 
 #+--------------------------------------------------------------------------+
 function checkOvosTools
@@ -131,13 +129,12 @@ function installCoreqs
     runCmd sudo apt-get --quiet install -y $nextPkg
   done
   
-  if [ "$platform" = "raspi" ]; then       # not on an Nvidia GPU 
-    linuxOnly="pipewire pipewire-audio-client-libraries pipewire-pulse python3-rpi.gpio wireplumber"
-    for nextPkg in $linuxOnly; do
+  if [ "$platform" = "NVIDIA Jetson" ]; then       # not on an Nvidia GPU 
+    echo "NOT installing pipewire and GPIO packages on Nvidia Jetson" | tee -a $outFile
+  else                                     # assume RasPi
+    for nextPkg in "pipewire pipewire-audio-client-libraries pipewire-pulse python3-rpi.gpio wireplumber"; do
       runCmd sudo apt-get --quiet install -y $nextPkg 
     done
-  else                                     # assume Nvidia
-    echo "NOT installing pipewire and GPIO packages on Nvidia GPU" | tee -a $outFile
   fi   
 
   if [ ! -f /etc/vim/vimrc.orig ]; then    # never copied original
@@ -156,16 +153,8 @@ function installCoreqs
   sudo groupadd -g 994 i2c | tee -a $outFile
   sudo groupadd -g 993 gpio | tee -a $outFile
   echo
-  
-  # copy a .bash_profile specific to Neon, Minimy or OVOS 
   echo "Copying .bash_profile ..."  | tee -a $outFile
-  if [ "$flavor" = "minimy" ]; then     
-    runCmd cp $HOME/ovos-tools/minimy_profile $HOME/.bash_profile
-  elif [ "$flavor" = "neon" ]; then     
-    runCmd cp $HOME/ovos-tools/neon_profile $HOME/.bash_profile
-  elif [ "$flavor" = "ovos" ]; then     
-    runCmd cp $HOME/ovos-tools/ovos_profile $HOME/.bash_profile
-  fi
+  runCmd cp $HOME/ovos-tools/minimy_profile $HOME/.bash_profile
   
   # turn default and vc4 audio off, don't disable monitor overscan
   cd /boot/firmware 
@@ -189,19 +178,12 @@ function installCoreqs
   echo "Removing annoying autoindent from vim ..."  | tee -a $outFile
   if [ ! -d $HOME/.vim ]; then
     runCmd mkdir $HOME/.vim 
+    cd $HOME/.vim
+    echo "set noautoindent" >> vimrc
+    echo "set nocindent" >> vimrc
+    echo "set nosmartindent" >> vimrc
+    echo "set mouse=r" >> vimrc
   fi  
-  cd $HOME/.vim
-  echo "set noautoindent" >> vimrc
-  echo "set nocindent" >> vimrc
-  echo "set nosmartindent" >> vimrc
-  echo "set mouse=r" >> vimrc
-  
-  # rsyslog can send a flood of kernel messages - hope this has been fixed by now...
-  # if [ -f /etc/rsyslog.conf -a ! -f /etc/rsyslog.conf.orig ]; then 
-  #   echo "preventing rsyslogd from making log message storms ..." 
-  #   runCmd sudo cp /etc/rsyslog.conf /etc/rsyslog.conf.orig
-  #   sudo sed -i 's/^module(load="imklog"/# module(load="imklog"/g' /etc/rsyslog.conf
-  # fi
   
   # configure mpd
   if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
@@ -219,7 +201,7 @@ function installCoreqs
   runCmd sudo chmod 644 /etc/mpd.conf  
   echo "Setting mpd to start at boot time" | tee -a $outFile 
   runCmd systemctl --user enable mpd         # start mpd at boot
-  if [ "$platform" = "linux" ]; then         # Linux needs pipewire
+  if [ "$platform" = "Raspberry Pi" ]; then  # Ras Pi Linux needs pipewire
     echo "Setting pipewire and pipewire-pulse to start at boot time..." | tee -a $outFile
     runCmd systemctl --user enable pipewire pipewire-pulse
   fi
@@ -231,14 +213,18 @@ function installCoreqs
   runCmd sudo cp ~/ovos-tools/usb-mount@.service /etc/systemd/system
   runCmd sudo cp ~/ovos-tools/usb-mount.sh /root 
  
-  # configure network drive to mount over /mnt/share
-  echo "Configuring network drive to mount over /mnt/share ..." | tee -a $outFile
   if [ ! -d ~/mpd ]; then                  # create a mpd dir in home directory
     mkdir ~/mpd;
   fi
-  if [ ! -f /etc/fstab.orig ]; then        # make a backup copy and add a line
-    sudo cp /etc/fstab /etc/fstab.orig
-    echo "//LS210D7A7.lan/share   /mnt/share    cifs    user=mike,password=sawdust5,vers=1.0 0 0" | sudo tee -a /etc/fstab
+
+  # configure network drive to mount over /mnt/share
+  first3=`hostname -I | awk '{print $1}' | awk -F'.' '{print $1 "." $2 "." $3}'`
+  if [ "$first3" = "192.168.40" ]; then     # assume my subnet
+    echo "Configuring network drive to mount over /mnt/share ..." | tee -a $outFile
+    if [ ! -f /etc/fstab.orig ]; then      # make a backup copy and add a line
+      sudo cp /etc/fstab /etc/fstab.orig
+      echo "//LS210D7A7.lan/share   /mnt/share    cifs    user=mike,password=sawdust5,vers=1.0 0 0" | sudo tee -a /etc/fstab
+    fi
   fi
   if [ ! -d /mnt/share ]; then             # create directory
     sudo mkdir /mnt/share
@@ -251,24 +237,22 @@ function installCoreqs
   fi
  }                                         # installCoreqs()
 
-# main()
-flavor="minimy"                            # minimy, neon or ovos
-if [ -d /usr/share/doc/nvidia-jetpack ]; then # on an Nvidia GPU 
-  platform="nvidia"
-else                                       # assume Raspberry Pi
-  platform="raspi"
-fi
+# global variables
 timeStamp=`date +"%y-%m-%d-%H-%M-%S"`   
 outFile="$HOME/$timeStamp-install1.out"    # output file
+platform="unknown"
+
+# main()
+getPlatform                                # verify supported platform
 parseArgs $@
 checkOvosTools                             # verify ovos-tools is installed
-echo "Running install1 on $timeStamp to configure $flavor ..." > $outFile # create a new log file
+echo "Running install1 on $timeStamp to configure minimy ..." > $outFile # create a new log file
 installCoreqs                              # do the work
 let min=$SECONDS/60
 let sec=$SECONDS%60
 if [ $sec -lt 10 ]; then                   # add a leading 0
   sec="0$sec"
 fi
-echo "Successfully installed co-reqs for $flavor in $min:$sec" | tee -a $outFile
+echo "Successfully installed co-reqs for minimy in $min:$sec" | tee -a $outFile
 echo "Log file: $outFile"
 
