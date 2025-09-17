@@ -324,7 +324,6 @@ function doIt
     theType="none"
     printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
   fi  
-echo "platform = $platform"
   if [ "$platform" = "Raspberry Pi" ]; then # pipewire and wireplumber do audio 
     echo "$dashes"              
     listService pipewire user     
