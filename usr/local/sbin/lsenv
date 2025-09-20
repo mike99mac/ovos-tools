@@ -134,7 +134,7 @@ function listService
   # GREEN="\e[32m"
   # YELLOW="\e[33m"
 
-  if [ -f "/usr/bin/systemctl" ]; then     # Using SystemD
+  if command -v systemctl &>/dev/null; then     # Using SystemD
     initSystem="SystemD"
     if [ "$serviceType" = root ]; then
       cmd="/usr/bin/systemctl status $theService"
@@ -144,7 +144,7 @@ function listService
       echo "INTERNAL ERROR: serviceType = $serviceType"
       exit 4
     fi
-  elif [ -f "/usr/bin/openrc" ]; then      # Using OpenRC
+  elif command -v openrc &>/dev/null; then      # Using OpenRC
     initSystem="OpenRC"
     if [ "$serviceType" = root ]; then
       cmd="/usr/bin/rc-service $theService status"
@@ -371,7 +371,7 @@ function doIt
   echo "$dashes"              
   listService redis root
   echo "$dashes"              
-  if [ -f /usr/bin/systemctl ]; then
+  if command -v systemctl &>/dev/null; then     # Using SystemD
     listService mpd user
   else
     listService mpd root                   # MPD runs as root on OpenRC
