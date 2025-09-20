@@ -74,16 +74,17 @@ function verboseMsg
 
 #+--------------------------------------------------------------------------+
 function getPlatform
-# Set platform to either "Raspberry Pi" or "NVIDIA Jetson" else exit
+# Set platform to either "Raspberry Pi" or "NVIDIA Jetson" if detected
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  platform=`cat /proc/device-tree/model | awk '{print $1 " " $2}'`
+  if [ -f "/proc/device-tree/model" ]; then
+    platform=`cat /proc/device-tree/model | awk '{print $1 " " $2}'`
+  fi
   if [ "$platform" != "Raspberry Pi" -a "$platform" != "NVIDIA Jetson" ]; then
-    echo "ERROR: only NVIDIA Jetson and Raspberry Pi platforms are supported"
-    exit 1
+    echo "WARNING: Only NVIDIA Jetson and Raspberry Pi platforms are supported. Use for testing only."
   fi
  }                                         # getPlatform()
 
@@ -128,48 +129,82 @@ function listService
 
   local cmd
   local status 
+  local initSystem
   # RED="\e[31m"              print in colors
   # GREEN="\e[32m"
   # YELLOW="\e[33m"
 
-  if [ "$serviceType" = root ]; then
-    cmd="/usr/bin/systemctl status $theService"
-  elif [ "$serviceType" = user ]; then
-    cmd="/usr/bin/systemctl --user status $theService"
-  else                                     # not expected
-    echo "INTERNAL ERROR: serviceType = $serviceType"
+  if [ -f "/usr/bin/systemctl" ]; then     # Using SystemD
+    initSystem="SystemD"
+    if [ "$serviceType" = root ]; then
+      cmd="/usr/bin/systemctl status $theService"
+    elif [ "$serviceType" = user ]; then
+      cmd="/usr/bin/systemctl --user status $theService"
+    else                                   # not expected
+      echo "INTERNAL ERROR: serviceType = $serviceType"
+      exit 4
+    fi
+  elif [ -f "/usr/bin/openrc" ]; then      # Using OpenRC
+    initSystem="OpenRC"
+    if [ "$serviceType" = root ]; then
+      cmd="/usr/bin/rc-service $theService status"
+    elif [ "$serviceType" = user ]; then
+      cmd="/usr/bin/rc-service --user $theService status"
+    else
+      echo "INTERNAL ERROR: serviceType = $serviceType"
+      exit 4
+    fi
+  else
+    echo "ERROR: Init system not supported"
     exit 4
   fi
   printf "%22s: " "$theService"
   verboseMsg "Running: $cmd ..." 
   cmdOut=`eval $cmd` 
   verboseMsg "$cmdOut"
-  echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
-  if [ $? = 0 ]; then                      # found "active"
-    printf '\e[32m%s\e[0m\n' "Started"     # in green
-  else
-    echo "$cmdOut" | grep " active (" >/dev/null
-    if [ $? = 0 ]; then
-    printf '\e[32m%s\e[0m\n' "active (running)" # in green
+  if [ initSystem = "SystemD" ]; then
+    echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
+    if [ $? = 0 ]; then                      # found "active"
+      printf '\e[32m%s\e[0m\n' "Started"     # in green
     else
-      echo "$cmdOut" | grep "Active: failed" >/dev/null
-      if [ $? = 0 ]; then                  # found "failed"
-        printf '\e[31m%s\e[0m\n' "failed"  # in red
-      else 
-        echo "$cmdOut" | grep "code=exited" >/dev/null
-        if [ $? = 0 ]; then                # found "exited"
-          printf '\e[31m%s\e[0m\n' "exited" # in red
-        else
-          echo "$cmdOut" | grep "inactive (dead)" >/dev/null
-          if [ $? = 0 ]; then              # found "inactive"
-            printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
-          # else
-            # echo "Unknown"
+      echo "$cmdOut" | grep " active (" >/dev/null
+      if [ $? = 0 ]; then
+        printf '\e[32m%s\e[0m\n' "active (running)" # in green
+      else
+        echo "$cmdOut" | grep "Active: failed" >/dev/null
+        if [ $? = 0 ]; then                  # found "failed"
+          printf '\e[31m%s\e[0m\n' "failed"  # in red
+        else 
+          echo "$cmdOut" | grep "code=exited" >/dev/null
+          if [ $? = 0 ]; then                # found "exited"
+            printf '\e[31m%s\e[0m\n' "exited" # in red
+          else
+            echo "$cmdOut" | grep "inactive (dead)" >/dev/null
+            if [ $? = 0 ]; then              # found "inactive"
+              printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
+              # else
+              # echo "Unknown"
+            fi
           fi
         fi
       fi
+    fi 
+  elif [ $initSystem = "OpenRC" ]; then
+    echo "$cmdOut" | grep "status: started" >/dev/null
+    if [ $? = 0 ]; then                      # found "started"
+      printf '\e[32m%s\e[0m\n' "active (running)" # in green
+    else
+      echo "$cmdOut" | grep "status: stopped" >/dev/null
+      if [ $? = 0 ]; then                    # found "stopped"
+          printf '\e[31m%s\e[0m\n' "stopped" # in red
+      else
+        echo "$cmdOut" | grep "status: crashed" >/dev/null
+        if [ $? = 0 ]; then                  # found "crashed"
+          printf '\e[31m%s\e[0m\n' "failed"  # in red
+        fi
+      fi
     fi
-  fi 
+  fi
  }                                         # listService()
 
 #+--------------------------------------------------------------------------+
@@ -324,7 +359,7 @@ function doIt
     theType="none"
     printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
   fi  
-  if [ "$platform" = "Raspberry Pi" ]; then # pipewire and wireplumber do audio 
+  if [ -f "/usr/bin/pipewire" ]; then      # pipewire and wireplumber do audio 
     echo "$dashes"              
     listService pipewire user     
     echo "$dashes"              
@@ -336,9 +371,11 @@ function doIt
   echo "$dashes"              
   listService redis root
   echo "$dashes"              
-  listService whisper root
-  echo "$dashes"              
-  listService mpd user
+  if [ -f /usr/bin/systemctl ]; then
+    listService mpd user
+  else
+    listService mpd root                   # MPD runs as root on OpenRC
+  fi
   if [ "$justServices" = "yes" ]; then     # all done
     exit
   fi      
@@ -366,7 +403,7 @@ function doIt
     printf "%22s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
   fi
 
-  local IPaddr=`hostname -I | awk '{print $1}'` # get the IP address
+  local IPaddr=`ip -4 addr show | grep -oP '192\.\d+\.\d+\.\d+' | head -n1` # get the IP address
   printf "%22s: %s\n" "IP address" "$IPaddr"
   listTemp                                 # RasPi temperature
 
