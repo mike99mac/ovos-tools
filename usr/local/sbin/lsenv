@@ -134,7 +134,7 @@ function listService
   # GREEN="\e[32m"
   # YELLOW="\e[33m"
 
-  if command -v systemctl &>/dev/null; then     # Using SystemD
+  if command -v systemctl &>/dev/null; then # Using SystemD
     initSystem="SystemD"
     if [ "$serviceType" = root ]; then
       cmd="/usr/bin/systemctl status $theService"
@@ -144,7 +144,7 @@ function listService
       echo "INTERNAL ERROR: serviceType = $serviceType"
       exit 4
     fi
-  elif command -v openrc &>/dev/null; then      # Using OpenRC
+  elif command -v openrc &>/dev/null; then # Using OpenRC
     initSystem="OpenRC"
     if [ "$serviceType" = root ]; then
       cmd="/usr/bin/rc-service $theService status"
@@ -162,7 +162,7 @@ function listService
   verboseMsg "Running: $cmd ..." 
   cmdOut=`eval $cmd` 
   verboseMsg "$cmdOut"
-  if [ initSystem = "SystemD" ]; then
+  if [ $initSystem = "SystemD" ]; then
     echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
     if [ $? = 0 ]; then                      # found "active"
       printf '\e[32m%s\e[0m\n' "Started"     # in green
@@ -182,8 +182,8 @@ function listService
             echo "$cmdOut" | grep "inactive (dead)" >/dev/null
             if [ $? = 0 ]; then              # found "inactive"
               printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
-              # else
-              # echo "Unknown"
+            else
+              echo "Unknown"
             fi
           fi
         fi
@@ -204,6 +204,8 @@ function listService
         fi
       fi
     fi
+  else
+    echo "UNEXPECTED: initSystem = $initSystem"
   fi
  }                                         # listService()
 
