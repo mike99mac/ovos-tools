@@ -109,9 +109,9 @@ function recordCard
   if [ ${#formatClause} != 0 ]; then       # format found in hw_params file
     formatClause="-f $formatClause"        # add -f flag
   else
-    formatClause="-f S24_LE"               # default to 24 bit format
+    formatClause="-f S24_3LE"              # default to 24-bit, 3-byte integer format for compatibility
   fi
-  
+
   # put the arecord command together and run it
   cmd="arecord $flags $rateClause $channelsClause $formatClause -d $numSecs /tmp/test-mic.wav"
   echo "Testing your microphone for $numSecs seconds ==========> SAY SOMETHING!"
