@@ -3,7 +3,7 @@
 # testrecord - test recording with default or specified microphone or just list info
 #
 #+--------------------------------------------------------------------------+
-function usage()
+function usage
 # Give help to the user
 #+--------------------------------------------------------------------------+
  {
@@ -23,7 +23,7 @@ function usage()
  }                                         # usage()
 
 #+--------------------------------------------------------------------------+
-function parseArgs()
+function parseArgs
 # Parse arguments
 # Args: All arguments passed into script
 #+--------------------------------------------------------------------------+
@@ -65,7 +65,7 @@ function parseArgs()
  }                                         # parseArgs()
 
 #+--------------------------------------------------------------------------+
-function recordCard()
+function recordCard
 # Record audio from a specific card 
 # Arg 1: card number
 #+--------------------------------------------------------------------------+
@@ -125,7 +125,7 @@ function recordCard()
  }                                         # recordCard()
 
 #+--------------------------------------------------------------------------+
-function listCard()
+function listCard
 # List attributes of a specific card
 # Arg 1: card number
 #+--------------------------------------------------------------------------+
@@ -147,7 +147,7 @@ function listCard()
  }                                         # listCard()
 
 #+--------------------------------------------------------------------------+
-function performAction()
+function performAction
 # test recording with specific microphone or list info
 #+--------------------------------------------------------------------------+
  {
