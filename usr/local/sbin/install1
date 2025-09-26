@@ -115,6 +115,10 @@ function installCoreqs
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
+  echo "Upgrading system ..."| tee -a $outFile # start by upgrading system
+  runCmd sudo apt-get update
+  runCmd sudo apt-get -y -o Dpkg::Options::="--force-confdef" full-upgrade 
+
   distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   if [ ${#distro} = 0 ]; then
     echo "ERROR: did not find PRETTY_NAME in /etc/os-release" 
