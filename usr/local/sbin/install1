@@ -122,7 +122,7 @@ function installCoreqs
   fi
   echo "distro = $distro"
   pyVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
-  commonPackages="bind9-dnsutils cifs-utils curl jq mlocate lsof mpc net-tools pandoc python3 python3-pip python3-venv python${pyVer}-venv raspi-config" 
+  commonPackages="bind9-dnsutils cifs-utils curl jq mlocate lsof mpc mpd net-tools pandoc python3 python3-pip python3-venv python${pyVer}-venv raspi-config" 
 
   echo "Installing co-req packages ..."| tee -a $outFile
   for nextPkg in $commonPackages; do  
@@ -144,11 +144,15 @@ function installCoreqs
     echo "Creating user mpd ..."| tee -a $outFile
     runCmd sudo useradd --system --no-create-home --group audio --shell /usr/sbin/nologin mpd
     runCmd sudo chown -R mpd:audio /var/lib/mpd /var/log/mpd /etc/mpd.conf
+  else
+    echo "user mpd already exists ..."| tee -a $outFile
   fi
   if [ ! -x /etc/systemd/system/mpd.service ]; then # mpd service does not exist
     echo "Copying mpd.service file and enabling mpd ..."| tee -a $outFile
     runCmd cp $baseDir/mpd.service /etc/systemd/system
     runCmd sudo systemctl enable mpd
+  else
+    echo "mpd.service file already exists ..."| tee -a $outFile
   fi 
 
   if [ ! -f /etc/vim/vimrc.orig ]; then    # never copied original
