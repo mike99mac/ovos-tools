@@ -366,7 +366,7 @@ function doIt
     listService pipewire user     
     echo "$dashes"              
     listService wireplumber user
-  else                                     # pulseaudio does audio
+  else                                     # assume pulseaudio does audio
     echo "$dashes"              
     listService pulseaudio root 
   fi
@@ -378,6 +378,8 @@ function doIt
   else
     listService mpd root                   # MPD runs as root on OpenRC
   fi
+  echo "$dashes"              
+  listService whisper root                 # whisper does STT as root
   if [ "$justServices" = "yes" ]; then     # all done
     exit
   fi      

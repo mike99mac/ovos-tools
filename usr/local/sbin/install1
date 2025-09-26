@@ -122,20 +122,34 @@ function installCoreqs
   fi
   echo "distro = $distro"
   pyVer=`python3 -V | awk '{print $2}' | awk -F. '{print $1 "." $2}'`
-  commonPackages="bind9-dnsutils cifs-utils curl jq mlocate lsof mpc mpd net-tools pandoc python3 python3-pip python3-venv python${pyVer}-venv raspi-config" 
+  commonPackages="bind9-dnsutils cifs-utils curl jq mlocate lsof mpc net-tools pandoc python3 python3-pip python3-venv python${pyVer}-venv raspi-config" 
 
   echo "Installing co-req packages ..."| tee -a $outFile
   for nextPkg in $commonPackages; do  
     runCmd sudo apt-get --quiet install -y $nextPkg
   done
   
-  if [ "$platform" = "NVIDIA Jetson" ]; then       # not on an Nvidia GPU 
+  runCmd sudo apt-get --quiet -o Dpkg::Options::="--force-confold" install -y $nextPkg
+
+  if [ "$platform" = "NVIDIA Jetson" ]; then # on an Nvidia GPU 
     echo "NOT installing pipewire and GPIO packages on Nvidia Jetson" | tee -a $outFile
   else                                     # assume RasPi
     for nextPkg in "pipewire pipewire-audio-client-libraries pipewire-pulse python3-rpi.gpio wireplumber"; do
       runCmd sudo apt-get --quiet install -y $nextPkg 
     done
   fi   
+
+  grep ^mpd /etc/passwd >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # user mpd does not exist
+    echo "Creating user mpd ..."| tee -a $outFile
+    runCmd sudo useradd --system --no-create-home --group audio --shell /usr/sbin/nologin mpd
+    runCmd sudo chown -R mpd:audio /var/lib/mpd /var/log/mpd /etc/mpd.conf
+  fi
+  if [ ! -x /etc/systemd/system/mpd.service ]; then # mpd service does not exist
+    echo "Copying mpd.service file and enabling mpd ..."| tee -a $outFile
+    runCmd cp $baseDir/mpd.service /etc/systemd/system
+    runCmd sudo systemctl enable mpd
+  fi 
 
   if [ ! -f /etc/vim/vimrc.orig ]; then    # never copied original
     runCmd sudo cp /etc/vim/vimrc /etc/vim/vimrc.orig
@@ -148,7 +162,7 @@ function installCoreqs
   runCmd sudo usermod -a -G audio,video,dialout,kmem pi
   echo "Adding groups to user mpd ..." | tee -a $outFile
   runCmd sudo usermod -a -G pi,users mpd
-  echo "Adding groups spi, i2c and gpio to /etc/groump ..." | tee -a $outFile
+  echo "Adding groups spi, i2c and gpio to /etc/group ..." | tee -a $outFile
   sudo groupadd -g 993 spi | tee -a $outFile
   sudo groupadd -g 994 i2c | tee -a $outFile
   sudo groupadd -g 993 gpio | tee -a $outFile
