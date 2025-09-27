@@ -146,7 +146,7 @@ function installCoreqs
   grep ^mpd /etc/passwd >/dev/null 2>&1
   if [ $? != 0 ]; then                     # user mpd does not exist
     echo "Creating user mpd ..."| tee -a $outFile
-    runCmd sudo useradd --system -d /home/mpd --group audio --shell /usr/sbin/nologin mpd
+    runCmd sudo useradd --system -d /var/lib/mpd --group audio --shell /usr/sbin/nologin mpd
     runCmd sudo chown -R mpd:audio /var/lib/mpd /var/log/mpd /etc/mpd.conf
   else
     echo "user mpd already exists ..."| tee -a $outFile
