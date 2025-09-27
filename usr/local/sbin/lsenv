@@ -371,13 +371,9 @@ function doIt
     listService pulseaudio root 
   fi
   echo "$dashes"              
-  listService redis root
+  listService mpd root                     # MPD runs as root on OpenRC
   echo "$dashes"              
-  if command -v systemctl &>/dev/null; then     # Using SystemD
-    listService mpd user
-  else
-    listService mpd root                   # MPD runs as root on OpenRC
-  fi
+  listService redis root
   echo "$dashes"              
   listService whisper root                 # whisper does STT as root
   if [ "$justServices" = "yes" ]; then     # all done
