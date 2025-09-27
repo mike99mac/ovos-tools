@@ -7,11 +7,11 @@ After=network.target sound.target
 [Service]
 Type=notify
 ExecStart=/usr/bin/mpd --systemd
-LimitRTPRIO=40                             # allow MPD to use real-time priority 40
+LimitRTPRIO=40                    
 LimitRTTIME=infinity
-LimitMEMLOCK=64M                           # for io_uring
-ProtectSystem=yes                          # disallow writing to /usr, /bin, /sbin, ...
-NoNewPrivileges=yes                        # more security settings
+LimitMEMLOCK=64M                 
+ProtectSystem=yes               
+NoNewPrivileges=yes            
 ProtectKernelTunables=yes
 ProtectControlGroups=yes
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK

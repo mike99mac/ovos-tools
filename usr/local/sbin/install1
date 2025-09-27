@@ -64,7 +64,7 @@ function getPlatform
   : STACK:  ${FUNCNAME[@]}
 
   platform=`cat /proc/device-tree/model | awk '{print $1 " " $2}'`
-  if [ "$platform" != "Raspberry Pi" -a "$platform" != "NVIDIA Jetson"; then
+  if [ "$platform" != "Raspberry Pi" -a "$platform" != "NVIDIA Jetson" ]; then
     echo "ERROR: only NVIDIA Jetson and Raspberry Pi platforms are supported"
     exit 1
   fi
@@ -108,6 +108,56 @@ function runCmd
  }                                         # runCmd()
 
 #+--------------------------------------------------------------------------+
+function configMpd
+# Set mpd service to start at boot time 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  homeDir="/var/lib/mpd"
+  logDir="/var/log/mpd"
+
+  # create home and log directories if necessary
+  if [ ! -d $homeDir ]; then               # mpd home directory does not exist	
+    runCmd sudo mkdir $homeDir
+    runCmd sudo mkdir $homeDir/playlists   # create playlists dir
+    runCmd sudo touch $homeDir/state_file  # create state file 
+    runCmd sudo touch $homeDir/sticker_file # create sticker file 
+    runCmd sudo touch $homeDir/mpd.db      # create database 
+  fi
+  if [ ! -d $logDir ]; then                # mpd log directory does not exist	
+    runCmd sudo mkdir $logDir              # create log dir
+    runCmd sudo touch $logDir/mpd.log      # create log file
+  fi
+
+  # backup and copy mpd.conf file
+  if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
+    echo "Making backup of /etc/mpd.conf"  | tee -a $outFile 
+    runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig 
+  fi
+  runCmd sudo cp $baseDir/mpd.conf /etc 
+
+  # create mpd user if necessary 
+  grep ^mpd /etc/passwd >/dev/null 2>&1
+  if [ $? != 0 ]; then                     # user mpd does not exist
+    echo "Creating user mpd ..."| tee -a $outFile
+    runCmd sudo useradd --system -d /home/mpd --group audio --shell /usr/sbin/nologin mpd
+  else
+    echo "user mpd already exists ..."| tee -a $outFile
+  fi
+  runCmd sudo chown -R mpd:audio $homeDir $logDir /etc/mpd.conf
+
+  # set up the mpd service
+  if [ ! -x /etc/systemd/system/mpd.service ]; then # mpd service does not exist
+    echo "Copying mpd.service file and enabling mpd ..."| tee -a $outFile
+    runCmd sudo cp $baseDir/mpd.service /etc/systemd/system
+  fi 
+  echo "Setting mpd to start at boot time" | tee -a $outFile 
+  runCmd sudo systemctl enable mpd         # start mpd at boot
+ }                                         # configMpd()
+
+#+--------------------------------------------------------------------------+
 function installCoreqs
 # Do the work to install and configure everything to run Mycroft driven by ovos-core
 #+--------------------------------------------------------------------------+
@@ -143,29 +193,13 @@ function installCoreqs
     done
   fi   
 
-  grep ^mpd /etc/passwd >/dev/null 2>&1
-  if [ $? != 0 ]; then                     # user mpd does not exist
-    echo "Creating user mpd ..."| tee -a $outFile
-    runCmd sudo useradd --system -d /var/lib/mpd --group audio --shell /usr/sbin/nologin mpd
-    runCmd sudo chown -R mpd:audio /var/lib/mpd /var/log/mpd /etc/mpd.conf
-  else
-    echo "user mpd already exists ..."| tee -a $outFile
-  fi
-  if [ ! -x /etc/systemd/system/mpd.service ]; then # mpd service does not exist
-    echo "Copying mpd.service file and enabling mpd ..."| tee -a $outFile
-    runCmd cp $baseDir/mpd.service /etc/systemd/system
-    runCmd sudo systemctl enable mpd
-  else
-    echo "mpd.service file already exists ..."| tee -a $outFile
-  fi 
-
   if [ ! -f /etc/vim/vimrc.orig ]; then    # never copied original
     runCmd sudo cp /etc/vim/vimrc /etc/vim/vimrc.orig
   fi    
   echo "Copying vimrc ..." | tee -a $outFile
   runCmd sudo cp $HOME/ovos-tools/vimrc /etc/vim
   echo
-  
+  configMpd                                # configure mpd
   echo "Adding groups to user pi ..." | tee -a $outFile
   runCmd sudo usermod -a -G audio,video,dialout,kmem pi
   echo "Adding groups to user mpd ..." | tee -a $outFile
@@ -207,22 +241,6 @@ function installCoreqs
     echo "set mouse=r" >> vimrc
   fi  
   
-  # configure mpd
-  if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
-    echo "Making backup of /etc/mpd.conf"  | tee -a $outFile 
-    runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig 
-  fi
-  if [ ! -d /var/log/mpd ]; then           # no mpd log dir
-    sudo mkdir /var/log/mpd     
-    sudo chown $USER /var/log/mpd
-    sudo touch /var/log/mpd/mpd.log 
-  fi
-  echo "Copying sample mpd.conf file to /etc" | tee -a $outFile 
-  runCmd sudo cp ~/ovos-tools/mpd.conf /etc # copy sample 
-  echo "Changing permissons of /etc/mpd.conf" | tee -a $outFile 
-  runCmd sudo chmod 644 /etc/mpd.conf  
-  echo "Setting mpd to start at boot time" | tee -a $outFile 
-  runCmd systemctl --user enable mpd         # start mpd at boot
   if [ "$platform" = "Raspberry Pi" ]; then  # Ras Pi Linux needs pipewire
     echo "Setting pipewire and pipewire-pulse to start at boot time..." | tee -a $outFile
     runCmd systemctl --user enable pipewire pipewire-pulse
@@ -235,10 +253,6 @@ function installCoreqs
   runCmd sudo cp ~/ovos-tools/usb-mount@.service /etc/systemd/system
   runCmd sudo cp ~/ovos-tools/usb-mount.sh /root 
  
-  if [ ! -d ~/mpd ]; then                  # create a mpd dir in home directory
-    mkdir ~/mpd;
-  fi
-
   # configure network drive to mount over /mnt/share
   first3=`hostname -I | awk '{print $1}' | awk -F'.' '{print $1 "." $2 "." $3}'`
   if [ "$first3" = "192.168.40" ]; then     # assume my subnet
