@@ -149,9 +149,9 @@ function configMpd
   runCmd sudo chown -R mpd:audio $homeDir $logDir /etc/mpd.conf
 
   # set up the mpd service
-  if [ ! -x /etc/systemd/system/mpd.service ]; then # mpd service does not exist
+  if [ ! -x /etc/systemd/user/system/mpd.service ]; then # mpd service does not exist
     echo "Copying mpd.service file and enabling mpd ..."| tee -a $outFile
-    runCmd sudo cp $baseDir/mpd.service /etc/systemd/system
+    runCmd sudo cp $baseDir/mpd.service /etc/systemd/user
   fi 
   echo "Setting mpd to start at boot time" | tee -a $outFile 
   runCmd sudo systemctl enable mpd         # start mpd at boot

@@ -374,8 +374,9 @@ function doIt
   listService mpd root                     # MPD runs as root on OpenRC
   echo "$dashes"              
   listService redis root
-  echo "$dashes"              
-  listService whisper root                 # whisper does STT as root
+  # is whisper a service?
+  # echo "$dashes"              
+  # listService whisper root                 # whisper does STT as root
   if [ "$justServices" = "yes" ]; then     # all done
     exit
   fi      
