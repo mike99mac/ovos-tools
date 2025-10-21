@@ -97,17 +97,14 @@ function listMinimy
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  procs=`ps -ef | grep minimy | grep -v grep`
+  procs=`ps -ef|grep minimy|grep -v grep|awk -F'/' '{print $NF}'|sort|uniq|xargs|sed 's/\.py//g'`
   if [ ${#procs} = 0 ]; then               # matching process
     printf '%22s\e[31m%s\e[0m\n' "Ovos/Neon/Minimy procs:" " None found"  # in red
   else                                     # Minimy is running
-    echo "Minimy processes:"
     if [ "$verbose" = 1 ]; then            # normal output
-      userSkills=`echo "$procs" | awk -F/ '{print $NF}' | sort | xargs`
-      systemSkills=`ps -ef|grep -E 'python3 framework|python3 skills'|grep -v grep|awk -F/ '{print $NF}'|sed 's/.py//g'|sort|uniq|xargs`
-      printf '%24s\e[32m%s\e[0m\n' "Minimy user skills: " "$userSkills"  # in green
-      printf '%24s\e[32m%s\e[0m\n' "System skills: " "$systemSkills"     # in green
+      printf '%24s\e[32m%s\e[0m\n' "Minimy processes: " "$procs" # in green
     else                                   # verbose mode
+      echo "Minimy processes:"
       echo "$procs" | sed 's/^/    /g'
       ps -ef | grep -E 'python3 framework|python3 skills' | grep -v "grep" | sed 's/^/    /g'
     fi
