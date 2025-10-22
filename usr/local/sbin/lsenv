@@ -97,7 +97,7 @@ function listMinimy
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  procs=`ps -ef|grep minimy|grep -v grep|awk -F'/' '{print $NF}'|sort|uniq|xargs|sed 's/\.py//g'`
+  procs=`ps -ef|grep minimy|sed 's/"//g'|grep -v grep|grep -v local_whisper|awk -F'/' '{print $NF}'|sort|uniq|xargs|sed 's/\.py//g'`
   if [ ${#procs} = 0 ]; then               # matching process
     printf '%22s\e[31m%s\e[0m\n' "Ovos/Neon/Minimy procs:" " None found"  # in red
   else                                     # Minimy is running
@@ -358,22 +358,17 @@ function doIt
     theType="none"
     printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
   fi  
+  echo "$dashes"              
+  echo "Services:"
   if [ -f "/usr/bin/pipewire" ]; then      # pipewire and wireplumber do audio 
-    echo "$dashes"              
     listService pipewire user     
-    echo "$dashes"              
     listService wireplumber user
   else                                     # assume pulseaudio does audio
-    echo "$dashes"              
     listService pulseaudio root 
   fi
-  echo "$dashes"              
   listService mpd root                     # MPD runs as root on OpenRC
-  echo "$dashes"              
   listService redis root
-  # is whisper a service?
-  # echo "$dashes"              
-  # listService whisper root                 # whisper does STT as root
+  listService whisper root                 # whisper does STT as root
   if [ "$justServices" = "yes" ]; then     # all done
     exit
   fi      
