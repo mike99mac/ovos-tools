@@ -10,9 +10,9 @@ def answer_question(question: str):
   # keep answers short by prepending: "short answer:" before the question
   # TO DO: get the Ollam server and the model from Minimy config file
   hub = "papabear"                         # host name of Ollama server
-  model = "gemma3"                         # AI model
+  model = "llama3"                         # AI model
   info = {"model": f"{model}", 
-          "prompt": f"short answer: {question}", 
+          "prompt": f"Be concise. Do not use symbols other than punctuation. {question}", 
           "keep_alive": -1,                # keep model loaded indefinitely
           "stream": False
          }
@@ -26,4 +26,3 @@ def answer_question(question: str):
 if __name__ == "__main__":
     question = " ".join(sys.argv[1:])      # question is all arguments
     answer_question(question)              # get the answer
-
