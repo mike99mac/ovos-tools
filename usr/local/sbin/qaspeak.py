@@ -14,16 +14,15 @@ def speak_words(words: str):
      result = subprocess.check_output(cmd, shell=True)
      return 0             # success
    except subprocess.CalledProcessError as e:
-     self.log.error(f"SimpleVoiceAssistant.mpc_cmd(): cmd: {cmd} returned e.returncode: {e.returncode}")
      return e.returncode
 
 def answer_question(question: str):
   # keep answers short by prepending: "short answer:" before the question
   speak_words(f"question: {question}")     # speak question
   hub = "papabear"                         # host name of Ollama server
-  model = "gemma3"                         # AI model
+  model = "llama3"                         # AI model
   info = {"model": f"{model}", 
-          "prompt": f"short answer: {question}", 
+          "prompt": f"Be concise. Do not use symbols other than punctuation. {question}", 
           "keep_alive": -1,                # keep model loaded indefinitely
           "stream": False
          }
@@ -38,4 +37,3 @@ def answer_question(question: str):
 if __name__ == "__main__":
     question = " ".join(sys.argv[1:])      # question is all arguments
     answer_question(question)              # get the answer
-
