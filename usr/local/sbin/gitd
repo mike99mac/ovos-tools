@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# gitd - check if any code has been checked in to the 'develop' branch 
+#
+git log main..develop --oneline
