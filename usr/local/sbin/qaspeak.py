@@ -6,20 +6,20 @@
 import requests
 import subprocess
 import sys
+from framework.util.utils import Config
 
 def speak_words(words: str):
   # speak the words passed in
    cmd = f"/usr/local/sbin/speak {words}"
    try:
-     result = subprocess.check_output(cmd, shell=True)
-     return 0             # success
+     subprocess.check_output(cmd, shell=True)
+     return 0                              # success
    except subprocess.CalledProcessError as e:
      return e.returncode
 
-def answer_question(question: str):
+def answer_question(question: str, hub: str):
   # keep answers short by prepending: "short answer:" before the question
   speak_words(f"question: {question}")     # speak question
-  hub = "papabear"                         # host name of Ollama server
   model = "llama3"                         # AI model
   info = {"model": f"{model}", 
           "prompt": f"Be concise. Do not use symbols other than punctuation. {question}", 
@@ -35,5 +35,14 @@ def answer_question(question: str):
     print(f"Error: {e}")
 
 if __name__ == "__main__":
-    question = " ".join(sys.argv[1:])      # question is all arguments
-    answer_question(question)              # get the answer
+  cfg = Config()                           # get config file
+  cfg_val = "Basic.Hub"
+  try:
+    hub = cfg.get_cfg_val(cfg_val)
+    if hub is None:
+      print(f"ERROR {cfg_val} not found in config file: {cfg.config_file}")
+      sys.exit(1)
+  except Exception as e:
+    print(f"ERROR calling cfg.get_cfg_val(Basic.Hub): {e}")
+  question = " ".join(sys.argv[1:])        # question is all arguments
+  answer_question(question, hub)           # get the answer
