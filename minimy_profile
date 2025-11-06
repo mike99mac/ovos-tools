@@ -14,6 +14,7 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/$HOME
 #export PS1="\[\e[0;32m\]\u@\h:\w/\$ \[\e[0m\]" # green for SLES
 export PS1="\[\e[0;36m\]\u@\h:\w/\$ \[\e[0m\]"  # light blue for Debian
 export SKI="$HOME/minimy/skills/user_skills"
+export STT="$HOME/minimy/framework/services/stt/"
 export SYS="/etc/systemd/system"
 export USR="/etc/systemd/user"
 export Z="/usr/local/sbin"
