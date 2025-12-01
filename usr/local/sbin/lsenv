@@ -17,6 +17,7 @@ function usage
   echo "  -h|--help         Give help (this screen)"
   echo "  --justServices    Just show status of services"
   echo "  -c|--clear        Clear the screen first" 
+  echo "  -l|--long         Long output - include CPU % and STT speed"
   echo "  -v|--verbose      Increase verbosity" 
   echo "  -x|--debug        Print commands and arguments as they are executed"
   exit 51
@@ -42,6 +43,9 @@ function parseArgs
         ;;
       -c|--clear)                          # clear the screen
         clear="yes"
+        ;;
+      -l|--long)                           # long output
+        outputType="long"
         ;;
       -v|--verbose) 
         verbose=2
@@ -329,6 +333,32 @@ function soundCheck
  }                                         #  soundCheck()
 
 #+--------------------------------------------------------------------------+
+function timeSTT 
+# Test the speed of local (spoke) and remote (hub) STT conversions 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  hubScript="/usr/local/sbin/testhub.py"
+  spokeScript="/usr/local/sbin/testspoke.py"
+  venv="$HOME/minimy/minimy_venv/bin/python3"
+  echo "STT speeds:"
+  if [ ! -x $hubScript ]; then 
+    echo "ERROR: did not find executable $hubScript"
+  else
+    echo "Hub:"
+    time $hubScript
+  fi
+  if [ ! -x $spokeScript ]; then 
+    echo "ERROR: did not find executable $spokeScript"
+  else
+    echo "Spoke:"
+    time $spokeScript
+  fi
+ }                                         #   timeSTT()
+
+#+--------------------------------------------------------------------------+
 function doIt
 # List much information about the OVOS environment 
 #+--------------------------------------------------------------------------+
@@ -405,7 +435,9 @@ function doIt
   # root file system usage
   local rootUsed=`df -h / | tail -1 | awk '{print $5}'`
   printf "%22s: %s\n" "Root fs usage" "$rootUsed"
-  getCPU                                   # CPU usage
+  if [ "$outputType" = long ]; then
+    getCPU                                 # CPU usage
+  fi
 
   # memory usage
   echo "$moreDashes"              
@@ -430,7 +462,12 @@ function doIt
   echo "$moreDashes"              
   soundCheck                               # check play and record
   echo "$moreDashes"              
-  echo
+  
+  # STT timings with long output
+  if [ "$outputType" = long ]; then
+    timeSTT                                # check STT speed 
+  fi
+  echo                                     # leave some room
  }                                         # doIt()
 
 #+--------------------------------------------------------------------------+
@@ -440,6 +477,7 @@ clear="no"                                 # clear the screen first?
 dashes="---------------------------------------"
 justServices="no"                          # just show services?
 moreDashes="----------------------------------------------------------------------------------"
+outputType="short"                         # short or long output
 verbose=1                                 
 
 # main()
