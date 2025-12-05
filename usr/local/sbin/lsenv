@@ -95,7 +95,6 @@ function getPlatform
 #+--------------------------------------------------------------------------+
 function listMinimy
 # List the status of Minimy 
-# Args: None
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -115,7 +114,26 @@ function listMinimy
       ps -ef | grep -E 'python3 framework|python3 skills' | grep -v "grep" | sed 's/^/    /g'
     fi
   fi
- }
+ }                                         # listMinimy()
+
+#+--------------------------------------------------------------------------+
+function listYAVOS 
+# List YAVOS processes 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  procs="recognizer.sh recognizer.py arecord stt.py media.py tts.py MsgBus.py run_config_server http.server audio_out_bus.py"
+  for nextProc in $procs; do
+    pgrep -f $nextProc >/dev/null 2>&1
+    if [ $? = 0 ]; then                    # process is running
+      printf "%22s: \e[32mrunning\e[0m\n" "$nextProc"  # in green
+    else
+      printf "%22s: \e[31mnot running\e[0m\n" "$nextProc"  # in red
+    fi
+  done
+}                                          # listYAVOS()
 
 #+--------------------------------------------------------------------------+
 function listService
@@ -379,16 +397,20 @@ function doIt
     for nextService in neon-admin-enclosure neon-audio neon-bus neon-enclosure neon-gui neon-skills neon-speech; do
       listService $nextService root        # Neon runs as root
     done
+  elif [ -d $HOME/YAVOS ]; then            # assume YAVOS
+    theType="yavos"
+    echo "YAVOS processes:"
+    listYAVOS
   elif [ -d $HOME/minimy ]; then           # assume Minimy
     theType="minimy"
     listMinimy
   elif [ -d $HOME/.venvs/ovos ]; then      # assume OVOS
     theType="ovos"
     echo "OVOS services:"
-    lsovos
+    # TODO write: listOVOS
   else                                     # assume none of the three are installed
     theType="none"
-    printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
+    printf '%23s \e[31m%s\e[0m\n' "PVAs:" "None installed" # in red
   fi  
   echo "$dashes"              
   echo "Services:"
