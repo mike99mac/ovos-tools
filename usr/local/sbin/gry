@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# grm - short command to search through Minimy python files 
+#
+if [ "$1" = "-h" -o "$1" = "" ]; then        # give help
+  echo "Name : grm search through Yavos python files"
+  echo "Usage: grm [-b baseDir ] pattern"
+  exit 1
+fi
+if [ $# -gt 0 -a "$1" = "-b" ]; then         # -b baseDir passed in
+  baseDir=$2
+  shift 2
+else
+  baseDir="$HOME/YAVOS"
+fi
+if [ ! -d $baseDir ]; then
+  echo "ERROR: directory $baseDir not found" 
+  exit 1
+fi
+cd $baseDir
+srcFiles="yavos/* yavos/*/* yavos/*/*/* yavos/*/*/*/*"
+grep -n "$@" $srcFiles 2>/dev/null | sed "s:^:$baseDir/:g"
