@@ -124,7 +124,7 @@ function listYAVOS
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  procs="recognizer.sh recognizer.py arecord stt.py media.py tts.py MsgBus.py run_config_server http.server audio_out_bus.py"
+  procs="recognizer.sh recognizer.py arecord stt.py media.py tts.py MsgBus.py http.server audio_out_bus.py"
   for nextProc in $procs; do
     pgrep -f $nextProc >/dev/null 2>&1
     if [ $? = 0 ]; then                    # process is running
@@ -397,13 +397,13 @@ function doIt
     for nextService in neon-admin-enclosure neon-audio neon-bus neon-enclosure neon-gui neon-skills neon-speech; do
       listService $nextService root        # Neon runs as root
     done
+  elif [ -d $HOME/minimy ]; then           # assume Minimy
+    theType="minimy"
+    listMinimy
   elif [ -d $HOME/YAVOS ]; then            # assume YAVOS
     theType="yavos"
     echo "YAVOS processes:"
     listYAVOS
-  elif [ -d $HOME/minimy ]; then           # assume Minimy
-    theType="minimy"
-    listMinimy
   elif [ -d $HOME/.venvs/ovos ]; then      # assume OVOS
     theType="ovos"
     echo "OVOS services:"
