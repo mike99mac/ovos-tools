@@ -12,7 +12,7 @@ if [ "$rc" != 0 ]; then                  # error
   echo "ERROR: command $cmd returned $rc" 
   exit 2
 fi
-cmd="sudo chown pi.pi /usr/local/sbin/*"
+cmd="sudo chown $USER:$USER /usr/local/sbin/*"
 $cmd
 rc=$?
 if [ "$rc" != 0 ]; then                  # error
@@ -21,4 +21,3 @@ if [ "$rc" != 0 ]; then                  # error
 fi
 echo "Success! /usr/local/sbin/ directory:"
 ls -l /usr/local/sbin/
-

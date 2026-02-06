@@ -10,7 +10,7 @@ from framework.util.utils import Config
 def answer_question(question: str, hub: str):
   # keep answers short by prepending: "short answer:" before the question
   # TO DO: get the Ollam server and the model from Minimy config file
-  model = "llama3"                         # AI model
+  model = "llama3.2:3b"                    # AI model
   info = {"model": f"{model}", 
           "prompt": f"Be concise. Do not use symbols other than punctuation. {question}", 
           "keep_alive": -1,                # keep model loaded indefinitely
