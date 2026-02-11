@@ -133,10 +133,12 @@ function configMpd
 
   # backup and copy mpd.conf file
   if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
+
     echo "Making backup of /etc/mpd.conf"  | tee -a $outFile 
     runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig 
   fi
-  runCmd sudo cp $baseDir/mpd.conf /etc 
+  uid=`id -u`                              # get uid to replace in copied mpd.conf file
+  sed -e "s:/run/user/UID:/run/user/$uid:g" $baseDir/mpd.conf | sudo tee /etc/mpd.conf 
 
   # create mpd user if necessary 
   grep ^mpd /etc/passwd >/dev/null 2>&1
