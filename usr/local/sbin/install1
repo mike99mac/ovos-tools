@@ -167,6 +167,10 @@ function installCoreqs
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
+  if [ ${#USER} = 0 ]; then                # not expected - USER is not set
+    echo "WARNING! environment variable USER is not set - setting to 'pi'"
+    USER=pi
+  fi
   echo "Upgrading system ..."| tee -a $outFile # start by upgrading system
   runCmd sudo apt-get update
   runCmd sudo apt-get -y -o Dpkg::Options::="--force-confdef" full-upgrade 
@@ -201,10 +205,10 @@ function installCoreqs
   runCmd sudo cp $HOME/ovos-tools/vimrc /etc/vim
   echo
   configMpd                                # configure mpd
-  echo "Adding groups to user pi ..." | tee -a $outFile
-  runCmd sudo usermod -a -G audio,video,dialout,kmem pi
-  echo "Adding groups to user mpd ..." | tee -a $outFile
-  runCmd sudo usermod -a -G pi,users mpd
+  echo "Adding groups to user $USER ..." | tee -a $outFile
+  runCmd sudo usermod -a -G audio,video,dialout,kmem $USER
+  echo "Adding groups users and $USER to mpd ..." | tee -a $outFile
+  runCmd sudo usermod -a -G $USER,users mpd
   echo "Adding groups spi, i2c and gpio to /etc/group ..." | tee -a $outFile
   sudo groupadd -g 993 spi | tee -a $outFile
   sudo groupadd -g 994 i2c | tee -a $outFile
