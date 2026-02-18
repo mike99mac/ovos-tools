@@ -12,7 +12,10 @@ if [ "$rc" != 0 ]; then                  # error
   echo "ERROR: command $cmd returned $rc" 
   exit 2
 fi
-cmd="sudo chown $USER:$USER /usr/local/sbin/*"
+if [ ${#SUDO_USER} = 0 ]; then
+  SUDO_USER=$USER
+fi
+cmd="sudo chown $SUDO_USER:$SUDO_USER /usr/local/sbin/*"
 $cmd
 rc=$?
 if [ "$rc" != 0 ]; then                  # error
