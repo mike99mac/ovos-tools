@@ -119,22 +119,25 @@ function configMpd
   logDir="/var/log/mpd"
 
   # create home and log directories if necessary
-  if [ ! -d $mpdDir ]; then                # mpd home directory does not exist	
-    runCmd sudo mkdir $mpdDir
-    runCmd sudo mkdir $mpdDir/playlists    # create playlists dir
-    runCmd sudo touch $mpdDir/state_file   # create state file 
+  if [ ! -d $mpdDir ]; then               # mpd home directory does not exist	
+    runCmd sudo mkdir $mpdDir             # create mpd home dir
+    runCmd sudo chmod g+w $mpdDir         # set group write on dir
+    runCmd sudo mkdir $mpdDir/playlists   # create playlists dir
+    runCmd sudo touch $mpdDir/state_file  # create state file 
     runCmd sudo touch $mpdDir/sticker_file # create sticker file 
-    runCmd sudo touch $mpdDir/mpd.db       # create database 
+    runCmd sudo touch $mpdDir/mpd.db      # create database 
+    runCmd sudo chmod g+w $mpdDir/*       # set group write on all files
   fi
   if [ ! -d $logDir ]; then                # mpd log directory does not exist	
     runCmd sudo mkdir $logDir              # create log dir
-  fi
-  if [ ! -f $logDir/mpd.log ]; then        # log file does not exist
+    runCmd sudo chmod g+w $logDir          # set group write on dir
     runCmd sudo touch $logDir/mpd.log      # create log file
+    runCmd sudo chmod g+w $logDir/mpd.log  # set group write on file 
   fi
 
   # backup and copy mpd.conf file
   if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
+
     echo "Making backup of /etc/mpd.conf"  | tee -a $outFile 
     runCmd sudo cp /etc/mpd.conf /etc/mpd.conf.orig 
   fi
