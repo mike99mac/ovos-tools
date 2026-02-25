@@ -182,7 +182,7 @@ function performAction
         listCard $micCards
       fi
       ;;
-    2)                                     # more than one mic found
+    *)                                     # more than one mic found
       if [ "$actionType" = record ]; then 
         if [ "$cardToUse" = default ]; then 
           echo "Uh-oh! found multiple microphones"
