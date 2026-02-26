@@ -412,15 +412,15 @@ function doIt
   fi  
   echo "$dashes"              
   echo "Services:"
-  if [ -f "/usr/bin/pipewire" ]; then      # pipewire and wireplumber do audio 
+  if [ -f "/usr/bin/pipewire" ]; then      # pipewire does audio 
     listService pipewire user     
-    listService wireplumber user
   else                                     # assume pulseaudio does audio
     listService pulseaudio root 
   fi
-  listService mpd root                     # MPD runs as root on OpenRC
+  listService mpd user                     # MPD runs as user 
   listService redis root
   listService whisper root                 # whisper does STT as root
+  listService ollama root                  # ollama runs as root
   if [ "$justServices" = "yes" ]; then     # all done
     exit
   fi      
