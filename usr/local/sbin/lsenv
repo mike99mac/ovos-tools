@@ -186,7 +186,7 @@ function listService
     if [ $? = 0 ]; then                      # found "active"
       printf '\e[32m%s\e[0m\n' "Started"     # in green
     else
-      echo "$cmdOut" | grep " active (" >/dev/null
+      echo "$cmdOut" | grep "active (" >/dev/null
       if [ $? = 0 ]; then
         printf '\e[32m%s\e[0m\n' "active (running)" # in green
       else

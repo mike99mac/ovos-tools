@@ -126,13 +126,16 @@ function configMpd
     runCmd sudo touch $mpdDir/sticker_file # create sticker file 
     runCmd sudo touch $mpdDir/mpd.db      # create database 
     runCmd sudo chmod g+w $mpdDir/*       # set group write on all files
+    runCmd sudo chown mpd:audio $mpdDir/* # change ownership of all files
   fi
   if [ ! -d $logDir ]; then                # mpd log directory does not exist	
     runCmd sudo mkdir $logDir              # create log dir
-    runCmd sudo chmod g+w $logDir          # set group write on dir
-    runCmd sudo touch $logDir/mpd.log      # create log file
-    runCmd sudo chmod g+w $logDir/mpd.log  # set group write on file 
+    runCmd sudo chown mpd:audio $logDir    # change ownership of log dir
   fi
+  runCmd sudo chmod g+w $logDir            # set group write on dir
+  runCmd sudo touch $logDir/mpd.log        # create log file
+  runCmd sudo chmod g+w $logDir/mpd.log    # set group write on file 
+  runCmd sudo chown mpd:audio $logDir/mpd.log # change ownership of log file
 
   # backup and copy mpd.conf file
   if [ -f /etc/mpd.conf -a ! -f /etc/mpd.conf.orig ]; then # no backup has been made
@@ -159,7 +162,10 @@ function configMpd
     runCmd sudo cp $baseDir/mpd.service /etc/systemd/user
   fi 
   echo "Setting mpd to start at boot time" | tee -a $outFile 
-  runCmd sudo systemctl enable mpd         # start mpd at boot
+  runCmd sudo systemctl stop mpd           # stop mpd as root
+  runCmd sudo systemctl stop mpd.socket    # and the mpd socket
+  runCmd sudo systemctl disable mpd        # do not start mpd as root
+  runCmd systemctl --user enable mpd       # start mpd at boot
  }                                         # configMpd()
 
 #+--------------------------------------------------------------------------+
