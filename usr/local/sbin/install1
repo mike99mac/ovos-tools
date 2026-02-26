@@ -65,8 +65,7 @@ function getPlatform
 
   platform=`cat /proc/device-tree/model | awk '{print $1 " " $2}'`
   if [ "$platform" != "Raspberry Pi" -a "$platform" != "NVIDIA Jetson" ]; then
-    echo "ERROR: only NVIDIA Jetson and Raspberry Pi platforms are supported"
-    exit 1
+    echo "WARNING: Only Nvidia Jetson and Raspberry Pi platforms are supported."
   fi
  }                                         # getPlatform()
 
