@@ -3,7 +3,7 @@
 # testrecord - test recording with default or specified microphone or just list info
 #
 #+--------------------------------------------------------------------------+
-function usage()
+function usage
 # Give help to the user
 #+--------------------------------------------------------------------------+
  {
@@ -23,7 +23,7 @@ function usage()
  }                                         # usage()
 
 #+--------------------------------------------------------------------------+
-function parseArgs()
+function parseArgs
 # Parse arguments
 # Args: All arguments passed into script
 #+--------------------------------------------------------------------------+
@@ -65,7 +65,7 @@ function parseArgs()
  }                                         # parseArgs()
 
 #+--------------------------------------------------------------------------+
-function recordCard()
+function recordCard
 # Record audio from a specific card 
 # Arg 1: card number
 #+--------------------------------------------------------------------------+
@@ -109,9 +109,9 @@ function recordCard()
   if [ ${#formatClause} != 0 ]; then       # format found in hw_params file
     formatClause="-f $formatClause"        # add -f flag
   else
-    formatClause="-f S24_LE"               # default to 24 bit format
+    formatClause="-f S24_3LE"              # default to 24-bit, 3-byte integer format for compatibility
   fi
-  
+
   # put the arecord command together and run it
   cmd="arecord $flags $rateClause $channelsClause $formatClause -d $numSecs /tmp/test-mic.wav"
   echo "Testing your microphone for $numSecs seconds ==========> SAY SOMETHING!"
@@ -125,7 +125,7 @@ function recordCard()
  }                                         # recordCard()
 
 #+--------------------------------------------------------------------------+
-function listCard()
+function listCard
 # List attributes of a specific card
 # Arg 1: card number
 #+--------------------------------------------------------------------------+
@@ -147,7 +147,7 @@ function listCard()
  }                                         # listCard()
 
 #+--------------------------------------------------------------------------+
-function performAction()
+function performAction
 # test recording with specific microphone or list info
 #+--------------------------------------------------------------------------+
  {
@@ -182,7 +182,7 @@ function performAction()
         listCard $micCards
       fi
       ;;
-    2)                                     # more than one mic found
+    *)                                     # more than one mic found
       if [ "$actionType" = record ]; then 
         if [ "$cardToUse" = default ]; then 
           echo "Uh-oh! found multiple microphones"

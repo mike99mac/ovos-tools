@@ -3,7 +3,7 @@
 # grl - search (grep) through OVOS, Neon or Minimy log files for a string
 #
 #+--------------------------------------------------------------------------+
-function usage()
+function usage
 # Give help to the user
 #+--------------------------------------------------------------------------+
  {
@@ -22,7 +22,7 @@ function usage()
  }                                         # usage()
 
 #+--------------------------------------------------------------------------+
-function parseArgs()
+function parseArgs
 # Parse arguments
 # Args: All arguments passed into script
 #+--------------------------------------------------------------------------+
@@ -52,7 +52,7 @@ function parseArgs()
  }                                         # parseArgs()
 
 #+--------------------------------------------------------------------------+
-function doSearch()
+function doSearch
 # Find, and search through log files 
 #+--------------------------------------------------------------------------+
  {

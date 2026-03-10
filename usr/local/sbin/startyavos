@@ -1,0 +1,4 @@
+export PYTHONPATH=$HOME/YAVOS/yavos
+source $HOME/YAVOS/venv_yavos/bin/activate
+cd $HOME/YAVOS/yavos
+python Scripts/start_yavos.py

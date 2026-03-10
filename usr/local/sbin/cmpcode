@@ -36,7 +36,7 @@ else                                       # at least one change
   echo "#!/bin/bash" > $tmpFile            # restart file
   echo -e "$copyCmds" >> $tmpFile          # add copy commands with newlines
   sudo mv $tmpFile $copycode               # script to copy modified files
-  sudo chown $USER.$USER $copycode     
+  sudo chown $USER:$USER $copycode     
   sudo chmod 755 $copycode      
   echo "Copy commands in: $copycode"
   echo
@@ -45,4 +45,3 @@ fi
 echo
 echo "diff commands"
 echo -e $diffCmds
-

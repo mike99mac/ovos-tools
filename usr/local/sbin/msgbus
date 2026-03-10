@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# msgbus - start the redis message bus and watch for minimy messages 
+#
+redis-cli psubscribe *skill *service *session

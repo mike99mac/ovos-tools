@@ -17,6 +17,7 @@ function usage
   echo "  -h|--help         Give help (this screen)"
   echo "  --justServices    Just show status of services"
   echo "  -c|--clear        Clear the screen first" 
+  echo "  -l|--long         Long output - include CPU % and STT speed"
   echo "  -v|--verbose      Increase verbosity" 
   echo "  -x|--debug        Print commands and arguments as they are executed"
   exit 51
@@ -42,6 +43,9 @@ function parseArgs
         ;;
       -c|--clear)                          # clear the screen
         clear="yes"
+        ;;
+      -l|--long)                           # long output
+        outputType="long"
         ;;
       -v|--verbose) 
         verbose=2
@@ -73,30 +77,61 @@ function verboseMsg
  }                                         # verboseMsg()
 
 #+--------------------------------------------------------------------------+
-function listMinimy
-# List the status of Minimy 
-# Args: None
+function getPlatform
+# Set platform to either "Raspberry Pi" or "NVIDIA Jetson" if detected
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  procs=`ps -ef | grep minimy | grep -v grep`
+  if [ -f "/proc/device-tree/model" ]; then
+    platform=`cat /proc/device-tree/model | awk '{print $1 " " $2}'`
+  fi
+  if [ "$platform" != "Raspberry Pi" -a "$platform" != "NVIDIA Jetson" ]; then
+    echo "WARNING: Only NVIDIA Jetson and Raspberry Pi platforms are supported. Use for testing only."
+  fi
+ }                                         # getPlatform()
+
+#+--------------------------------------------------------------------------+
+function listMinimy
+# List the status of Minimy 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  procs=`ps -ef|grep minimy|sed 's/"//g'|grep -v grep|grep -v local_whisper|awk -F'/' '{print $NF}'|sort|uniq|xargs|sed 's/\.py//g'|sed 's/ python3//g'`
   if [ ${#procs} = 0 ]; then               # matching process
     printf '%22s\e[31m%s\e[0m\n' "Ovos/Neon/Minimy procs:" " None found"  # in red
   else                                     # Minimy is running
-    echo "Minimy processes:"
     if [ "$verbose" = 1 ]; then            # normal output
-      userSkills=`echo "$procs" | awk -F/ '{print $NF}' | sort | xargs`
-      systemSkills=`ps -ef|grep -E 'python3 framework|python3 skills'|grep -v grep|awk -F/ '{print $NF}'|sed 's/.py//g'|sort|uniq|xargs`
-      printf '%24s\e[32m%s\e[0m\n' "Minimy user skills: " "$userSkills"  # in green
-      printf '%24s\e[32m%s\e[0m\n' "System skills: " "$systemSkills"     # in green
+      printf '%24s\e[32m%s\e[0m\n' "Minimy processes: " "$procs" # in green
     else                                   # verbose mode
+      echo "Minimy processes:"
       echo "$procs" | sed 's/^/    /g'
       ps -ef | grep -E 'python3 framework|python3 skills' | grep -v "grep" | sed 's/^/    /g'
     fi
   fi
- }
+ }                                         # listMinimy()
+
+#+--------------------------------------------------------------------------+
+function listYAVOS 
+# List YAVOS processes 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  procs="recognizer.sh recognizer.py arecord stt.py media.py tts.py MsgBus.py http.server audio_out_bus.py"
+  for nextProc in $procs; do
+    pgrep -f $nextProc >/dev/null 2>&1
+    if [ $? = 0 ]; then                    # process is running
+      printf "%22s: \e[32mrunning\e[0m\n" "$nextProc"  # in green
+    else
+      printf "%22s: \e[31mnot running\e[0m\n" "$nextProc"  # in red
+    fi
+  done
+}                                          # listYAVOS()
 
 #+--------------------------------------------------------------------------+
 function listService
@@ -113,48 +148,84 @@ function listService
 
   local cmd
   local status 
+  local initSystem
   # RED="\e[31m"              print in colors
   # GREEN="\e[32m"
   # YELLOW="\e[33m"
 
-  if [ "$serviceType" = root ]; then
-    cmd="/usr/bin/systemctl status $theService"
-  elif [ "$serviceType" = user ]; then
-    cmd="/usr/bin/systemctl --user status $theService"
-  else                                     # not expected
-    echo "INTERNAL ERROR: serviceType = $serviceType"
+  if command -v systemctl &>/dev/null; then # Using SystemD
+    initSystem="SystemD"
+    if [ "$serviceType" = root ]; then
+      cmd="/usr/bin/systemctl status $theService"
+    elif [ "$serviceType" = user ]; then
+      cmd="/usr/bin/systemctl --user status $theService"
+    else                                   # not expected
+      echo "INTERNAL ERROR: serviceType = $serviceType"
+      exit 4
+    fi
+  elif command -v openrc &>/dev/null; then # Using OpenRC
+    initSystem="OpenRC"
+    if [ "$serviceType" = root ]; then
+      cmd="/usr/bin/rc-service $theService status"
+    elif [ "$serviceType" = user ]; then
+      cmd="/usr/bin/rc-service --user $theService status"
+    else
+      echo "INTERNAL ERROR: serviceType = $serviceType"
+      exit 4
+    fi
+  else
+    echo "ERROR: Init system not supported"
     exit 4
   fi
   printf "%22s: " "$theService"
   verboseMsg "Running: $cmd ..." 
   cmdOut=`eval $cmd` 
   verboseMsg "$cmdOut"
-  echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
-  if [ $? = 0 ]; then                      # found "active"
-    printf '\e[32m%s\e[0m\n' "Started"     # in green
-  else
-    echo "$cmdOut" | grep " active (" >/dev/null
-    if [ $? = 0 ]; then
-    printf '\e[32m%s\e[0m\n' "active (running)" # in green
+  if [ $initSystem = "SystemD" ]; then
+    echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
+    if [ $? = 0 ]; then                      # found "active"
+      printf '\e[32m%s\e[0m\n' "Started"     # in green
     else
-      echo "$cmdOut" | grep "Active: failed" >/dev/null
-      if [ $? = 0 ]; then                  # found "failed"
-        printf '\e[31m%s\e[0m\n' "failed"  # in red
-      else 
-        echo "$cmdOut" | grep "code=exited" >/dev/null
-        if [ $? = 0 ]; then                # found "exited"
-          printf '\e[31m%s\e[0m\n' "exited" # in red
-        else
-          echo "$cmdOut" | grep "inactive (dead)" >/dev/null
-          if [ $? = 0 ]; then              # found "inactive"
-            printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
-          # else
-            # echo "Unknown"
+      echo "$cmdOut" | grep "active (" >/dev/null
+      if [ $? = 0 ]; then
+        printf '\e[32m%s\e[0m\n' "active (running)" # in green
+      else
+        echo "$cmdOut" | grep "Active: failed" >/dev/null
+        if [ $? = 0 ]; then                  # found "failed"
+          printf '\e[31m%s\e[0m\n' "failed"  # in red
+        else 
+          echo "$cmdOut" | grep "code=exited" >/dev/null
+          if [ $? = 0 ]; then                # found "exited"
+            printf '\e[31m%s\e[0m\n' "exited" # in red
+          else
+            echo "$cmdOut" | grep "inactive (dead)" >/dev/null
+            if [ $? = 0 ]; then              # found "inactive"
+              printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
+            else
+              echo "Unknown"
+            fi
           fi
         fi
       fi
+    fi 
+  elif [ $initSystem = "OpenRC" ]; then
+    echo "$cmdOut" | grep "status: started" >/dev/null
+    if [ $? = 0 ]; then                      # found "started"
+      printf '\e[32m%s\e[0m\n' "active (running)" # in green
+    else
+      echo "$cmdOut" | grep "status: stopped" >/dev/null
+      if [ $? = 0 ]; then                    # found "stopped"
+          printf '\e[31m%s\e[0m\n' "stopped" # in red
+      else
+        echo "$cmdOut" | grep "status: crashed" >/dev/null
+        if [ $? = 0 ]; then                  # found "crashed"
+          printf '\e[31m%s\e[0m\n' "failed"  # in red
+        fi
+      fi
     fi
-  fi 
+  else
+    echo "UNEXPECTED: initSystem = $initSystem"
+  fi
  }                                         # listService()
 
 #+--------------------------------------------------------------------------+
@@ -253,35 +324,55 @@ function soundCheck
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  spkrs=`aplay -l 2>&1 | grep ^card`
+  spkrs=`aplay -l 2>&1 | grep ^card | head -1`
   numSpkrs=`echo "$spkrs" | wc -l`
-  mics=`arecord -l 2>&1 | grep ^card`
+  spkrsCard=`echo "$spkrs" | awk -F"," '{print $1}'`
+  spkrsDevice=`echo "$spkrs" | awk -F"," '{print $2}' | sed 's/^ //g'`
+  mics=`arecord -l 2>&1 | grep ^card | head -1`
   numMics=`echo "$mics" | wc -l`
-  # echo "spkrs: '$spkrs' numSpkrs: $numSpkrs"
-  # echo "mics: '$mics' numMics: $numMics"
+  micsCard=`echo "$mics" | awk -F"," '{print $1}'`
+  micsDevice=`echo "$mics" | awk -F"," '{print $2}' | sed 's/^ //g'`
   if [ $numMics = 0 ]; then 
     echo "WARNING: no microphones found"
   else
-    mic=`echo $mics | head -1 | awk -F',' '{print $1}'`
-    if [ $numMics = 1 ]; then 
-      echo "Mic     : $mic" 
-    else
-      echo "Mics    : $mics" 
-    fi
+    echo "Mic     : $micsCard" 
+    echo "          $micsDevice" 
   fi  
   if [ $numSpkrs = 0 ]; then 
     echo "WARNING: no speakers found"
   else
-    spkr=`echo $spkrs | head -1 | awk -F',' '{print $1}'`
-    if [ $numSpkrs = 1 ]; then 
-      echo "Speaker : $spkr" 
-    else
-      echo "Speakers: $spkrs" 
-    fi
-    echo "Playing : /usr/share/sounds/alsa/Front_Center.wav"
-    aplay -q /usr/share/sounds/alsa/Front_Center.wav
-  fi  
+    echo "Speakers: $spkrsCard" 
+    echo "          $spkrsDevice" 
+  fi
+  echo "Playing : /usr/share/sounds/alsa/Front_Center.wav"
+  aplay -q /usr/share/sounds/alsa/Front_Center.wav
  }                                         #  soundCheck()
+
+#+--------------------------------------------------------------------------+
+function timeSTT 
+# Test the speed of local (spoke) and remote (hub) STT conversions 
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  hubScript="/usr/local/sbin/testhub.py"
+  spokeScript="/usr/local/sbin/testspoke.py"
+  venv="$HOME/minimy/minimy_venv/bin/python3"
+  echo "STT speeds:"
+  if [ ! -x $hubScript ]; then 
+    echo "ERROR: did not find executable $hubScript"
+  else
+    echo "Hub:"
+    time $hubScript
+  fi
+  if [ ! -x $spokeScript ]; then 
+    echo "ERROR: did not find executable $spokeScript"
+  else
+    echo "Spoke:"
+    time $spokeScript
+  fi
+ }                                         #   timeSTT()
 
 #+--------------------------------------------------------------------------+
 function doIt
@@ -307,20 +398,29 @@ function doIt
   elif [ -d $HOME/minimy ]; then           # assume Minimy
     theType="minimy"
     listMinimy
+  elif [ -d $HOME/YAVOS ]; then            # assume YAVOS
+    theType="yavos"
+    echo "YAVOS processes:"
+    listYAVOS
   elif [ -d $HOME/.venvs/ovos ]; then      # assume OVOS
     theType="ovos"
     echo "OVOS services:"
-    lsovos
+    # TODO write: listOVOS
   else                                     # assume none of the three are installed
     theType="none"
-    printf '%23s \e[31m%s\e[0m\n' "Ovos/Neon/Minimy:" "Not installed" # in red
+    printf '%23s \e[31m%s\e[0m\n' "PVAs:" "None installed" # in red
   fi  
   echo "$dashes"              
-  listService pipewire user     
-  echo "$dashes"              
-  listService wireplumber user
-  echo "$dashes"              
-  listService mpd user
+  echo "Services:"
+  if [ -f "/usr/bin/pipewire" ]; then      # pipewire does audio 
+    listService pipewire user     
+  else                                     # assume pulseaudio does audio
+    listService pulseaudio root 
+  fi
+  listService mpd user                     # MPD runs as user 
+  listService redis root
+  listService whisper root                 # whisper does STT as root
+  listService ollama root                  # ollama runs as root
   if [ "$justServices" = "yes" ]; then     # all done
     exit
   fi      
@@ -348,14 +448,16 @@ function doIt
     printf "%22s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
   fi
 
-  local IPaddr=`hostname -I | awk '{print $1}'` # get the IP address
+  local IPaddr=`ip -4 addr show | grep -oP '192\.\d+\.\d+\.\d+' | head -n1` # get the IP address
   printf "%22s: %s\n" "IP address" "$IPaddr"
   listTemp                                 # RasPi temperature
 
   # root file system usage
   local rootUsed=`df -h / | tail -1 | awk '{print $5}'`
   printf "%22s: %s\n" "Root fs usage" "$rootUsed"
-  getCPU                                   # CPU usage
+  if [ "$outputType" = long ]; then
+    getCPU                                 # CPU usage
+  fi
 
   # memory usage
   echo "$moreDashes"              
@@ -380,18 +482,26 @@ function doIt
   echo "$moreDashes"              
   soundCheck                               # check play and record
   echo "$moreDashes"              
-  echo
+  
+  # STT timings with long output
+  if [ "$outputType" = long ]; then
+    timeSTT                                # check STT speed 
+  fi
+  echo                                     # leave some room
  }                                         # doIt()
 
 #+--------------------------------------------------------------------------+
-# Global variables"
+# Global variables
+platform="unknown"                         # can be Nvidia or RasPi
 clear="no"                                 # clear the screen first?
 dashes="---------------------------------------"
 justServices="no"                          # just show services?
 moreDashes="----------------------------------------------------------------------------------"
+outputType="short"                         # short or long output
 verbose=1                                 
 
 # main()
 parseArgs $@                               # parse arguments
+getPlatform                                # either Nvidia or RasPi
 doIt                                       # create output  
 
