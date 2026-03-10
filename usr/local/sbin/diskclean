@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# diskclean - clean up disk space used by mo
+#
+sudo /usr/bin/journalctl --vacuum-size=200M --quiet # limit systemd journal size
+
+# Remove disabled snap revisions and  clear snap cache
+/usr/bin/snap list --all | awk '/disabled/{print $1, $3}' | while read snapName revision
+do
+  sudo /usr/bin/snap remove "$snapName" --revision="$revision" >/dev/null 2>&1
+done
+sudo rm -rf /var/lib/snapd/cache/*
+

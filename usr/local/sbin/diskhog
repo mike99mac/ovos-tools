@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# diskhog - find where disk space is being used
+#
+sudo du -xh / --max-depth=20 2>/dev/null | sort -hr | head -20
+
