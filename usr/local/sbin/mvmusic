@@ -1,37 +1,35 @@
 #!/bin/bash
-#
 # mvmusic - move songs queued and playing on mpc/mpd to a remote Linux 
-#
 tgtBox="$1"
 if [ ${#tgtBox} = 0 ]; then
   echo "ERROR: no target host specified"
   echo "Usage: mvmusic <target-host>"
   exit 1
 fi
-
-# get songs file paths from mpc
-files=$(mpc -f %file% playlist)
+files=$(mpc -f %file% playlist)            # get songs file paths from mpc
 if [ ${#files} = 0 ]; then
-  echo "Say message: there are no songs playing"
+  echo "Say message: there are no songs playing nor paused"
   exit 2
 fi
-
-# get current song position and calculate elapsed time
-currentPos=$(mpc -f "%position%" current)
-elapsedRaw=$(mpc current|awk '/^\[/ {match($0, /[0-9]+:[0-9:]+ /); print substr($0, RSTART, RLENGTH)}'|awk -F/ '{print $1}'|tr -d ' ')
-elapsed=$(echo "$elapsedRaw"|awk -F: '{if(NF==2) print $1*60+$2; else if(NF==3) print $1*3600+$2*60+$3; else print 0}') # convert to seconds
-seekTime=$(( elapsed - 10 ))               # start song 10 seconds earlier  
-if [ "$seekTime" -lt 0 ]; then 
-  seekTime=0; 
+currentPos=$(mpc -f "%position%" current)  # get current song position, calculate elapsed time
+state=$(mpc | awk '/^\[/ {gsub(/[\[\]]/, "", $1); print $1}')
+elapTime=$(mpc | awk '/^\[/ {print $3}' | awk -F'/' '{print $1}')
+elapSecs=$(echo "$elapTime" | awk -F: '{if(NF==2) print $1*60+$2; else if(NF==3) print $1*3600+$2*60+$3; else print 0}')
+seekTime=$(( elapSecs - 10 ))
+if [ "$seekTime" -lt 0 ]; then
+  seekTime=0
 fi
+seekTime=$(printf "%02d:%02d:%02d" $((seekTime/3600)) $((seekTime%3600/60)) $((seekTime%60)))
+echo "state: $state elapSecs: $elapSecs seekTime: $seekTime"
+mpc stop                                   # stop music on local box
 
-# move music to target box and start current song
-ssh "$tgtBox" << EOF                       
-  mpc stop                                 
+# stop music on target, add files and start
+ssh -T "$tgtBox" << EOF
+  mpc stop
   mpc clear
   echo "$files" | while read -r line; do mpc add "\$line"; done
   mpc play $currentPos
-  mpc seek $seekTime
+  sleep 2
+  if [ "$seekTime" != 0 ]; then mpc seek $seekTime; fi
 EOF
-mpc stop                                   # stop music on local box
 
