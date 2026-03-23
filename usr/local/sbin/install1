@@ -57,7 +57,7 @@ function parseArgs()
 
 #+--------------------------------------------------------------------------+
 function getPlatform
-# Set platform to either "Raspberry Pi" or "NVIDIA Jetson" else exit 
+# Set platform to either "Raspberry Pi" or "NVIDIA Jetson" else warn
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
