@@ -10,15 +10,15 @@ function usage
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  echo "Name: lsenv - List information about the OVOS environment" 
-  echo "Usage: lsenv [OPTIONS]" 
+  echo "Name: lsenv - List information about the OVOS environment"
+  echo "Usage: lsenv [OPTIONS]"
   echo ""
   echo "OPTIONS:"
   echo "  -h|--help         Give help (this screen)"
   echo "  --justServices    Just show status of services"
-  echo "  -c|--clear        Clear the screen first" 
+  echo "  -c|--clear        Clear the screen first"
   echo "  -l|--long         Long output - include CPU % and STT speed"
-  echo "  -v|--verbose      Increase verbosity" 
+  echo "  -v|--verbose      Increase verbosity"
   echo "  -x|--debug        Print commands and arguments as they are executed"
   exit 51
  }                                         # usage()
@@ -38,7 +38,7 @@ function parseArgs
       -h|--help)
         usage
         ;;
-      --justServices) 
+      --justServices)
         justServices="yes"
         ;;
       -c|--clear)                          # clear the screen
@@ -47,7 +47,7 @@ function parseArgs
       -l|--long)                           # long output
         outputType="long"
         ;;
-      -v|--verbose) 
+      -v|--verbose)
         verbose=2
         ;;
       -x|--debug)                          # turn trace on
@@ -71,7 +71,7 @@ function verboseMsg
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  if [ "$verbose" -gt 1 ]; then    
+  if [ "$verbose" -gt 1 ]; then
     echo "$@"
   fi
  }                                         # verboseMsg()
@@ -94,7 +94,7 @@ function getPlatform
 
 #+--------------------------------------------------------------------------+
 function listMinimy
-# List the status of Minimy 
+# List the status of Minimy
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -115,8 +115,8 @@ function listMinimy
  }                                         # listMinimy()
 
 #+--------------------------------------------------------------------------+
-function listYAVOS 
-# List YAVOS processes 
+function listYAVOS
+# List YAVOS processes
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -135,7 +135,7 @@ function listYAVOS
 
 #+--------------------------------------------------------------------------+
 function listService
-# List the status of one service 
+# List the status of one service
 # Arg 1: service to list
 # Arg 2: "root" or "user" service
 #+--------------------------------------------------------------------------+
@@ -147,7 +147,7 @@ function listService
   local serviceType=$2
 
   local cmd
-  local status 
+  local status
   local initSystem
   # RED="\e[31m"              print in colors
   # GREEN="\e[32m"
@@ -178,8 +178,8 @@ function listService
     exit 4
   fi
   printf "%22s: " "$theService"
-  verboseMsg "Running: $cmd ..." 
-  cmdOut=`eval $cmd` 
+  verboseMsg "Running: $cmd ..."
+  cmdOut=`eval $cmd`
   verboseMsg "$cmdOut"
   if [ $initSystem = "SystemD" ]; then
     echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
@@ -193,7 +193,7 @@ function listService
         echo "$cmdOut" | grep "Active: failed" >/dev/null
         if [ $? = 0 ]; then                  # found "failed"
           printf '\e[31m%s\e[0m\n' "failed"  # in red
-        else 
+        else
           echo "$cmdOut" | grep "code=exited" >/dev/null
           if [ $? = 0 ]; then                # found "exited"
             printf '\e[31m%s\e[0m\n' "exited" # in red
@@ -207,7 +207,7 @@ function listService
           fi
         fi
       fi
-    fi 
+    fi
   elif [ $initSystem = "OpenRC" ]; then
     echo "$cmdOut" | grep "status: started" >/dev/null
     if [ $? = 0 ]; then                      # found "started"
@@ -230,7 +230,7 @@ function listService
 
 #+--------------------------------------------------------------------------+
 function getCPU
-# Get CPU usage for 4 seconds then average iterations 2-4 
+# Get CPU usage for 4 seconds then average iterations 2-4
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -238,30 +238,30 @@ function getCPU
 
   local cpu_total=0
   for i in 1 2 3 4; do
-    # Get the first line with aggregate of all CPUs 
-    cpu_now=($(head -n1 /proc/stat)) 
-    # Get all columns but skip the first (which is the "cpu" string) 
-    cpu_sum="${cpu_now[@]:1}" 
-    # Replace the column seperator (space) with + 
-    cpu_sum=$((${cpu_sum// /+})) 
-    # Get the delta between two reads 
-    cpu_delta=$((cpu_sum - cpu_last_sum)) 
-    # Get the idle time Delta 
-    cpu_idle=$((cpu_now[4]- cpu_last[4])) 
-    # Calc time spent working 
-    cpu_used=$((cpu_delta - cpu_idle)) 
+    # Get the first line with aggregate of all CPUs
+    cpu_now=($(head -n1 /proc/stat))
+    # Get all columns but skip the first (which is the "cpu" string)
+    cpu_sum="${cpu_now[@]:1}"
+    # Replace the column seperator (space) with +
+    cpu_sum=$((${cpu_sum// /+}))
+    # Get the delta between two reads
+    cpu_delta=$((cpu_sum - cpu_last_sum))
+    # Get the idle time Delta
+    cpu_idle=$((cpu_now[4]- cpu_last[4]))
+    # Calc time spent working
+    cpu_used=$((cpu_delta - cpu_idle))
     #verboseMsg "cpu_now = $cpu_now cpu_sum = $cpu_sum cpu_delta = $cpu_delta cpu_used = $cpu_used"
-    # Calc percentage 
-    cpu_usage=$((100 * cpu_used / cpu_delta)) 
-    
-    # Keep this as last for our next read 
-    cpu_last=("${cpu_now[@]}") 
-    cpu_last_sum=$cpu_sum 
-    
-    if [ "$i" != 1 ]; then                 # use iterations 2-4 
+    # Calc percentage
+    cpu_usage=$((100 * cpu_used / cpu_delta))
+
+    # Keep this as last for our next read
+    cpu_last=("${cpu_now[@]}")
+    cpu_last_sum=$cpu_sum
+
+    if [ "$i" != 1 ]; then                 # use iterations 2-4
       let cpu_total=$cpu_total+$cpu_usage
     fi
-    sleep 1 
+    sleep 1
   done
   let cpu_usage=$cpu_total/3               # calculate average
   printf "%22s: %s\n" "CPU usage" "$cpu_usage%"
@@ -295,7 +295,7 @@ function listTemp
 
 #+--------------------------------------------------------------------------+
 function tmpfsUsage
-# Is the directory passed in using a tmpfs? 
+# Is the directory passed in using a tmpfs?
 # Arg 1   : directory to mount
 # Args 2-n:
 #+--------------------------------------------------------------------------+
@@ -307,18 +307,18 @@ function tmpfsUsage
   shift
   local desc="$@"
 
-  verboseMsg "Calling: mount | grep $theDir | grep tmpfs" 
+  verboseMsg "Calling: mount | grep $theDir | grep tmpfs"
   mount | grep $theDir | grep tmpfs >/dev/null 2>&1
-  if [ $? = 0 ]; then                      # directory is using a tmpfs       
-    printf "%30s %20s : \e[32m%s\e[0m\n%s" "$theDir" "$desc" yes 
+  if [ $? = 0 ]; then                      # directory is using a tmpfs
+    printf "%30s %20s : \e[32m%s\e[0m\n%s" "$theDir" "$desc" yes
   else
-    printf "%30s %20s : \e[31m%s\e[0m\n%s" "$theDir" "$desc" no 
+    printf "%30s %20s : \e[31m%s\e[0m\n%s" "$theDir" "$desc" no
   fi
  }                                         # getCPU()
 
 #+--------------------------------------------------------------------------+
-function soundCheck 
-# Check play and record devices 
+function soundCheck
+# Check play and record devices
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -332,25 +332,25 @@ function soundCheck
   numMics=`echo "$mics" | wc -l`
   micsCard=`echo "$mics" | awk -F"," '{print $1}'`
   micsDevice=`echo "$mics" | awk -F"," '{print $2}' | sed 's/^ //g'`
-  if [ $numMics = 0 ]; then 
+  if [ $numMics = 0 ]; then
     echo "WARNING: no microphones found"
   else
-    echo "Mic     : $micsCard" 
-    echo "          $micsDevice" 
-  fi  
-  if [ $numSpkrs = 0 ]; then 
+    echo "Mic     : $micsCard"
+    echo "          $micsDevice"
+  fi
+  if [ $numSpkrs = 0 ]; then
     echo "WARNING: no speakers found"
   else
-    echo "Speakers: $spkrsCard" 
-    echo "          $spkrsDevice" 
+    echo "Speakers: $spkrsCard"
+    echo "          $spkrsDevice"
   fi
   echo "Playing : /usr/share/sounds/alsa/Front_Center.wav"
   aplay -q /usr/share/sounds/alsa/Front_Center.wav
  }                                         #  soundCheck()
 
 #+--------------------------------------------------------------------------+
-function timeSTT 
-# Test the speed of local (spoke) and remote (hub) STT conversions 
+function timeSTT
+# Test the speed of local (spoke) and remote (hub) STT conversions
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
@@ -360,13 +360,13 @@ function timeSTT
   spokeScript="/usr/local/sbin/testspoke.py"
   venv="$HOME/minimy/minimy_venv/bin/python3"
   echo "STT speeds:"
-  if [ ! -x $hubScript ]; then 
+  if [ ! -x $hubScript ]; then
     echo "ERROR: did not find executable $hubScript"
   else
     echo "Hub:"
     time $hubScript
   fi
-  if [ ! -x $spokeScript ]; then 
+  if [ ! -x $spokeScript ]; then
     echo "ERROR: did not find executable $spokeScript"
   else
     echo "Spoke:"
@@ -376,19 +376,19 @@ function timeSTT
 
 #+--------------------------------------------------------------------------+
 function doIt
-# List much information about the OVOS environment 
+# List much information about the OVOS environment
 #+--------------------------------------------------------------------------+
  {
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  local theType 
+  local theType
   if [ "$clear" = "yes" ]; then            # clear the screen
-    clear     
+    clear
   fi
 
   # check for Neon, Minimy or OVOS services
-  echo "$dashes"              
+  echo "$dashes"
   if [ -d /etc/neon ]; then                # assume Neon
     theType="neon"
     echo "Neon services:"
@@ -409,24 +409,23 @@ function doIt
   else                                     # assume none of the three are installed
     theType="none"
     printf '%23s \e[31m%s\e[0m\n' "PVAs:" "None installed" # in red
-  fi  
-  echo "$dashes"              
-  echo "Services:"
-  if [ -f "/usr/bin/pipewire" ]; then      # pipewire does audio 
-    listService pipewire user     
-  else                                     # assume pulseaudio does audio
-    listService pulseaudio root 
   fi
-  listService mpd user                     # MPD runs as user 
+  echo "$dashes"
+  echo "Services:"
+  if [ -f "/usr/bin/pipewire" ]; then      # pipewire does audio
+    listService pipewire user
+  else                                     # assume pulseaudio does audio
+    listService pulseaudio root
+  fi
+  listService mpd user                     # MPD runs as user
   listService redis root
   listService whisper root                 # whisper does STT as root
-  listService ollama root                  # ollama runs as root
   if [ "$justServices" = "yes" ]; then     # all done
     exit
-  fi      
+  fi
 
-  # also list many other settings and status 
-  echo "$dashes"              
+  # also list many other settings and status
+  echo "$dashes"
   local theVersion
   local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
   printf "%22s: %s\n" "Distro" "$distro"
@@ -436,8 +435,8 @@ function doIt
     theVersion=`neonver`
     printf "%20s: %s\n" "Neon version" "$theVersion"
   elif [ "$theType" = minimy ]; then
-    if [ -f $HOME/minimy-mike99mac/version ]; then 
-      theVersion=`cat $HOME/minimy-mike99mac/version`     
+    if [ -f $HOME/minimy-mike99mac/version ]; then
+      theVersion=`cat $HOME/minimy-mike99mac/version`
       printf "%22s: %s\n" "Minimy version" "$theVersion"
     fi
   elif [ "$theType" = ovos ]; then
@@ -460,12 +459,12 @@ function doIt
   fi
 
   # memory usage
-  echo "$moreDashes"              
+  echo "$moreDashes"
   echo "Memory usage:"
   free -h | sed 's/^/  /g'                 # add two leading spaces
 
-  # are log directories using tmpfs? 
-  echo "$moreDashes"              
+  # are log directories using tmpfs?
+  echo "$moreDashes"
   if [ "$theType" = neon ]; then
     echo "tmpfs filesystems: "
     tmpfsUsage $HOME/.local/state/neon Neon logs
@@ -479,13 +478,13 @@ function doIt
   else
     printf "%23s\n" "tmpfs filesystems:"
   fi
-  echo "$moreDashes"              
+  echo "$moreDashes"
   soundCheck                               # check play and record
-  echo "$moreDashes"              
-  
+  echo "$moreDashes"
+
   # STT timings with long output
   if [ "$outputType" = long ]; then
-    timeSTT                                # check STT speed 
+    timeSTT                                # check STT speed
   fi
   echo                                     # leave some room
  }                                         # doIt()
@@ -498,10 +497,9 @@ dashes="---------------------------------------"
 justServices="no"                          # just show services?
 moreDashes="----------------------------------------------------------------------------------"
 outputType="short"                         # short or long output
-verbose=1                                 
+verbose=1
 
 # main()
 parseArgs $@                               # parse arguments
 getPlatform                                # either Nvidia or RasPi
-doIt                                       # create output  
-
+doIt                                       # create output
