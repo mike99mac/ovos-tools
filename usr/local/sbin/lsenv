@@ -448,7 +448,11 @@ function doIt
     printf "%22s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
   fi
 
-  local IPaddr=`ip -4 -o addr show | awk '!/ lo / {print $4}' | cut -d/ -f1` # get the IP address
+  local IPaddr=$(ip -4 -o addr show | awk '
+    $2 ~ /^(en|eth|ens|enp)/ {split($4,a,"/"); print a[1]; exit}
+    $2 ~ /^(wl|wlan)/        {split($4,a,"/"); wifi=a[1]}
+    END {if (!found && wifi) print wifi}
+  ')
   printf "%22s: %s\n" "IP address" "$IPaddr"
   listTemp                                 # RasPi temperature
 
