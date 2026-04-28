@@ -427,7 +427,8 @@ function doIt
   # also list many other settings and status
   echo "$dashes"
   local theVersion
-  local distro=`grep ^PRETTY /etc/os-release | awk -F'"' '{print $2}'` # get the pretty name
+  source /etc/os-release
+  local distro="$PRETTY_NAME" # get the pretty name
   printf "%22s: %s\n" "Distro" "$distro"
   local kernel=`uname -r`
   printf "%22s: %s\n" "Kernel" "$kernel"
@@ -447,7 +448,11 @@ function doIt
     printf "%22s: %s\n" "VIRTUAL_ENV" "$VIRTUAL_ENV"
   fi
 
-  local IPaddr=`ip -4 addr show | grep -oP '192\.\d+\.\d+\.\d+' | head -n1` # get the IP address
+  local IPaddr=$(ip -4 route get 9.9.9.9 2>/dev/null | sed -n 's/.*src \([0-9.]\+\).*/\1/p')
+  # If no default route (offline), fall back to first non-loopback IP
+  if [ -z "$IPaddr" ]; then
+    IPaddr=$(ip -4 -o addr show | awk '!/ lo / {split($4,a,"/"); print a[1]; exit}')
+  fi
   printf "%22s: %s\n" "IP address" "$IPaddr"
   listTemp                                 # RasPi temperature
 
