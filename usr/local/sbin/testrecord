@@ -65,6 +65,154 @@ function parseArgs
  }                                         # parseArgs()
 
 #+--------------------------------------------------------------------------+
+function getSupportedFormat
+# Get the best supported format for a card
+# Arg 1: card number
+# Returns: format string (S16_LE, S24_3LE, etc)
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local cardNum=$1
+  local cardDir="/proc/asound/card$cardNum/pcm0c/sub0"
+  
+  # Try to get format from hw_params if available
+  if [ -f "$cardDir/hw_params" ]; then
+    local format=`grep "^format:" "$cardDir/hw_params" 2>/dev/null | awk '{print $2}'`
+    if [ -n "$format" ]; then
+      echo "$format"
+      return
+    fi
+  fi
+  
+  # Test what formats actually work with arecord
+  # S16_LE is most compatible
+  if arecord -D hw:$cardNum,0 -r 44100 -c 1 -f S16_LE -d 0.1 /tmp/test-format-$cardNum.wav 2>/dev/null; then
+    echo "S16_LE"
+    rm -f /tmp/test-format-$cardNum.wav
+    return
+  fi
+  
+  # Default fallback
+  echo "S16_LE"
+ }                                         # getSupportedFormat()
+
+#+--------------------------------------------------------------------------+
+function testCardCapture
+# Test if a card can actually capture audio
+# Arg 1: card number
+# Returns: 0 if it captures, 1 if silent
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local cardNum=$1
+  local testFile="/tmp/capture-test-$cardNum.wav"
+  
+  # Record 1 second of audio
+  arecord -D hw:$cardNum,0 -r 44100 -c 1 -f S16_LE -d 1 "$testFile" 2>/dev/null
+  
+  # Check if file has meaningful audio data (not silent)
+  # A silent 1-second S16_LE mono file at 44100Hz should be ~88KB
+  # If much smaller, it's likely empty/failed
+  local size=$(stat -f%z "$testFile" 2>/dev/null || stat -c%s "$testFile" 2>/dev/null || echo 0)
+  
+  # S16_LE mono at 44100Hz = 88200 bytes per second + 44 byte header = 88244 bytes
+  # Allow some margin for compression
+  if [ $size -gt 80000 ]; then
+    if [ "$verbose" = 2 ]; then
+      echo "Card $cardNum: captures audio (file size: $size bytes)"
+    fi
+    rm -f "$testFile"
+    return 0
+  else
+    if [ "$verbose" = 2 ]; then
+      echo "Card $cardNum: no audio captured (file size: $size bytes - likely silent)"
+    fi
+    rm -f "$testFile"
+    return 1
+  fi
+ }                                         # testCardCapture()
+
+#+--------------------------------------------------------------------------+
+function findBestMicrophone
+# Automatically select the best microphone from available options
+# Returns: the best card number to use
+# Priority: Actually captures audio > USB audio devices > other devices
+#+--------------------------------------------------------------------------+
+ {
+  : SOURCE: ${BASH_SOURCE}
+  : STACK:  ${FUNCNAME[@]}
+
+  local micCards=$1
+  local bestCard=""
+  local bestScore=0
+
+  for card in $micCards; do
+    local cardDir="/proc/asound/card$card/pcm0c/sub0"
+    local score=0
+    
+    # Skip if card directory doesn't exist
+    if [ ! -d "$cardDir" ]; then
+      if [ "$verbose" = 2 ]; then
+        echo "Card $card: SKIPPED (no pcm0c/sub0)"
+      fi
+      continue
+    fi
+    
+    # Skip NVIDIA tegra/APE virtual devices
+    if [ -f "$cardDir/info" ]; then
+      if grep -q "tegra\|APE\|XBAR" "$cardDir/info" 2>/dev/null; then
+        if [ "$verbose" = 2 ]; then
+          echo "Card $card: SKIPPED (virtual device)"
+        fi
+        continue
+      fi
+    fi
+    
+    # TEST: Can this card actually capture audio?
+    if testCardCapture $card; then
+      score=$((score + 1000))  # Huge bonus for actually working
+    else
+      score=$((score + 100))   # Still score it, but lower
+    fi
+    
+    # Check for USB device (preferred, score +50)
+    if [ -f "$cardDir/info" ]; then
+      if grep -q "USB" "$cardDir/info" 2>/dev/null; then
+        score=$((score + 50))
+      fi
+    fi
+    
+    # Check for stereo (score +10)
+    local channels=`grep channels: "$cardDir/hw_params" 2>/dev/null | awk '{print $2}'`
+    if [ "$channels" -gt 1 ] 2>/dev/null; then
+      score=$((score + 10))
+    fi
+    
+    # Check for high sample rate (score +5)
+    local rate=`grep rate: "$cardDir/hw_params" 2>/dev/null | awk '{print $2}'`
+    if [ "$rate" -ge 48000 ] 2>/dev/null; then
+      score=$((score + 5))
+    fi
+    
+    if [ "$verbose" = 2 ]; then
+      echo "Card $card: score=$score, channels=$channels, rate=$rate"
+    fi
+    
+    # Update best card if this one scores higher
+    if [ $score -gt $bestScore ]; then
+      bestScore=$score
+      bestCard=$card
+    fi
+  done
+  
+  echo "$bestCard"
+ }                                         # findBestMicrophone()
+
+#+--------------------------------------------------------------------------+
 function recordCard
 # Record audio from a specific card 
 # Arg 1: card number
@@ -79,41 +227,30 @@ function recordCard
     echo "Uh-oh! $cardDir is not a directory"
     exit 4
   fi
-  local hw_paramsFile="$cardDir/hw_params"
-  if [ ! -f $hw_paramsFile ]; then
-    echo "Uh-oh! $hw_paramsFile is not a file"
-    exit 4
+
+  # Get supported format for this card
+  local format=$(getSupportedFormat $cardNum)
+  
+  # Get rate if available
+  local rate=44100
+  if [ -f "$cardDir/hw_params" ]; then
+    local rateFromFile=`grep rate: "$cardDir/hw_params" | awk '{print $2}'`
+    if [ -n "$rateFromFile" ]; then
+      rate=$rateFromFile
+    fi
+  fi
+  
+  # Get channels if available, default to 1
+  local channels=1
+  if [ -f "$cardDir/hw_params" ]; then
+    local channelsFromFile=`grep channels: "$cardDir/hw_params" | awk '{print $2}'`
+    if [ -n "$channelsFromFile" ]; then
+      channels=$channelsFromFile
+    fi
   fi
 
-  # try to get rate, num channels and format from the hw_params file, or use defaults
-  local rateClause=`grep rate: $cardDir/hw_params | awk '{print $2}'` 
-  if [ "$verbose" = 2 ]; then
-    echo "rate = $rate"
-  fi    
-  if [ ${#rateClause} != 0 ]; then         # a rate was found 
-    rateClause="-r $rateClause"            # add -r flag
-  else
-    rateClause="-r 44100"                  # default to 44100 bit sample rate
-  fi
-  local channelsClause=`grep channels: $hw_paramsFile | awk '{print $2}'`
-  if [ "$verbose" = 2 ]; then
-    echo "channelsClause = $channelsClause"
-  fi    
-  if [ ${#channelsClause} != 0 ]; then     # number of channels found
-    channelsClause="-c $channelsClause"    # add -c flag else default to 1 channel  
-  fi
-  local formatClause=`grep ^format: $hw_paramsFile | awk '{print $2}'`
-  if [ "$verbose" = 2 ]; then
-    echo "formatClause = $formatClause"
-  fi 
-  if [ ${#formatClause} != 0 ]; then       # format found in hw_params file
-    formatClause="-f $formatClause"        # add -f flag
-  else
-    formatClause="-f S24_3LE"              # default to 24-bit, 3-byte integer format for compatibility
-  fi
-
-  # put the arecord command together and run it
-  cmd="arecord $flags $rateClause $channelsClause $formatClause -d $numSecs /tmp/test-mic.wav"
+  # Build arecord command using -D to specify device directly
+  local cmd="arecord -D hw:$cardNum,0 -r $rate -c $channels -f $format -d $numSecs /tmp/test-mic.wav"
   echo "Testing your microphone for $numSecs seconds ==========> SAY SOMETHING!"
   echo "INFO: running command: $cmd"
   $cmd                                     # run the command
@@ -136,14 +273,28 @@ function listCard
   local cardNum=$1
 
   local cardDir="/proc/asound/card$cardNum/pcm0c/sub0"
+  if [ ! -d "$cardDir" ]; then
+    echo "Card $cardNum: directory not found"
+    return
+  fi
+  
   echo "-------------------------------"
   echo "Microphone number $cardNum:"
-  echo "Information file: $cardDir/info"
-  cat $cardDir/info                        # show contents of file
-  echo -n "Status: "
-  cat $cardDir/status                      # show status file 
-  echo -n "hw_params: "
-  cat $cardDir/hw_params                   # show hw_params file 
+  
+  if [ -f "$cardDir/info" ]; then
+    echo "Information:"
+    cat $cardDir/info                      # show contents of file
+  fi
+  
+  if [ -f "$cardDir/status" ]; then
+    echo -n "Status: "
+    cat $cardDir/status                    # show status file 
+  fi
+  
+  if [ -f "$cardDir/hw_params" ]; then
+    echo -n "hw_params: "
+    cat $cardDir/hw_params                 # show hw_params file 
+  fi
  }                                         # listCard()
 
 #+--------------------------------------------------------------------------+
@@ -162,7 +313,7 @@ function performAction
   fi
   
   # get get mic(s) card number(s) and the number of mics found 
-  local micCards=`$arecordCmd -l | grep ^card | awk '{print $2}' | sed 's/://g' | xargs`
+  local micCards=`$arecordCmd -l | grep ^card | awk '{print $2}' | sed 's/://g' | sort -u | xargs`
   local micCount=`echo $micCards | wc -w`
 
   # actions for 0, 1 or multiple cards found 
@@ -185,13 +336,16 @@ function performAction
     *)                                     # more than one mic found
       if [ "$actionType" = record ]; then 
         if [ "$cardToUse" = default ]; then 
-          echo "Uh-oh! found multiple microphones"
-          echo "Specify which to use with -c|--cardnum"
-          echo
-          usage                            # give help
-        else
-          recordCard $cardToUse
+          # Automatically select the best microphone
+          cardToUse=$(findBestMicrophone "$micCards")
+          if [ -z "$cardToUse" ]; then
+            echo "Uh-oh! Could not find a suitable microphone"
+            echo "Found microphones: $micCards"
+            usage
+          fi
+          echo "Found $micCount microphones - automatically selecting card $cardToUse as best option"
         fi
+        recordCard $cardToUse
       else                                 # assume list
         echo "Found $micCount microphones"
         local nextCard
@@ -218,9 +372,10 @@ retVal=$?                                  # get return code
 if [ $retVal != 0 ]; then
   exit $retVal
 elif [ ! -x /usr/local/sbin/testplay ]; then
-  echo "ERROR: did not executable file /usr/local/sbin/testplay" ];
+  echo "ERROR: did not find executable file /usr/local/sbin/testplay" ];
   exit 2
 fi
 echo "Calling testplay to play back the recording ..."
 /usr/local/sbin/testplay $flags
 exit $?
+
