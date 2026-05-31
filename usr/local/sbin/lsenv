@@ -153,8 +153,8 @@ function listService
   # GREEN="\e[32m"
   # YELLOW="\e[33m"
 
-  if command -v systemctl &>/dev/null; then # Using SystemD
-    initSystem="SystemD"
+  if command -v systemctl &>/dev/null; then # Using systemd
+    initSystem="systemd"
     if [ "$serviceType" = root ]; then
       cmd="/usr/bin/systemctl status $theService"
     elif [ "$serviceType" = user ]; then
@@ -181,7 +181,7 @@ function listService
   verboseMsg "Running: $cmd ..."
   cmdOut=`eval $cmd`
   verboseMsg "$cmdOut"
-  if [ $initSystem = "SystemD" ]; then
+  if [ $initSystem = "systemd" ]; then
     echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
     if [ $? = 0 ]; then                      # found "active"
       printf '\e[32m%s\e[0m\n' "Started"     # in green
@@ -412,15 +412,12 @@ function doIt
   fi
   echo "$dashes"
   echo "Services:"
-  if [ -f "/usr/bin/pipewire" ]; then      # pipewire does audio
-    listService pipewire user
-  else                                     # assume pulseaudio does audio
-    listService pulseaudio root
-  fi
-  listService mpd user                     # MPD runs as user
-  listService redis root
-  listService whisper root                 # whisper does STT as root
-  if [ "$justServices" = "yes" ]; then     # all done
+  listService fallback user                # Fallback handles LLM questions
+  listService mpd user                     # MPD plays music
+  listService pipewire user                # PipeWire handles audio
+  listService redis root                   # Redis is the message bus
+  listService whisper user                 # Whisper does STT
+  if [ "$justServices" = "yes" ]; then
     exit
   fi
 
