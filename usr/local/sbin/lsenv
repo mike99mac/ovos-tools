@@ -181,31 +181,18 @@ function listService
   verboseMsg "Running: $cmd ..."
   cmdOut=`eval $cmd`
   verboseMsg "$cmdOut"
-  if [ $initSystem = "systemd" ]; then
-    echo "$cmdOut" | grep "Status: \"Started\"" >/dev/null
-    if [ $? = 0 ]; then                      # found "active"
-      printf '\e[32m%s\e[0m\n' "Started"     # in green
-    else
-      echo "$cmdOut" | grep "active (" >/dev/null
-      if [ $? = 0 ]; then
-        printf '\e[32m%s\e[0m\n' "active (running)" # in green
+    if [ $initSystem = "systemd" ]; then
+    if [ "$serviceType" = "user" ]; then
+      if systemctl --user is-active --quiet "$theService" 2>/dev/null; then
+        printf '\e[32m%s\e[0m\n' "active (running)"
       else
-        echo "$cmdOut" | grep "Active: failed" >/dev/null
-        if [ $? = 0 ]; then                  # found "failed"
-          printf '\e[31m%s\e[0m\n' "failed"  # in red
-        else
-          echo "$cmdOut" | grep "code=exited" >/dev/null
-          if [ $? = 0 ]; then                # found "exited"
-            printf '\e[31m%s\e[0m\n' "exited" # in red
-          else
-            echo "$cmdOut" | grep "inactive (dead)" >/dev/null
-            if [ $? = 0 ]; then              # found "inactive"
-              printf '\e[31m%s\e[0m\n' "inactive (dead)" # in red
-            else
-              echo "Unknown"
-            fi
-          fi
-        fi
+        printf '\e[31m%s\e[0m\n' "inactive (dead)"
+      fi
+    else
+      if systemctl is-active --quiet "$theService" 2>/dev/null; then
+        printf '\e[32m%s\e[0m\n' "active (running)"
+      else
+        printf '\e[31m%s\e[0m\n' "inactive (dead)"
       fi
     fi
   elif [ $initSystem = "OpenRC" ]; then
