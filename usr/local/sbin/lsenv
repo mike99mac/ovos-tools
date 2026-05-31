@@ -100,7 +100,7 @@ function listMinimy
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-procs=$(pgrep -af minimy | grep -v -e local_whisper -e vim -e fallback | awk '{gsub(/"/, ""); n=split($0, a, "/"); print a[n]}' | sort -u | xargs | sed 's/\.py\| python3//g')
+procs=$(pgrep -af minimy | grep -v -e whisper -e vim -e fallback | awk '{gsub(/"/, ""); n=split($0, a, "/"); print a[n]}' | sort -u | xargs | sed 's/\.py\| python3//g')
   if [ ${#procs} = 0 ]; then               # matching process
     printf '%22s\e[31m%s\e[0m\n' "Ovos/Neon/Minimy procs:" " None found"  # in red
   else                                     # Minimy is running
