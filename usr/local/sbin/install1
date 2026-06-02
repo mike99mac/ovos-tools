@@ -208,6 +208,7 @@ function installCoreqs
   else
     runCmd sudo apt-get --quiet install -y python3-rpi.gpio raspi-config
   fi
+  runCmd sudo apt-get --quiet install -y libasound2-plugins
 
   if [ ! -f /etc/vim/vimrc.orig ]; then
     runCmd sudo cp /etc/vim/vimrc /etc/vim/vimrc.orig
