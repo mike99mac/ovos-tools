@@ -287,6 +287,9 @@ function installCoreqs
   if [ $? != 0 ]; then
     runCmd sudo mount /mnt/share
   fi
+
+  # Copy contents of ./* to /usr/local/sbin
+  runCmd sudo cp -a "$(dirname '${BASH_SOURCE[0]}')/* /usr/local/sbin"
  }
 
 # global variables
