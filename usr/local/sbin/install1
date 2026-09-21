@@ -116,11 +116,8 @@ function configMpd
   local mpd_cache_dir="$HOME/.cache/mpd"
   local mpd_log_dir="$HOME/.local/share/mpd"
   local mpd_conf_file="$mpd_conf_dir/mpd.conf"
-
   echo "Configuring MPD as a user service..." | tee -a "$outFile"
-
-  # create directories
-  mkdir -p "$mpd_conf_dir" "$mpd_data_dir/playlists" "$mpd_cache_dir" "$mpd_log_dir"
+  mkdir -p "$mpd_conf_dir" "$mpd_data_dir/playlists" "$mpd_cache_dir" "$mpd_log_dir" # create directories
 
   # create minimal mpd.conf (no comments, pipewire-pulse output)
   cat > "$mpd_conf_file" << EOF
@@ -282,6 +279,7 @@ function installCoreqs
     if [ ! -f /etc/fstab.orig ]; then
       sudo cp /etc/fstab /etc/fstab.orig
       echo "//LS210D7A7.lan/share   /mnt/share    cifs    user=mike,password=sawdust5,vers=1.0 0 0" | sudo tee -a /etc/fstab
+    runCmd sudo mount /mnt/share
     fi
   fi
   if [ ! -d /mnt/share ]; then
@@ -289,13 +287,6 @@ function installCoreqs
     sudo chgrp users /mnt/share
     sudo chmod 777 /mnt/share
   fi
-  grep "/mnt/share" /etc/mtab >/dev/null 2>&1
-  if [ $? != 0 ]; then
-    runCmd sudo mount /mnt/share
-  fi
-
-  # Copy contents of ./* to /usr/local/sbin
-  runCmd sudo cp -a "$(dirname '${BASH_SOURCE[0]}')/* /usr/local/sbin"
  }
 
 # global variables
@@ -316,3 +307,4 @@ if [ $sec -lt 10 ]; then
 fi
 echo "Successfully installed co-reqs for minimy in $min:$sec" | tee -a "$outFile"
 echo "Log file: $outFile"
+
