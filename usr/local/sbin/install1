@@ -129,7 +129,7 @@ bind_to_address "127.0.0.1"
 db_file "$mpd_cache_dir/tag_cache"
 log_file "$mpd_log_dir/mpd.log"
 log_level "default"
-music_directory "/mnt/share/music"
+music_directory "/mnt/usb"
 playlist_directory "$mpd_data_dir/playlists"
 state_file "$mpd_data_dir/state"
 sticker_file "$mpd_data_dir/sticker.sql"
@@ -166,13 +166,18 @@ Restart=on-failure
 WantedBy=default.target
 EOF
   fi
-
   systemctl --user daemon-reload
   systemctl --user enable mpd
   systemctl --user start mpd
-
-  echo "MPD user service enabled and started." | tee -a "$outFile"
- }
+  echo "mpd user service enabled and started." | tee -a "$outFile"
+  runCmd mpc --wait update                 # index music files
+  numSongs=`mpc listall | wc -l`           # get number of songs indexed
+  if [ "$numSongs" = 0 ]; then             # no music files found
+    echo "No music files found"
+  else
+    echo "$numSongs music files found"
+  fi
+ }                                         # configMpd()
 
 #+--------------------------------------------------------------------------+
 function installCoreqs
