@@ -401,9 +401,8 @@ function doIt
   echo "Services:"
   listService fallback user                # Fallback handles LLM questions
   listService mpd user                     # MPD plays music
-  # piper is no longer a service
-  # listService piper user                   # Piper does TTS
   listService pipewire user                # PipeWire handles audio
+  listService piper user                   # Piper does TTS 
   listService redis root                   # Redis is the message bus
   listService whisper user                 # Whisper does STT
   if [ "$justServices" = "yes" ]; then
