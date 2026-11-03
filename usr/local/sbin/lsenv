@@ -100,7 +100,7 @@ function listMinimy
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-procs=$(pgrep -af minimy | grep -v -E "whisper|vim|fallback|savewav|piper|resource_tracker|multiprocessing" | awk '{gsub(/"/, ""); n=split($0, a, "/"); print a[n]}' | sort -u | xargs | sed 's/\.py\| python3//g')
+procs=$(pgrep -af minimy | grep -v -E "whisper|vim|fallback|savewav|piper|spotify|librespot|resource_tracker|multiprocessing" | awk '{gsub(/"/, ""); n=split($0, a, "/"); print a[n]}' | sort -u | xargs | sed 's/\.py\| python3//g')
   if [ ${#procs} = 0 ]; then               # matching process
     printf '%22s\e[31m%s\e[0m\n' "Ovos/Neon/Minimy procs:" " None found"  # in red
   else                                     # Minimy is running
@@ -109,7 +109,7 @@ procs=$(pgrep -af minimy | grep -v -E "whisper|vim|fallback|savewav|piper|resour
     else                                   # verbose mode
       echo "Minimy processes:"
       echo "$procs" | sed 's/^/    /g'
-      ps -ef | grep '[p]ython3 (framework|skills)' | grep -v -E 'whisper|vim|fallback|savewav|piper|resource_tracker|multiprocessing' | sed 's/^/    /g'
+      ps -ef | grep '[p]ython3 (framework|skills)' | grep -v -E 'whisper|vim|fallback|savewav|piper|spotify|librespot|resource_tracker|multiprocessing' | sed 's/^/    /g'
     fi
   fi
  }                                         # listMinimy()
@@ -404,6 +404,7 @@ function doIt
   listService pipewire user                # PipeWire handles audio
   listService piper user                   # Piper does TTS 
   listService redis root                   # Redis is the message bus
+  listService spotify user                 # Spotify streams music
   listService whisper user                 # Whisper does STT
   if [ "$justServices" = "yes" ]; then
     exit
