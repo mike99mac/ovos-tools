@@ -1,10 +1,24 @@
 #!/bin/bash
-# 
-# speak - speak some text using piper     
 #
-words="$@" 
+# speak - speak some text using piper
+#
+words="$@"
 if [ ${#words} = 0 ]; then
   words="You didn't tell me what to say"
 fi
-echo $words | piper --model ~/minimy/framework/services/tts/local/piper/en_US-hfc_male-medium.onnx -f /tmp/speak.wav
+minimyDir="${SVA_BASE_DIR:-$HOME/minimy}"
+piperDir="$minimyDir/framework/services/tts/local/piper"
+cfg="$minimyDir/install/mmconfig.yml"
+
+voice=$("$minimyDir/minimy_venv/bin/python3" -c \
+  "import yaml; d=yaml.safe_load(open('$cfg')); b=next((i['Basic'] for i in d if 'Basic' in i), {}); print(b.get('TTS', {}).get('LocalVoice') or 'en_US-hfc_male-medium')" 2>/dev/null)
+[ -z "$voice" ] && voice="en_US-hfc_male-medium"
+
+model="$piperDir/$voice.onnx"
+if [ ! -f "$model" ]; then
+  echo "WARN: $model not found; using en_US-hfc_male-medium" >&2
+  model="$piperDir/en_US-hfc_male-medium.onnx"
+fi
+
+echo "$words" | "$piperDir/piper" --model "$model" -f /tmp/speak.wav
 aplay /tmp/speak.wav
