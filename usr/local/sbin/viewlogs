@@ -89,4 +89,3 @@ verbose=1
 # main()
 parseArgs $@                               # parse arguments
 doList                                     # create output  
-

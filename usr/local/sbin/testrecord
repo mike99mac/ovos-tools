@@ -378,4 +378,3 @@ fi
 echo "Calling testplay to play back the recording ..."
 /usr/local/sbin/testplay $flags
 exit $?
-

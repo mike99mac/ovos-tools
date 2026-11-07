@@ -421,4 +421,3 @@ Below is one completed boombox.
 
 ![](assembled-back-view.jpg)
 *Under the hood*
-

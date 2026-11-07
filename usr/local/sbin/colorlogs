@@ -11,7 +11,8 @@
 # stt          36       cyan
 #
 tempFile=`mktemp`
-cd $HOME/minimy/logs
+minimyDir="${SVA_BASE_DIR:-$HOME/minimy}"  # Minimy install directory
+cd $minimyDir/logs
 for i in tts media_player intent skills stt; do 
   cat $i.log | sed "s/\(\[.*\] \)\(.*\)/\1`if [ "$i" = tts ]; then \
                                             printf "\1\033[031m"; \
@@ -28,4 +29,3 @@ cat $tempFile
 echo
 echo "Sorted logs are in: $tempFile"
 echo
-

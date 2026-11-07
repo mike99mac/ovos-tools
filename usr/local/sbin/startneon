@@ -40,4 +40,3 @@ if [ ! -d $baseDir ]; then                 # dir not found
 fi
 
 startSystem
-

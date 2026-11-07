@@ -11,4 +11,3 @@ echo
 echo "Running command: $cmd"
 echo
 eval $cmd
-

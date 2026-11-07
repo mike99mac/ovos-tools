@@ -2,16 +2,16 @@
 #
 # grm - short command to search through Minimy python files 
 #
-if [ "$1" = "-h" -o "$1" = "" ]; then        # give help
+if [ "$1" = "-h" -o "$1" = "" ]; then      # give help
   echo "Name : grm search through Minimy python files"
   echo "Usage: grm [-b baseDir ] pattern"
   exit 1
 fi
-if [ $# -gt 0 -a "$1" = "-b" ]; then         # -b baseDir passed in
+if [ $# -gt 0 -a "$1" = "-b" ]; then       # -b baseDir passed in
   baseDir=$2
   shift 2
 else
-  baseDir="$HOME/minimy"
+  baseDir="${SVA_BASE_DIR:-$HOME/minimy}"  # Minimy install directory
 fi
 if [ ! -d $baseDir ]; then
   echo "ERROR: directory $baseDir not found" 

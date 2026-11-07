@@ -95,4 +95,3 @@ fi
 startSystem
 cd $baseDir
 source $HOME/.venvs/ovos/bin/activate 
-

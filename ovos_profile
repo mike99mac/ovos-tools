@@ -14,4 +14,3 @@ export USR="/etc/systemd/user"
 export Z="/usr/local/sbin"
 export DBUS_SESSION_BUS_ADDRESS="/run/user/1000/bus"
 export XDG_RUNTIME_DIR="/run/user/1000"
-

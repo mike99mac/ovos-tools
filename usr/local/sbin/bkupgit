@@ -170,4 +170,3 @@ else
   gitPull                                  # just get deltas
 fi
 doReport
-

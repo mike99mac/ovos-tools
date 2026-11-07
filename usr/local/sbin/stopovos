@@ -16,4 +16,3 @@ else                                       # not expected
   echo "Found OVSO processes:"
   echo "$OVOSprocs"
 fi
-

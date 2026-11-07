@@ -74,4 +74,3 @@ outputType="short"                          # short or long listing
 # main()
 parseArgs $@                                # parse arguments
 listTemp                                    # list temperature
-

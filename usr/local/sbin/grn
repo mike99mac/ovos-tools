@@ -31,4 +31,3 @@ echo "Searching Python files below $localDir ..."
 echo
 cd $localDir
 grep -n "$@"  */*.py  */*/*.py
-

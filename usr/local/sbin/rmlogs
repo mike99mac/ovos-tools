@@ -2,14 +2,15 @@
 #
 # rmlogs - remove minimy/OVOS/neon log files 
 #
-if [ -d $HOME/minimy/logs ]; then          # this is a Minimy box
-  logDir="$HOME/minimy/logs"
+minimyDir="${SVA_BASE_DIR:-$HOME/minimy}"  # Minimy install directory
+if [ -d $minimyDir/logs ]; then          # this is a Minimy box
+  logDir="$minimyDir/logs"
 elif [ -d $HOME/.local/state/neon ]; then  # this is a Neon box
   logDir="$HOME/.local/state/neon"
 elif [ -d $HOME/.local/state/mycroft ]; then # assume OVOS
   logDir="$HOME/.local/state/mycroft"
 else
-  echo "ERROR: no log file directory in $HOME/minimy/logs $HOME/.local/state/neon nor $HOME/.local/state/mycroft"
+  echo "ERROR: no log file directory in $minimyDir/logs, $HOME/.local/state/neon, nor $HOME/.local/state/mycroft"
   exit 1
 fi 
 stat $logDir/*.log >/dev/null 2>&1
@@ -26,4 +27,3 @@ if [ "$1" != "-y" ]; then
 fi  
 echo "Removing log files in $logDir ..."
 sudo rm $logDir/*.log
-

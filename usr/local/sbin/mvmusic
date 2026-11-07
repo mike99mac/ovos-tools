@@ -32,4 +32,3 @@ ssh -T "$tgtBox" << EOF
   sleep 2
   if [ "$seekTime" != 0 ]; then mpc seek $seekTime; fi
 EOF
-

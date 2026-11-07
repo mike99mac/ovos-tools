@@ -174,4 +174,3 @@ fi
 echo "Successfully installed Neon in $min:$sec" | tee -a $logFile
 echo
 echo "Log file: $logFile"
-

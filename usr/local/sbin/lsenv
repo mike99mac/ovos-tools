@@ -345,7 +345,7 @@ function timeSTT
 
   hubScript="/usr/local/sbin/testhub.py"
   spokeScript="/usr/local/sbin/testspoke.py"
-  venv="$HOME/minimy/minimy_venv/bin/python3"
+  venv="$minimyDir/minimy_venv/bin/python3"
   echo "STT speeds:"
   if [ ! -x $hubScript ]; then
     echo "ERROR: did not find executable $hubScript"
@@ -382,7 +382,7 @@ function doIt
     for nextService in neon-admin-enclosure neon-audio neon-bus neon-enclosure neon-gui neon-skills neon-speech; do
       listService $nextService root        # Neon runs as root
     done
-  elif [ -d $HOME/minimy ]; then           # assume Minimy
+  elif [ -d "$minimyDir" ]; then             # assume Minimy
     theType="minimy"
     listMinimy
   elif [ -d $HOME/YAVOS ]; then            # assume YAVOS
@@ -422,8 +422,8 @@ function doIt
     theVersion=`neonver`
     printf "%20s: %s\n" "Neon version" "$theVersion"
   elif [ "$theType" = minimy ]; then
-    if [ -f $HOME/minimy-mike99mac/version ]; then
-      theVersion=`cat $HOME/minimy-mike99mac/version`
+    if [ -f "$minimyDir/version" ]; then
+      theVersion=`cat "$minimyDir/version"`
       printf "%22s: %s\n" "Minimy version" "$theVersion"
     fi
   elif [ "$theType" = ovos ]; then
@@ -464,8 +464,8 @@ function doIt
     tmpfsUsage $HOME/.local/state/mycroft OVOS logs
   elif [ "$theType" = minimy ]; then
     echo "tmpfs filesystems: "
-    tmpfsUsage $HOME/minimy/logs Minimy logs
-    tmpfsUsage $HOME/minimy/tmp Minimy temp dir
+    tmpfsUsage $minimyDir/logs Minimy logs
+    tmpfsUsage $minimyDir/tmp Minimy temp dir
   else
     printf "%23s\n" "tmpfs filesystems:"
   fi
@@ -482,6 +482,7 @@ function doIt
 
 #+--------------------------------------------------------------------------+
 # Global variables
+minimyDir="${SVA_BASE_DIR:-$HOME/minimy}"  # Minimy install directory
 platform="unknown"                         # can be Nvidia or RasPi
 clear="no"                                 # clear the screen first?
 dashes="---------------------------------------"

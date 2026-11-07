@@ -12,4 +12,3 @@ else
 fi
 echo "Files in $logDir:"
 ls -latr $logDir                           # show the log files
-

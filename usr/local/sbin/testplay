@@ -85,4 +85,3 @@ flags=""                                   # flags to pass on
 # main()
 parseArgs $@                               # parse arguments
 doTest                                     # perform the test 
-

@@ -3,4 +3,3 @@
 # age - how old is this system? 
 #
 /bin/ls -l /etc/passwd | awk '{print $6, $7, $8}'
-

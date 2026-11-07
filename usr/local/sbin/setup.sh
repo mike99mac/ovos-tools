@@ -13,4 +13,3 @@ if [ "$rc" != 0 ]; then                  # error
   exit 2
 fi
 echo "Success!  There are new scripts in your /usr/local/sbin/ directory"
-

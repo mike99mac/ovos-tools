@@ -306,4 +306,3 @@ fi
 echo "Successfully installed OVOS in $min:$sec" | tee -a $logFile
 echo
 echo "Log file: $logFile"
-

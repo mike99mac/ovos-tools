@@ -61,7 +61,7 @@ function getPlatform
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  platform=$(cat /proc/device-tree/model | awk '{print $1 " " $2}')
+  platform=$(cat /proc/device-tree/model 2>/dev/null | awk '{print $1 " " $2}')
   if [ "$platform" != "Raspberry Pi" ] && [ "$platform" != "NVIDIA Jetson" ]; then
     echo "WARNING: Only Nvidia Jetson and Raspberry Pi platforms are supported."
   fi
@@ -214,7 +214,7 @@ function installCoreqs
 
   if [ ! -f /etc/vim/vimrc.orig ]; then
     runCmd sudo cp /etc/vim/vimrc /etc/vim/vimrc.orig
-  fi    
+  fi
   echo "Copying vimrc ..." | tee -a "$outFile"
   runCmd sudo cp "$HOME/ovos-tools/vimrc" /etc/vim
   echo
@@ -245,8 +245,8 @@ function installCoreqs
     else
       echo "dtoverlay=hifiberry-dacplus-pro" | sudo tee -a config.txt
     fi
-  fi  
-  
+  fi
+
   # vim - traditional defaults, mouse works
   echo "Removing annoying autoindent from vim ..." | tee -a "$outFile"
   if [ ! -d "$HOME/.vim" ]; then
@@ -258,7 +258,7 @@ function installCoreqs
       echo "set nosmartindent"
       echo "set mouse=r"
     } >> vimrc
-  fi  
+  fi
 
   if [ "$platform" = "Raspberry Pi" ]; then
     echo "Setting pipewire and pipewire-pulse to start at boot time..." | tee -a "$outFile"
@@ -298,6 +298,9 @@ platform="unknown"
 getPlatform
 parseArgs "$@"
 checkOvosTools
+installDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+sudo mkdir -p /usr/local/sbin
+sudo cp --preserve=mode,timestamps "$installDir"/* /usr/local/sbin
 echo "Running install1 on $timeStamp to configure minimy ..." > "$outFile"
 installCoreqs
 let min=$SECONDS/60
@@ -307,4 +310,3 @@ if [ $sec -lt 10 ]; then
 fi
 echo "Successfully installed co-reqs for minimy in $min:$sec" | tee -a "$outFile"
 echo "Log file: $outFile"
-

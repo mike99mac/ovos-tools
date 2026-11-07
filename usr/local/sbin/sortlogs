@@ -2,7 +2,8 @@
 #
 # sortlogs - merge and sort all log files
 #
-logDir="$HOME/minimy/logs"
+minimyDir="${SVA_BASE_DIR:-$HOME/minimy}"  # Minimy install directory
+logDir="$minimyDir/logs"
 if [ ! -d $logDir ]; then                  # log directory not found
   echo "Log directory $logDir does not exist"
   exit 1
@@ -21,4 +22,3 @@ for i in *.log; do                         # copy all log files
 done
 sort $unsortedFile > $sortedFile                   # sort by timestamp
 echo "sorted logs saved to: $sortedFile and $unsortedFile"
-
