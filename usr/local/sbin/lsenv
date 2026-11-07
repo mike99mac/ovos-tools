@@ -124,7 +124,7 @@ function listYAVOS
 
   procs="recognizer.sh recognizer.py arecord stt.py media.py tts.py MsgBus.py http.server audio_out_bus.py"
   for nextProc in $procs; do
-    pgrep -f $nextProc >/dev/null 2>&1
+    pgrep -f "$nextProc" >/dev/null 2>&1
     if [ $? = 0 ]; then                    # process is running
       printf "%22s: \e[32mrunning\e[0m\n" "$nextProc"  # in green
     else
@@ -147,7 +147,6 @@ function listService
   local serviceType=$2
 
   local cmd
-  local status
   local initSystem
   # RED="\e[31m"              print in colors
   # GREEN="\e[32m"
@@ -156,9 +155,9 @@ function listService
   if command -v systemctl &>/dev/null; then # Using systemd
     initSystem="systemd"
     if [ "$serviceType" = root ]; then
-      cmd="/usr/bin/systemctl status $theService"
+      cmd="systemctl status $theService"
     elif [ "$serviceType" = user ]; then
-      cmd="/usr/bin/systemctl --user status $theService"
+      cmd="systemctl --user status $theService"
     else                                   # not expected
       echo "INTERNAL ERROR: serviceType = $serviceType"
       exit 4
@@ -166,9 +165,9 @@ function listService
   elif command -v openrc &>/dev/null; then # Using OpenRC
     initSystem="OpenRC"
     if [ "$serviceType" = root ]; then
-      cmd="/usr/bin/rc-service $theService status"
+      cmd="rc-service $theService status"
     elif [ "$serviceType" = user ]; then
-      cmd="/usr/bin/rc-service --user $theService status"
+      cmd="rc-service --user $theService status"
     else
       echo "INTERNAL ERROR: serviceType = $serviceType"
       exit 4
@@ -181,7 +180,7 @@ function listService
   verboseMsg "Running: $cmd ..."
   cmdOut=`eval $cmd`
   verboseMsg "$cmdOut"
-    if [ $initSystem = "systemd" ]; then
+    if [ "$initSystem" = "systemd" ]; then
     if [ "$serviceType" = "user" ]; then
       if systemctl --user is-active --quiet "$theService" 2>/dev/null; then
         printf '\e[32m%s\e[0m\n' "active (running)"
@@ -195,7 +194,7 @@ function listService
         printf '\e[31m%s\e[0m\n' "inactive (dead)"
       fi
     fi
-  elif [ $initSystem = "OpenRC" ]; then
+  elif [ "$initSystem" = "OpenRC" ]; then
     echo "$cmdOut" | grep "status: started" >/dev/null
     if [ $? = 0 ]; then                      # found "started"
       printf '\e[32m%s\e[0m\n' "active (running)" # in green
@@ -266,7 +265,7 @@ function listTemp
   local tempFile="/sys/class/thermal/thermal_zone0/temp"
   if [ ! -f $tempFile ]; then              # file not found
     echo "ERROR: did not find $tempFile"
-    exit 1
+    return 1
   fi
   local theTemp=`cat /sys/class/thermal/thermal_zone0/temp` # in thousdandths of degrees celcius
   let theTemp=$theTemp/1000                # convert to degrees Celcius
@@ -297,9 +296,9 @@ function tmpfsUsage
   verboseMsg "Calling: mount | grep $theDir | grep tmpfs"
   mount | grep $theDir | grep tmpfs >/dev/null 2>&1
   if [ $? = 0 ]; then                      # directory is using a tmpfs
-    printf "%30s %20s : \e[32m%s\e[0m\n%s" "$theDir" "$desc" yes
+    printf "%30s %20s : \e[32m%s\e[0m\n" "$theDir" "$desc" yes
   else
-    printf "%30s %20s : \e[31m%s\e[0m\n%s" "$theDir" "$desc" no
+    printf "%30s %20s : \e[31m%s\e[0m\n" "$theDir" "$desc" no
   fi
  }                                         # getCPU()
 
@@ -311,23 +310,23 @@ function soundCheck
   : SOURCE: ${BASH_SOURCE}
   : STACK:  ${FUNCNAME[@]}
 
-  spkrs=`aplay -l 2>&1 | grep ^card | head -1`
-  numSpkrs=`echo "$spkrs" | wc -l`
-  spkrsCard=`echo "$spkrs" | awk -F"," '{print $1}'`
-  spkrsDevice=`echo "$spkrs" | awk -F"," '{print $2}' | sed 's/^ //g'`
   mics=`arecord -l 2>&1 | grep ^card | head -1`
-  numMics=`echo "$mics" | wc -l`
-  micsCard=`echo "$mics" | awk -F"," '{print $1}'`
-  micsDevice=`echo "$mics" | awk -F"," '{print $2}' | sed 's/^ //g'`
-  if [ $numMics = 0 ]; then
-    echo "WARNING: no microphones found"
+  if [ -z "$mics" ]; then
+    echo "WARNING: No microphones found"
   else
+    numMics=`echo "$mics" | wc -l`
+    micsCard=`echo "$mics" | awk -F"," '{print $1}'`
+    micsDevice=`echo "$mics" | awk -F"," '{print $2}' | sed 's/^ //g'`
     echo "Mic     : $micsCard"
     echo "          $micsDevice"
   fi
-  if [ $numSpkrs = 0 ]; then
-    echo "WARNING: no speakers found"
+  spkrs=`aplay -l 2>&1 | grep ^card | head -1`
+  if [ -z "$spkrs" ]; then
+    echo "WARNING: No speakers found"
   else
+    numSpkrs=`echo "$spkrs" | wc -l`
+    spkrsCard=`echo "$spkrs" | awk -F"," '{print $1}'`
+    spkrsDevice=`echo "$spkrs" | awk -F"," '{print $2}' | sed 's/^ //g'`
     echo "Speakers: $spkrsCard"
     echo "          $spkrsDevice"
   fi
